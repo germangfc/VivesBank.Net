@@ -3,7 +3,7 @@ using VivesBankApi.Rest.Movimientos.Models;
 
 namespace VivesBankApi.Rest.Movimientos.Repositories;
 
-public interface IMovimientosRepository
+public interface IMovimientoRepository
 {
     Task<List<Movimiento>> GetAllMovimientosAsync();
     Task<Movimiento> GetMovimientoByIdAsync(ObjectId id);

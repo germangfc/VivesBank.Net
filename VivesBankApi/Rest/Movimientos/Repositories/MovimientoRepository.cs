@@ -6,7 +6,7 @@ using VivesBankApi.Rest.Movimientos.Models;
 
 namespace VivesBankApi.Rest.Movimientos.Repositories;
 
-public class MovimientoRepository : IMovimientosRepository
+public class MovimientoRepository : IMovimientoRepository
 {
     private readonly IMongoCollection<Movimiento> _collection;
     private readonly ILogger<MovimientoRepository> _logger;
