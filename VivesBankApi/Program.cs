@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Core;
 using VivesBankApi.Database;
+using VivesBankApi.Rest.Movimientos.Config;
 
 Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -108,8 +109,8 @@ WebApplicationBuilder InitServices()
     /*********************************************************/
     
     /**************** MONGO MOVIMIENTOS DATABASE SETTINGS **************/
-    // myBuilder.Services.Configure<CategoryDatabaseSettings>(
-    //     myBuilder.Configuration.GetSection("MongoDataBase"));
+     myBuilder.Services.Configure<MongoDatabaseConfig>(
+         myBuilder.Configuration.GetSection("MongoDataBase"));
     /*********************************************************/
     
 
