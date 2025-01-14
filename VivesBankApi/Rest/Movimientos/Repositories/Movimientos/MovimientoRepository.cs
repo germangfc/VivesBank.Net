@@ -4,7 +4,7 @@ using MongoDB.Driver;
 using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Models;
 
-namespace VivesBankApi.Rest.Movimientos.Repositories;
+namespace VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 
 public class MovimientoRepository : IMovimientoRepository
 {
@@ -17,6 +17,8 @@ public class MovimientoRepository : IMovimientoRepository
         var database = client.GetDatabase(mongoDatabaseSettings.Value.DatabaseName);
         
         _collection = database.GetCollection<Movimiento>(mongoDatabaseSettings.Value.MovimientosCollectionName);
+
+        _logger = logger;
     }
     public async Task<List<Movimiento>> GetAllMovimientosAsync()
     {

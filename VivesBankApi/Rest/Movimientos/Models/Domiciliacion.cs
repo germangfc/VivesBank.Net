@@ -1,6 +1,9 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using VivesBankApi.utils.GuuidGenerator;
 
 namespace VivesBankApi.Rest.Movimientos.Models;
 
@@ -10,18 +13,23 @@ public class Domiciliacion
     [BsonRepresentation(BsonType.ObjectId)]
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
     
-    public string Guid { get; set; } // = IdGenerator.GenerateGuid();
+    public string Guid { get; set; } = GuuidGenerator.GenerateHash();
 
     public string ClienteGuid { get; set; }
     
+    [Required]
     public string IbanOrigen { get; set; }
     
+    [Required]
     public string IbanDestino { get; set; }
     
+    [Range(1, 10000, ErrorMessage = "La cantidad debe estar entre 1 y 10000")] 
     public decimal Cantidad { get; set; }
     
+    [MaxLength(100, ErrorMessage = "El nombre del acreedor no puede tener más de 100 caracteres")]
     public string NombreAcreedor { get; set; }
     
+    [NotNull]
     public DateTime FechaInicio { get; set; } = DateTime.Now;
     
     [BsonRepresentation(BsonType.String)]

@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using VivesBankApi.Rest.Movimientos.Models;
 
-namespace VivesBankApi.Rest.Movimientos.Repositories;
+namespace VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 
 public interface IMovimientoRepository
 {
