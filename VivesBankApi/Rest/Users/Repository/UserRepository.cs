@@ -1,12 +1,12 @@
 ﻿using ApiFunkosCS.Utils.GenericRepository;
-using VivesBankApi.Rest.Users.Database;
+using VivesBankApi.Database;
 using VivesBankApi.Rest.Users.Models;
 
 namespace VivesBankApi.Rest.Users.Repository;
 
-public class UserRepository : GenericRepository<UserDbContext, User>
+public class UserRepository : GenericRepository<BancoDbContext, User>
 {
-    public UserRepository(UserDbContext context, ILogger<UserRepository> logger) : base(context, logger)
+    public UserRepository(BancoDbContext context, ILogger<UserRepository> logger) : base(context, logger)
     {
     }
 }
