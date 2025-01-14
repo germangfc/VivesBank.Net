@@ -9,6 +9,7 @@ using VivesBankApi.Database;
 using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Repositories;
 using VivesBankApi.Rest.Movimientos.Services;
+using VivesBankApi.Utils.ApiConfig;
 
 Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -115,7 +116,10 @@ WebApplicationBuilder InitServices()
          myBuilder.Configuration.GetSection("MongoDataBase"));
     /*********************************************************/
     
-
+    /**************** API SETTINGS **************/
+        myBuilder.Services.Configure<ApiConfig>(
+            myBuilder.Configuration.GetSection("ApiBasicConfig"));
+    /************************************************/
 
 /**************** INYECCION DE DEPENDENCIAS **************/
 // REPOSITORIO Y SERVICIOS

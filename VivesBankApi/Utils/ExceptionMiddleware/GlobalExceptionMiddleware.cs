@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using VivesBankApi.Rest.Movimientos.Exceptions;
 
 namespace ApiFunkosCS.Utils.ExceptionMiddleware;
 
@@ -32,6 +33,15 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, "Invalid operation.");
                     break;
+                
+                /**************** MOVIMIENTO EXCEPTIONS *****************************************/
+                case MovimientoNotFoundException:
+                    statusCode = HttpStatusCode.NotFound;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                        
+                /********************************************************************************/
                 
                 default:
                     logger.LogError(exception, "An unhandled exception occurred.");
