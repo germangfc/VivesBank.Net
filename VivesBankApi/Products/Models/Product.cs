@@ -5,7 +5,7 @@ using VivesBankApi.utils.GuuidGenerator;
 
 namespace VivesBankApi.Products.Models;
 [Table("Products")]
-public class Products
+public class Product
 {
     [Key]
     public String Id { get; set; }
@@ -22,7 +22,7 @@ public class Products
     [Required]
     public bool IsDeleted { get; set; }= false;
 
-    public Products(String name, Type productType)
+    public Product(String name, Type productType)
     {
         Id = GuuidGenerator.GenerateHash();
         Name = name;
