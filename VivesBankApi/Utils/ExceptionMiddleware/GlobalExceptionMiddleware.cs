@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using VivesBankApi.Rest.Product.Exception;
 
 namespace ApiFunkosCS.Utils.ExceptionMiddleware;
 
@@ -32,6 +33,17 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, "Invalid operation.");
                     break;
+                
+                //////////////////////////////////PRODUCT/////////////////////////////////////
+                
+                case ProductException.ProductNotFoundException:
+                    statusCode = HttpStatusCode.NotFound;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, "Product not found.");
+                    break;
+                
+                //////////////////////////////////////////////////////////////////////////////
+                
                 
                 default:
                     logger.LogError(exception, "An unhandled exception occurred.");

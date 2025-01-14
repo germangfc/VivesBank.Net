@@ -1,8 +1,7 @@
 ﻿using ApiFunkosCS.Utils.GenericRepository;
 using VivesBankApi.Database;
-using VivesBankApi.Products.Models;
+using VivesBankApi.Rest.Product.Models;
 
-namespace VivesBankApi.Products.Repository;
 
 public class ProductRepository : GenericRepository<BancoDbContext,Product>, IProductRepository
 {
