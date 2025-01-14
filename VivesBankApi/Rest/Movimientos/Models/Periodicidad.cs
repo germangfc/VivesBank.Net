@@ -2,5 +2,5 @@
 
 public enum Periodicidad
 {
-    
+    DIARIA, MENSUAL, SEMANAL, ANUAL
 }
