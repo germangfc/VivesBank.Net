@@ -8,6 +8,8 @@ using Serilog.Core;
 using VivesBankApi.Database;
 using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Repositories;
+using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
+using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Movimientos.Services;
 using VivesBankApi.Utils.ApiConfig;
 
@@ -127,7 +129,11 @@ WebApplicationBuilder InitServices()
 // MOVIMIENTO
     myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>(); 
     myBuilder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
-//
+
+    // DOMICILIACION    
+    //myBuilder.Services.AddScoped<IDomiciliacionService, DomiciliacionService>();
+    myBuilder.Services.AddScoped<IDomiciliacionRepository, DomiciliacionRepository>();
+    
 // // CATEGORIA
 //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 //     myBuilder.Services.AddScoped<ICategoryService, CategoryService>();
