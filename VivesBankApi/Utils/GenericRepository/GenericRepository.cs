@@ -21,7 +21,7 @@ public class GenericRepository<C, T> : IGenericRepository<T> where T : class whe
         return await _dbSet.ToListAsync();
     }
 
-    public async Task<T?> GetByIdAsync(int id)
+    public async Task<T?> GetByIdAsync(String id)
     {
         _logger.LogInformation($"Getting {typeof(T).Name} with id {id}");
         return await _dbSet.FindAsync(id);
@@ -42,7 +42,7 @@ public class GenericRepository<C, T> : IGenericRepository<T> where T : class whe
     }
 
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(String id)
     {
         _logger.LogInformation($"Deleting {typeof(T).Name} with id {id}");
         var entity = await GetByIdAsync(id);
