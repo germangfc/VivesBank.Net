@@ -6,6 +6,9 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Core;
 using VivesBankApi.Database;
+using VivesBankApi.Rest.Movimientos.Config;
+using VivesBankApi.Rest.Movimientos.Repositories;
+using VivesBankApi.Rest.Movimientos.Services;
 
 Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -108,8 +111,8 @@ WebApplicationBuilder InitServices()
     /*********************************************************/
     
     /**************** MONGO MOVIMIENTOS DATABASE SETTINGS **************/
-    // myBuilder.Services.Configure<CategoryDatabaseSettings>(
-    //     myBuilder.Configuration.GetSection("MongoDataBase"));
+     myBuilder.Services.Configure<MongoDatabaseConfig>(
+         myBuilder.Configuration.GetSection("MongoDataBase"));
     /*********************************************************/
     
 
@@ -117,9 +120,9 @@ WebApplicationBuilder InitServices()
 /**************** INYECCION DE DEPENDENCIAS **************/
 // REPOSITORIO Y SERVICIOS
 
-// // FUNKO
-//     myBuilder.Services.AddScoped<IFunkoRepository, FunkoRepository>(); 
-//     myBuilder.Services.AddScoped<IFunkoService, FunkoService>();
+// MOVIMIENTO
+    myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>(); 
+    myBuilder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
 //
 // // CATEGORIA
 //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
