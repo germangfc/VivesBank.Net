@@ -5,7 +5,7 @@ using VivesBankApi.utils.GuuidGenerator;
 
 namespace VivesBankApi.Rest.Users.Models;
 
-[Table("User")]
+[Table("Users")]
 public class User
 {
     [Key] 
