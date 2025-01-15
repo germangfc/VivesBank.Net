@@ -1,9 +1,9 @@
 ﻿using ApiFunkosCS.Utils.GenericRepository;
 using Microsoft.EntityFrameworkCore;
 using VivesBankApi.Database;
-using VivesBankApi.Products.BankAccounts.Models;
+using VivesBankApi.Rest.Product.BankAccounts.Models;
 
-namespace VivesBankApi.Products.BankAccounts.Repositories;
+namespace VivesBankApi.Rest.Product.BankAccounts.Repositories;
 
 public class AccountsRepository : GenericRepository<BancoDbContext ,Account>, IAccountsRepository
 {

@@ -1,8 +1,7 @@
 ﻿using ApiFunkosCS.Utils.GenericRepository;
-using VivesBankApi.Products.BankAccounts.Models;
-using VivesBankApi.Rest.Products.BankAccounts.Dto;
+using VivesBankApi.Rest.Product.BankAccounts.Models;
 
-namespace VivesBankApi.Products.BankAccounts.Repositories;
+namespace VivesBankApi.Rest.Product.BankAccounts.Repositories;
 
 public interface IAccountsRepository : IGenericRepository<Account>
 {

@@ -1,19 +1,27 @@
-﻿using VivesBankApi.Products.BankAccounts.Repositories;
-using VivesBankApi.Rest.Products.BankAccounts.Dto;
+﻿using VivesBankApi.Rest.Clients.Repositories;
+using VivesBankApi.Rest.Product.BankAccounts.Dto;
+using VivesBankApi.Rest.Product.BankAccounts.Mappers;
+using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
-using VivesBankApi.Rest.Products.BankAccounts.Mappers;
+using VivesBankApi.Utils.IbanGenerator;
 
-namespace VivesBankApi.Rest.Products.BankAccounts.Services;
+namespace VivesBankApi.Rest.Product.BankAccounts.Services;
 
 public class AccountService : IAccountsService
 {
     private readonly ILogger<AccountService> _logger;
     private readonly IAccountsRepository _accountsRepository;
+    private readonly IClientRepository _clientRepository;
+    private readonly IProductRepository _productRepository;
+    private readonly IbanGenerator _ibanGenerator;
     
-    public AccountService(ILogger<AccountService> logger, IAccountsRepository accountsRepository)
+    public AccountService(ILogger<AccountService> logger, IbanGenerator ibanGenerator,IClientRepository clientRepository,IProductRepository productRepository ,IAccountsRepository accountsRepository)
     {
         _logger = logger;
+        _ibanGenerator = ibanGenerator;
         _accountsRepository = accountsRepository;
+        _clientRepository = clientRepository;
+        _productRepository = productRepository;
     }
     public async Task<List<AccountResponse>> GetAccountsAsync()
     {
@@ -46,9 +54,22 @@ public class AccountService : IAccountsService
         return result.toResponse();
     }
 
-    public Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request)
+    public async Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request)
     {
         _logger.LogInformation($"Creating account for Client {request.ClientId}");
+        if (await _clientRepository.GetByIdAsync(request.ClientId) == null)
+            throw new AccountsExceptions.AccountNotCreatedException();
+        var product = await _productRepository.GetByNameAsync(request.ProductName);
+        if(product == null)
+            throw new AccountsExceptions.AccountNotCreatedException();
+        var productId = product.Id;
+        var Iban = await _ibanGenerator.GenerateUniqueIbanAsync();
+        var account = request.fromDtoRequest();
+        account.ProductId = productId;
+        account.IBAN = Iban;
+        account.Balance = 0;
+        await _accountsRepository.AddAsync(account);
+        return account.toResponse();
     }
 
     public Task DeleteAccountAsync(string id)

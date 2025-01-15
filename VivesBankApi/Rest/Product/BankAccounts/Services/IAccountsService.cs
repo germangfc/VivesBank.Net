@@ -1,6 +1,6 @@
-﻿using VivesBankApi.Rest.Products.BankAccounts.Dto;
+﻿using VivesBankApi.Rest.Product.BankAccounts.Dto;
 
-namespace VivesBankApi.Rest.Products.BankAccounts.Services;
+namespace VivesBankApi.Rest.Product.BankAccounts.Services;
 
 public interface IAccountsService
 {

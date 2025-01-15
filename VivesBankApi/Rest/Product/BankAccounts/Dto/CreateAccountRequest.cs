@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using VivesBankApi.Products.BankAccounts.AccountTypeExtensions;
+using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
 
-namespace VivesBankApi.Rest.Products.BankAccounts.Dto;
+namespace VivesBankApi.Rest.Product.BankAccounts.Dto;
 
 public class CreateAccountRequest
 {

@@ -1,5 +1,4 @@
-﻿namespace VivesBankApi.Products.BankAccounts.AccountTypeExtensions;
-using System.Collections.Generic;
+﻿namespace VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
 
 public static class AccountTypeExtensions
 {
