@@ -4,9 +4,6 @@ using VivesBankApi.Rest.Users.Models;
 
 namespace VivesBankApi.Rest.Users.Repository;
 
-public class IUserRepository : GenericRepository<BancoDbContext, User>
+public interface IUserRepository : IGenericRepository<User>
 {
-    public IUserRepository(BancoDbContext context, ILogger<IUserRepository> logger) : base(context, logger)
-    {
-    }
 }
