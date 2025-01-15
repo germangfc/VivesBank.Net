@@ -8,19 +8,6 @@ class UserMapper
 {
     protected UserMapper(){}
     
-    public static UserResponse ToUser(User user)
-    {
-        return new UserResponse
-        {
-            Id = user.Id,
-            Username = user.Username,
-            Role = user.Role.GetType().Name,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt,
-            IsDeleted = user.IsDeleted
-        };
-    }
-    
     public static UserResponse ToUserResponse(User response)
     {
         return new UserResponse
@@ -58,7 +45,7 @@ class UserMapper
                 case "admin":
                     user.Role = Role.Admin;
                     break;
-                case "auperadmin":
+                case "superadmin":
                     user.Role = Role.SuperAdmin;
                     break;
                 default:
@@ -68,5 +55,27 @@ class UserMapper
         
         user.UpdatedAt = DateTime.Now;
         return user;
+    }
+
+    public static User ToUser(CreateUserRequest request)
+    {
+        User newUser = new User();
+        newUser.Username = request.Username;
+        newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        switch (request.Role.ToLower())
+        {
+            case "user":
+                newUser.Role = Role.User;
+                break;
+            case "admin":
+                newUser.Role = Role.Admin;
+                break;
+            case "superadmin":
+                newUser.Role = Role.SuperAdmin;
+                break;
+            default:
+                throw new InvalidUserException(request.Role);
+        }
+        return newUser;
     }
 }

@@ -25,17 +25,16 @@ public class UserService : IUserService
         return await _userRepository.GetByIdAsync(id);
     }
 
-    public async Task<User> AddUserAsync(User user)
+    public async Task<User> AddUserAsync(CreateUserRequest userRequest)
     {
-        User newUser = user;
-        newUser.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-        User? userWithTheSameUsername = await _userRepository.GetByUsernameAsync(user.Username);
+        User newUser = UserMapper.ToUser(userRequest);
+        User? userWithTheSameUsername = await _userRepository.GetByUsernameAsync(userRequest.Username);
         if (userWithTheSameUsername != null)
         {
-            throw new UserAlreadyExistsException(user.Username);
+            throw new UserAlreadyExistsException(userRequest.Username);
         }
-        await _userRepository.AddAsync(user);
-        return await _userRepository.GetByIdAsync(user.Id);
+        await _userRepository.AddAsync(newUser);
+        return newUser;
     }
 
     public async Task<User?> GetUserByUsernameAsync(string username)
@@ -64,7 +63,7 @@ public class UserService : IUserService
         
         User updatedUser = UserMapper.UpdateUserFromInput(user, userToUpdate);
         await _userRepository.UpdateAsync(updatedUser);
-        return await _userRepository.GetByIdAsync(id);
+        return updatedUser;
     }
 
     public async Task DeleteUserAsync(String id, bool logically)
