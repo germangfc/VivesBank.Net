@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.Json;
-using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 
 namespace ApiFunkosCS.Utils.ExceptionMiddleware;
 
@@ -32,12 +31,6 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, "Invalid operation.");
-                    break;
-                
-                case AccountsExceptions.AccountNotFoundException:
-                    statusCode = HttpStatusCode.NotFound;
-                    errorResponse = new { message = exception.Message };
-                    logger.LogWarning(exception, exception.Message);
                     break;
                 
                 default:

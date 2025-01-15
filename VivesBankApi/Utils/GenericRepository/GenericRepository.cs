@@ -39,6 +39,7 @@ public class GenericRepository<C, T> : IGenericRepository<T> where T : class whe
         _logger.LogInformation($"Updating {typeof(T).Name} entity: {entity}");
         _context.Entry(entity).State = EntityState.Modified; // Cambiamos el estado explícitamente
         await _context.SaveChangesAsync();
+        
     }
 
 
