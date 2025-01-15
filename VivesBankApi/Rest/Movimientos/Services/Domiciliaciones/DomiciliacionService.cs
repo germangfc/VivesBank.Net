@@ -27,7 +27,7 @@ public class DomiciliacionService : IDomiciliacionService
         return await _domiciliacionRepository.GetAllDomiciliacionesAsync();
     }
 
-    public async Task<Domiciliacion> FindDomiciliacionByIdAsync(ObjectId id)
+    public async Task<Domiciliacion> FindDomiciliacionByIdAsync(String id)
     {
         _logger.LogInformation($"Finding movimiento by id: {id}");
         
@@ -50,7 +50,7 @@ public class DomiciliacionService : IDomiciliacionService
         return _apiConfig.Value.BaseEndpoint + "/domiciliaciones/" + domiciliacionAdded.Id;
     }
 
-    public async Task<string> UpdateDomiciliacionAsync(ObjectId id, Domiciliacion domiciliacion)
+    public async Task<string> UpdateDomiciliacionAsync(String id, Domiciliacion domiciliacion)
     {
         _logger.LogInformation($"Updating Domiciliacion {domiciliacion} by id: {id}");
         
@@ -65,7 +65,7 @@ public class DomiciliacionService : IDomiciliacionService
         return _apiConfig.Value.BaseEndpoint + "/domiciliaciones/" + updatedDomiciliacion.Id;
     }
 
-    public async Task<Domiciliacion> DeleteDomiciliacionAsync(ObjectId id)
+    public async Task<Domiciliacion> DeleteDomiciliacionAsync(String id)
     {
         _logger.LogInformation($"Deleting Domiciliacion by id: {id} ");
         

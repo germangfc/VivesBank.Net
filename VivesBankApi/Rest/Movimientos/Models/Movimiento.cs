@@ -9,19 +9,19 @@ public class Movimiento
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+    public string? Id { get; set; } 
 
     public string Guid { get; set; } = GuuidGenerator.GenerateHash();
     
     public string ClienteGuid { get; set; }
     
-    public Domiciliacion Domiciliacion { get; set; }
+    public Domiciliacion? Domiciliacion { get; set; }
     
-    public IngresoDeNomina IngresoDeNomina;
+    public IngresoDeNomina? IngresoDeNomina;
     
-    public PagoConTarjeta PagoConTarjeta;
+    public PagoConTarjeta? PagoConTarjeta;
     
-    public Transferencia Transferencia;
+    public Transferencia? Transferencia;
     
     [JsonPropertyName("createdAt")] 
     public DateTime? CreatedAt { get; set; }
@@ -32,8 +32,8 @@ public class Movimiento
     [JsonPropertyName("isDeleted")] 
     public bool IsDeleted { get; set; } = false;
     
-    [JsonPropertyName("id")]
-    public string Get_Id => Id.ToString(); // equivale a ToHexString, en C# devuelve representación hexadecimal
+    // [JsonPropertyName("id")]
+    // public string Get_Id => Id.ToString(); // equivale a ToHexString, en C# devuelve representación hexadecimal
 
 }
 

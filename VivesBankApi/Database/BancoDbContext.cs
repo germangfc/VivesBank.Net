@@ -2,7 +2,7 @@
 
 namespace VivesBankApi.Database;
 
-public class BancoDbContext : DbContext
+public class BancoDbContext(DbContextOptions<BancoDbContext> options) : DbContext(options)
 {
     
 }
