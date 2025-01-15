@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using VivesBankApi.Rest.Movimientos.Exceptions;
+using VivesBankApi.Rest.Users.Exceptions;
 
 namespace ApiFunkosCS.Utils.ExceptionMiddleware;
 
@@ -27,7 +28,6 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
             // Manejar tipos de excepciones personalizadas
             switch (exception)
             {
-
                 case InvalidOperationException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
@@ -42,6 +42,20 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     logger.LogWarning(exception, exception.Message);
                     break;
                         
+                /********************************************************************************/
+                
+                /**************** USER EXCEPTIONS *****************************************/
+                case UserNotFoundException:
+                    statusCode = HttpStatusCode.NotFound;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                
+                case InvalidUserException:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
                 /********************************************************************************/
                 
                 default:
