@@ -36,6 +36,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 
                 /**************** MOVIMIENTO EXCEPTIONS *****************************************/
                 case MovimientoNotFoundException:
+                case DomiciliacionNotFoundException:
                     statusCode = HttpStatusCode.NotFound;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
