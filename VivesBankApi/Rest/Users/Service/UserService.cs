@@ -28,7 +28,6 @@ public class UserService : IUserService
     public async Task<User> AddUserAsync(CreateUserRequest userRequest)
     {
         User newUser = UserMapper.ToUser(userRequest);
-        newUser.Password = BCrypt.Net.BCrypt.HashPassword(userRequest.Password);
         User? userWithTheSameUsername = await _userRepository.GetByUsernameAsync(userRequest.Username);
         if (userWithTheSameUsername != null)
         {

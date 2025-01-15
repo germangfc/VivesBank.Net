@@ -61,7 +61,7 @@ class UserMapper
     {
         User newUser = new User();
         newUser.Username = request.Username;
-        newUser.Password = request.Password;
+        newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
         switch (request.Role.ToLower())
         {
             case "user":
