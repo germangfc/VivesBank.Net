@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using VivesBankApi.Rest.Movimientos.Exceptions;
-using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
+using VivesBankApi.Rest.Users.Exceptions;
 
 namespace ApiFunkosCS.Utils.ExceptionMiddleware;
 
@@ -28,12 +28,12 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
             // Manejar tipos de excepciones personalizadas
             switch (exception)
             {
-
                 case InvalidOperationException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, "Invalid operation.");
                     break;
+                
                 /**************** MOVIMIENTO EXCEPTIONS *****************************************/
                 case MovimientoNotFoundException:
                 case DomiciliacionNotFoundException:
@@ -42,25 +42,20 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     logger.LogWarning(exception, exception.Message);
                     break;
                         
-                /*****************************ACCOUNTS EXCEPTIONS****************************************/
-                case AccountsExceptions.AccountNotFoundException:
+                /********************************************************************************/
+                
+                /**************** USER EXCEPTIONS *****************************************/
+                case UserNotFoundException:
                     statusCode = HttpStatusCode.NotFound;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;
                 
-                case AccountsExceptions.AccountNotCreatedException:
+                case InvalidUserException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;
-                
-                case AccountsExceptions.AccountIbanNotGeneratedException:
-                    statusCode = HttpStatusCode.BadRequest;
-                    errorResponse = new { message = exception.Message };
-                    logger.LogWarning(exception, exception.Message);
-                    break;
-                
                 /********************************************************************************/
                 
                 default:
