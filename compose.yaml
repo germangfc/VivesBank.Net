@@ -25,7 +25,7 @@
       MONGO_INITDB_DATABASE: "banco"
     volumes:
       - mongo-init:/data/db
-      - ./ApiFunkosCS/initMongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./VivesBankApi/initMongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     ports:
       - "27017:27017"
     networks:

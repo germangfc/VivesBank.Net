@@ -6,8 +6,8 @@ namespace VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
 public interface IDomiciliacionRepository
 {
     Task<List<Domiciliacion>> GetAllDomiciliacionesAsync();
-    Task<Domiciliacion> GetDomiciliacionByIdAsync(ObjectId id);
+    Task<Domiciliacion> GetDomiciliacionByIdAsync(String id);
     Task<Domiciliacion> AddDomiciliacionAsync(Domiciliacion domiciliacion);
-    Task<Domiciliacion> UpdateDomiciliacionAsync(ObjectId id, Domiciliacion domiciliacion);
-    Task<Domiciliacion> DeleteDomiciliacionAsync(ObjectId id);
+    Task<Domiciliacion> UpdateDomiciliacionAsync(String id, Domiciliacion domiciliacion);
+    Task<Domiciliacion> DeleteDomiciliacionAsync(String id);
 }

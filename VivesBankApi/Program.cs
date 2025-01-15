@@ -10,6 +10,7 @@ using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Repositories;
 using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
+using VivesBankApi.Rest.Movimientos.Resolver;
 using VivesBankApi.Rest.Movimientos.Services;
 using VivesBankApi.Rest.Movimientos.Services.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
@@ -179,13 +180,14 @@ WebApplicationBuilder InitServices()
 
 /*************************** GRAPHQL SETTINGS **************/
 
-    // myBuilder.Services
-    //     .AddGraphQLServer()
-    //     .AddQueryType<QueryFunko>()
-    //     .AddQueryType<CategoryQuery>()
-    //     .AddFiltering()
-    //     .AddSorting();
-
+    myBuilder.Services
+        .AddGraphQLServer()
+        .AddQueryType(d => d.Name("Query"))
+        .AddType<MovimientosQuery>()
+        .AddFiltering()
+        .AddSorting();
+       // .AddAuthorizationCore();
+/*********************************************************/
 return myBuilder;
 }
 
