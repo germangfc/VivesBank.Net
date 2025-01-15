@@ -4,7 +4,7 @@ using MongoDB.Driver;
 using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Models;
 
-namespace VivesBankApi.Rest.Movimientos.Repositories;
+namespace VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 
 public class MovimientoRepository : IMovimientoRepository
 {
@@ -17,6 +17,8 @@ public class MovimientoRepository : IMovimientoRepository
         var database = client.GetDatabase(mongoDatabaseSettings.Value.DatabaseName);
         
         _collection = database.GetCollection<Movimiento>(mongoDatabaseSettings.Value.MovimientosCollectionName);
+
+        _logger = logger;
     }
     public async Task<List<Movimiento>> GetAllMovimientosAsync()
     {
@@ -28,6 +30,18 @@ public class MovimientoRepository : IMovimientoRepository
     {
         _logger.LogInformation($"Getting movimiento with id: {id} from the database.");
         return await _collection.Find(m => m.Id == id).FirstOrDefaultAsync();
+    }
+
+    public async Task<Movimiento> GetMovimientoByGuidAsync(string guid)
+    {
+        _logger.LogInformation($"Getting movimiento with guid: {guid} from the database.");
+        return await _collection.Find(m => m.Guid == guid).FirstOrDefaultAsync();
+    }
+
+    public async Task<List<Movimiento>> GetMovimientosByClientAsync(string clienteId)
+    {
+        _logger.LogInformation($"Getting movimientos for client with id: {clienteId} from the database.");
+        return await _collection.Find(m => m.ClienteGuid == clienteId).ToListAsync();
     }
 
     public async Task<Movimiento> AddMovimientoAsync(Movimiento movimiento)
