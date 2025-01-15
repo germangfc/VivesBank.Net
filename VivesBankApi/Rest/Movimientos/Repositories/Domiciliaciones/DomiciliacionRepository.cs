@@ -27,7 +27,7 @@ public class DomiciliacionRepository: IDomiciliacionRepository
         return await _collection.Find(_ => true).ToListAsync();
     }
 
-    public async Task<Domiciliacion> GetDomiciliacionByIdAsync(ObjectId id)
+    public async Task<Domiciliacion> GetDomiciliacionByIdAsync(String id)
     {
         _logger.LogInformation($"Getting domiciliacion with id {id} from the database.");
         return await _collection.Find(d => d.Id == id).FirstOrDefaultAsync();
@@ -40,7 +40,7 @@ public class DomiciliacionRepository: IDomiciliacionRepository
         return domiciliacion;
     }
 
-    public async Task<Domiciliacion> UpdateDomiciliacionAsync(ObjectId id, Domiciliacion domiciliacion)
+    public async Task<Domiciliacion> UpdateDomiciliacionAsync(String id, Domiciliacion domiciliacion)
     {
         _logger.LogInformation($"Updating domiciliacion with id {id} in the database.");
         var updateResult = await _collection.FindOneAndReplaceAsync(
@@ -51,7 +51,7 @@ public class DomiciliacionRepository: IDomiciliacionRepository
         return updateResult;
     }
 
-    public async Task<Domiciliacion> DeleteDomiciliacionAsync(ObjectId id)
+    public async Task<Domiciliacion> DeleteDomiciliacionAsync(String id)
     {
         _logger.LogInformation($"Deleting domiciliacion with id {id} from the database.");
         var deletedDomiciliacion = await _collection.FindOneAndDeleteAsync(d => d.Id == id);

@@ -26,7 +26,7 @@ public class MovimientoRepository : IMovimientoRepository
         return await _collection.Find(_ => true).ToListAsync();
     }
 
-    public async Task<Movimiento> GetMovimientoByIdAsync(ObjectId id)
+    public async Task<Movimiento> GetMovimientoByIdAsync(String id)
     {
         _logger.LogInformation($"Getting movimiento with id: {id} from the database.");
         return await _collection.Find(m => m.Id == id).FirstOrDefaultAsync();
@@ -51,7 +51,7 @@ public class MovimientoRepository : IMovimientoRepository
         return movimiento;
     }
 
-    public async Task<Movimiento> UpdateMovimientoAsync(ObjectId id, Movimiento movimiento)
+    public async Task<Movimiento> UpdateMovimientoAsync(String id, Movimiento movimiento)
     {
         _logger.LogInformation($"Updating movimiento with id: {id} in the database.");
         var updateResult = await _collection.FindOneAndReplaceAsync(
@@ -62,7 +62,7 @@ public class MovimientoRepository : IMovimientoRepository
         return updateResult;
     }
 
-    public async Task<Movimiento> DeleteMovimientoAsync(ObjectId id)
+    public async Task<Movimiento> DeleteMovimientoAsync(String id)
     {
         _logger.LogInformation($"Deleting movimiento with id: {id} from the database.");
         var deletedMovimiento = await _collection.FindOneAndDeleteAsync(m => m.Id == id);

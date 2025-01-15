@@ -2,4 +2,4 @@
 
 namespace VivesBankApi.Rest.Movimientos.Exceptions;
 
-public class DomiciliacionNotFoundException(ObjectId id) : MovimientoException($"Domiciliacion not found with ID {id}");
+public class DomiciliacionNotFoundException(String id) : MovimientoException($"Domiciliacion not found with ID {id}");

@@ -11,7 +11,7 @@ public class Domiciliacion
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+    public String Id { get; set; }
     
     public string Guid { get; set; } = GuuidGenerator.GenerateHash();
 

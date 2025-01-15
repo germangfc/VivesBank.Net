@@ -183,12 +183,10 @@ WebApplicationBuilder InitServices()
     myBuilder.Services
         .AddGraphQLServer()
         .AddQueryType(d => d.Name("Query"))
-            .AddType<MovimientosQuery>()
-        .AddMutationType(d => d.Name("Mutation"))
-            .AddType<MovimientosMutation>()
+        .AddType<MovimientosQuery>()
         .AddFiltering()
-        .AddSorting()
-        .AddAuthorizationCore();
+        .AddSorting();
+       // .AddAuthorizationCore();
 /*********************************************************/
 return myBuilder;
 }

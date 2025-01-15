@@ -7,12 +7,12 @@ namespace VivesBankApi.Rest.Movimientos.Services.Movimientos;
 public interface IMovimientoService
 {
     Task<List<Movimiento>> FindAllMovimientosAsync();
-    Task<Movimiento> FindMovimientoByIdAsync(ObjectId id);
+    Task<Movimiento> FindMovimientoByIdAsync(String id);
     Task<Movimiento> FindMovimientoByGuidAsync(string guid);
     Task<List<Movimiento>> FindAllMovimientosByClientAsync(string clienteId);
     Task<String> AddMovimientoAsync(Movimiento movimiento);
-    Task<String> UpdateMovimientoAsync(ObjectId id, Movimiento movimiento);
-    Task<Movimiento> DeleteMovimientoAsync(ObjectId id);
+    Task<String> UpdateMovimientoAsync(String id, Movimiento movimiento);
+    Task<Movimiento> DeleteMovimientoAsync(String id);
     
     Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion);
     
