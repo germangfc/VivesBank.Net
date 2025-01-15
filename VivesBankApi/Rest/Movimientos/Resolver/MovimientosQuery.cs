@@ -16,50 +16,70 @@ public class MovimientosQuery(IMovimientoService movimientoService)
         public async Task<IQueryable<Movimiento>> GetMovimientos()
         {
             var movimientosList = await movimientoService.FindAllMovimientosAsync();
-            return movimientosList.AsQueryable();
+            return movimientosList.Select(movimiento => new Movimiento
+            {
+                Guid = movimiento.Guid,
+                ClienteGuid = movimiento.ClienteGuid,
+                Domiciliacion = movimiento.Domiciliacion,
+                IngresoDeNomina = movimiento.IngresoDeNomina,
+                PagoConTarjeta = movimiento.PagoConTarjeta,
+                Transferencia = movimiento.Transferencia,
+                CreatedAt = movimiento.CreatedAt,
+                UpdatedAt = movimiento.UpdatedAt
+            }).AsQueryable();
         }
         
         //[Authorize(Policy = "Admin")]
         public async Task<Movimiento> GetMovimientoById(String id)
         {
             var movimiento =  await movimientoService.FindMovimientoByIdAsync(id);
-            return movimiento;
+            return new Movimiento
+            {
+                Guid = movimiento.Guid,
+                ClienteGuid = movimiento.ClienteGuid,
+                Domiciliacion = movimiento.Domiciliacion,
+                IngresoDeNomina = movimiento.IngresoDeNomina,
+                PagoConTarjeta = movimiento.PagoConTarjeta,
+                Transferencia = movimiento.Transferencia,
+                CreatedAt = movimiento.CreatedAt,
+                UpdatedAt = movimiento.UpdatedAt
+            };
         }
         
-        // [UsePaging]
-        // [UseFiltering]
-        // [UseSorting]
-        // [Authorize(Policy = "User")]
-        // public async Task<IQueryable<Movimiento>> GetMovimientosByCliente(string clienteGuid)
-        // {
-        //     var movimientosList = await movimientoService.FindAllMovimientosByClientAsync(clienteGuid);
-        //     return movimientosList.Select(
-        //         movimiento => new Movimiento
-        //         {
-        //             Guid = movimiento.Guid,
-        //             Domiciliacion = movimiento.Domiciliacion,
-        //             IngresoDeNomina = movimiento.IngresoDeNomina,
-        //             PagoConTarjeta = movimiento.PagoConTarjeta,
-        //             Transferencia = movimiento.Transferencia,
-        //             CreatedAt = movimiento.CreatedAt,
-        //             UpdatedAt = movimiento.UpdatedAt
-        //         }
-        //     ).AsQueryable();
-        // }
-        //
-        // [Authorize(Policy = "Admin")]
-        // public async Task<Movimiento> GetMovimientoByGuid(string guid)
-        // {
-        //     var movimiento =  await movimientoService.FindMovimientoByGuidAsync(guid);
-        //     return new Movimiento
-        //     {
-        //         ClienteGuid = movimiento.ClienteGuid,
-        //         Domiciliacion = movimiento.Domiciliacion,
-        //         IngresoDeNomina = movimiento.IngresoDeNomina,
-        //         PagoConTarjeta = movimiento.PagoConTarjeta,
-        //         Transferencia = movimiento.Transferencia,
-        //         CreatedAt = movimiento.CreatedAt,
-        //         UpdatedAt = movimiento.UpdatedAt
-        //     };
-        // }
+        [UsePaging]
+        [UseFiltering]
+        [UseSorting]
+       // [Authorize(Policy = "User")]
+        public async Task<IQueryable<Movimiento>> GetMovimientosByCliente(string clienteGuid)
+        {
+            var movimientosList = await movimientoService.FindAllMovimientosByClientAsync(clienteGuid);
+            return movimientosList.Select(
+                movimiento => new Movimiento
+                {
+                    Guid = movimiento.Guid,
+                    Domiciliacion = movimiento.Domiciliacion,
+                    IngresoDeNomina = movimiento.IngresoDeNomina,
+                    PagoConTarjeta = movimiento.PagoConTarjeta,
+                    Transferencia = movimiento.Transferencia,
+                    CreatedAt = movimiento.CreatedAt,
+                    UpdatedAt = movimiento.UpdatedAt
+                }
+            ).AsQueryable();
+        }
+        
+        //[Authorize(Policy = "Admin")]
+        public async Task<Movimiento> GetMovimientoByGuid(string guid)
+        {
+            var movimiento =  await movimientoService.FindMovimientoByGuidAsync(guid);
+            return new Movimiento
+            {
+                ClienteGuid = movimiento.ClienteGuid,
+                Domiciliacion = movimiento.Domiciliacion,
+                IngresoDeNomina = movimiento.IngresoDeNomina,
+                PagoConTarjeta = movimiento.PagoConTarjeta,
+                Transferencia = movimiento.Transferencia,
+                CreatedAt = movimiento.CreatedAt,
+                UpdatedAt = movimiento.UpdatedAt
+            };
+        }
 }
