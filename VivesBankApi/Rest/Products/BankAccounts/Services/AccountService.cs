@@ -48,8 +48,7 @@ public class AccountService : IAccountsService
 
     public Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request)
     {
-        throw new NotImplementedException();
-        
+        _logger.LogInformation($"Creating account for Client {request.ClientId}");
     }
 
     public Task DeleteAccountAsync(string id)
