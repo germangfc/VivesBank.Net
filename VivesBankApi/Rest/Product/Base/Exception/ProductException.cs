@@ -1,4 +1,4 @@
-﻿namespace VivesBankApi.Rest.Product.Exception;
+﻿namespace VivesBankApi.Rest.Product.Base.Exception;
 
 public class ProductException(string message) : System.Exception(message)
 {

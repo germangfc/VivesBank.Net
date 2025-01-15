@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using VivesBankApi.utils.GuuidGenerator;
 
-namespace VivesBankApi.Rest.Product.Models;
+namespace VivesBankApi.Rest.Product.Base.Models;
 [Table("Products")]
 public class Product
 {

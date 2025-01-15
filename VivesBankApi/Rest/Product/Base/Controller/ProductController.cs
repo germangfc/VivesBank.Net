@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using VivesBankApi.Rest.Product.Dto;
+using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Service;
 
-namespace VivesBankApi.Rest.Product.Controller;
+namespace VivesBankApi.Rest.Product.Base.Controller;
 
 [ApiController]
 [Route("api/[controller]")]

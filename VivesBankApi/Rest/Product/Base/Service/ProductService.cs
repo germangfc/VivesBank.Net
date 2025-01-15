@@ -1,5 +1,6 @@
-﻿using VivesBankApi.Rest.Product.Dto;
-using VivesBankApi.Rest.Product.Exception;
+﻿using VivesBankApi.Rest.Product.Base.Dto;
+using VivesBankApi.Rest.Product.Base.Exception;
+
 namespace VivesBankApi.Rest.Product.Service;
 
 public class ProductService : IProductService

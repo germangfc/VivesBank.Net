@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VivesBankApi.Rest.Product.Dto;
+namespace VivesBankApi.Rest.Product.Base.Dto;
 
 public class ProductResponse
 {

@@ -1,4 +1,4 @@
-﻿using VivesBankApi.Rest.Product.Dto;
+﻿using VivesBankApi.Rest.Product.Base.Dto;
 
 namespace VivesBankApi.Rest.Product.Service;
 

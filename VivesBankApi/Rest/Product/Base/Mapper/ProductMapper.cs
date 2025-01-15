@@ -1,6 +1,6 @@
-﻿using VivesBankApi.Rest.Product.Dto;
-using VivesBankApi.Rest.Product.Exception;
-using VivesBankApi.Rest.Product.Models;
+﻿using VivesBankApi.Rest.Product.Base.Dto;
+using VivesBankApi.Rest.Product.Base.Exception;
+using VivesBankApi.Rest.Product.Base.Models;
 
 
 public static class ProductMapper
