@@ -2,10 +2,10 @@
 using MongoDB.Bson;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
-using VivesBankApi.Rest.Movimientos.Repositories;
+using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Utils.ApiConfig;
 
-namespace VivesBankApi.Rest.Movimientos.Services;
+namespace VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
 public class MovimientoService(IMovimientoRepository movimientoRepository, ILogger<MovimientoService> logger, IOptions<ApiConfig> apiConfig)
     : IMovimientoService
