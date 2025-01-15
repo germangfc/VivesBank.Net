@@ -41,14 +41,14 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddUser([FromBody] User user)
+    public async Task<IActionResult> AddUser([FromBody] CreateUserRequest userRequest)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var createdUser = await _userService.AddUserAsync(user);
+        var createdUser = await _userService.AddUserAsync(userRequest);
         return CreatedAtAction(
             nameof(GetUser), new { id = createdUser.Id }, 
             UserMapper.ToUserResponse(createdUser)
