@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Movimientos.Services;
+using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Repository;
 
@@ -54,6 +55,6 @@ public class MovimientosMutation(IMovimientoService movimientoService, IHttpCont
     private async Task<User> ConvertClaimsPrincipalToUser(ClaimsPrincipal user)
     {
        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-         return await userService.GetByIdAsync(int.Parse(id));
+       return await userService.GetByIdAsync(id);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using HotChocolate.Authorization;
 using MongoDB.Bson;
 using VivesBankApi.Rest.Movimientos.Models;
-using VivesBankApi.Rest.Movimientos.Services;
+using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
 namespace VivesBankApi.Rest.Movimientos.Resolver;
 
