@@ -1,5 +1,4 @@
-﻿using Microsoft.OpenApi.Extensions;
-using VivesBankApi.Rest.Users.Dtos;
+﻿using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Models;
 
@@ -22,6 +21,19 @@ class UserMapper
         };
     }
     
+    public static UserResponse ToUserResponse(User response)
+    {
+        return new UserResponse
+        {
+            Id = response.Id,
+            Username = response.Username,
+            Role = response.Role.GetType().Name,
+            CreatedAt = response.CreatedAt,
+            UpdatedAt = response.UpdatedAt,
+            IsDeleted = response.IsDeleted
+        };
+    }
+    
     public static User UpdateUserFromInput(UserUpdateRequest request, User existingUser)
     {
         User user = existingUser;
@@ -38,15 +50,15 @@ class UserMapper
 
         if (request.Role != null)
         {
-            switch (request.Role)
+            switch (request.Role.ToLower())
             {
-                case "User":
+                case "user":
                     user.Role = Role.User;
                     break;
-                case "Admin":
+                case "admin":
                     user.Role = Role.Admin;
                     break;
-                case "SuperAdmin":
+                case "auperadmin":
                     user.Role = Role.SuperAdmin;
                     break;
                 default:

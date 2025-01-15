@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Users.Dtos;
+using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 
@@ -20,7 +21,11 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetUsers()
     {
         var users = await _userService.GetAllUsersAsync();
-        return Ok(users);
+        return Ok(
+            users.Select(
+                user => UserMapper.ToUserResponse(user)
+            )
+        );
     }
 
     [HttpGet("{id}")]
@@ -32,7 +37,7 @@ public class UserController : ControllerBase
             return NotFound();
         }
 
-        return Ok(user);
+        return Ok(UserMapper.ToUserResponse(user));
     }
 
     [HttpPost]
@@ -44,7 +49,10 @@ public class UserController : ControllerBase
         }
 
         var createdUser = await _userService.AddUserAsync(user);
-        return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
+        return CreatedAtAction(
+            nameof(GetUser), new { id = createdUser.Id }, 
+            UserMapper.ToUserResponse(createdUser)
+        );
     }
 
     [HttpPut("{id}")]
@@ -57,7 +65,7 @@ public class UserController : ControllerBase
 
         var updatedUser = await _userService.UpdateUserAsync(id, user);
 
-        return Ok(updatedUser);
+        return Ok(UserMapper.ToUserResponse(updatedUser));
     }
 
     [HttpDelete("{id}")]
