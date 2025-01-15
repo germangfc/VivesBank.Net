@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
-using VivesBankApi.Rest.Movimientos.Repositories;
-using VivesBankApi.Rest.Users.Models;
+using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Utils.ApiConfig;
 
 namespace VivesBankApi.Rest.Movimientos.Services;
