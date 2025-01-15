@@ -11,7 +11,7 @@ public class Domiciliacion
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public String Id { get; set; }
+    public string? Id { get; set; }
     
     public string Guid { get; set; } = GuuidGenerator.GenerateHash();
 
@@ -39,7 +39,7 @@ public class Domiciliacion
 
     public DateTime UltimaEjecucion { get; set; } = DateTime.Now;
     
-    [JsonPropertyName("id")]
-    public string Get_Id => Id.ToString(); // equivale a ToHexString, en C# devuelve representación hexadecimal
+    // [JsonPropertyName("id")]
+    // public string Get_Id => Id.ToString(); // equivale a ToHexString, en C# devuelve representación hexadecimal
 
 }
