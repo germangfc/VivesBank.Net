@@ -37,6 +37,7 @@ public class User
     [JsonProperty("isDeleted")]
     public bool IsDeleted { get; set; } = false;
 
+    public User() { }
     public User(String username, String password, Role role)
     {
         this.Username = username;

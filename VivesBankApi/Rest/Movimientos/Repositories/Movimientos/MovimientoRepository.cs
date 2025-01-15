@@ -32,6 +32,18 @@ public class MovimientoRepository : IMovimientoRepository
         return await _collection.Find(m => m.Id == id).FirstOrDefaultAsync();
     }
 
+    public async Task<Movimiento> GetMovimientoByGuidAsync(string guid)
+    {
+        _logger.LogInformation($"Getting movimiento with guid: {guid} from the database.");
+        return await _collection.Find(m => m.Guid == guid).FirstOrDefaultAsync();
+    }
+
+    public async Task<List<Movimiento>> GetMovimientosByClientAsync(string clienteId)
+    {
+        _logger.LogInformation($"Getting movimientos for client with id: {clienteId} from the database.");
+        return await _collection.Find(m => m.ClienteGuid == clienteId).ToListAsync();
+    }
+
     public async Task<Movimiento> AddMovimientoAsync(Movimiento movimiento)
     {
         _logger.LogInformation($"Adding new movimiento to the database: {movimiento}");
