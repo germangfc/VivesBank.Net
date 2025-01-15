@@ -1,4 +1,4 @@
-﻿using ApiFunkosCS.Utils.GenericRepository;
+using ApiFunkosCS.Utils.GenericRepository;
 using Microsoft.EntityFrameworkCore;
 using VivesBankApi.Database;
 using VivesBankApi.Rest.Users.Models;
