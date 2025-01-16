@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text.Json;
 using VivesBankApi.Rest.Movimientos.Exceptions;
+using VivesBankApi.Rest.Product.Base.Exception;
+using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Users.Exceptions;
 
 namespace ApiFunkosCS.Utils.ExceptionMiddleware;
@@ -43,6 +45,31 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     break;
                         
                 /********************************************************************************/
+                
+                /**************** PRODUCT EXCEPTIONS *****************************************/
+                case ProductException.ProductNotFoundException:
+                    statusCode = HttpStatusCode.NotFound;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                
+                case ProductException.ProductInvalidTypeException:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                
+                /********************************************************************************/
+                
+                /**************** CREDIT CARD EXCEPTIONS *****************************************/
+                case CreditCardException.CreditCardNotFoundException:
+                    statusCode = HttpStatusCode.NotFound;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                
+                /********************************************************************************/
+
                 
                 /**************** USER EXCEPTIONS *****************************************/
                 case UserNotFoundException:

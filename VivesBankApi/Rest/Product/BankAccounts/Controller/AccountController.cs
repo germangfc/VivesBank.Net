@@ -16,11 +16,14 @@ public class AccountController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AccountResponse>>> GetAccounts()
+    public async Task<IActionResult> GetAllAccounts([FromQuery] int page = 0, [FromQuery] int size = 10, [FromQuery] string sortBy = "id", [FromQuery] string direction = "asc")
     {
-        _logger.LogInformation("Getting all accounts");
-        return await _accountsService.GetAccountsAsync();
+        _logger.LogInformation("Getting all accounts with pagination");
+
+        var response = await _accountsService.GetAccountsAsync(page, size, sortBy, direction);
+        return Ok(response);
     }
+
 
     [HttpGet("{id}")]
     public async Task<ActionResult<AccountResponse>> GetAccountById(string id)
