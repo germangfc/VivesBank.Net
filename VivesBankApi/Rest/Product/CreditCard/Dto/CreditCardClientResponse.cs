@@ -18,7 +18,8 @@ public class CreditCardClientResponse
     [Required]
     public String Cvc { get; set; }
     
-    public JSType.Date ExpirationDate { get; set; }
+    [Required]
+    public String ExpirationDate { get; set; }
 
     
     public DateTime CreatedAt = DateTime.Now;

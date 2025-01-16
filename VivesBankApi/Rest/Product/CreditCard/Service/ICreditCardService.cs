@@ -7,7 +7,7 @@ public interface ICreditCardService
     Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync();
     //Task<List<CreditCardClientResponse>> GetAllCreditCardClientAsync();
     Task<CreditCardAdminResponse?> GetCreditCardByIdAdminAsync(string id);
-    Task<CreditCardClientResponse> CreateProductAsync(CreditCardRequest createRequest);
-    Task<CreditCardClientResponse> UpdateProductAsync(String cardId, CreditCardRequest updateRequest);
-    Task DeleteProductAsync(String cardId);
+    Task<CreditCardClientResponse> CreateCreditCardAsync(CreditCardRequest createRequest);
+    Task<CreditCardClientResponse> UpdateCreditCardAsync(String cardId, CreditCardRequest updateRequest);
+    Task DeleteCreditCardAsync(String cardId);
 }
