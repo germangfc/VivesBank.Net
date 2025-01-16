@@ -32,4 +32,8 @@
         <Using Include="NUnit.Framework"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\VivesBankApi\VivesBankApi.csproj" />
+    </ItemGroup>
+
 </Project>
