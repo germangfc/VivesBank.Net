@@ -188,8 +188,7 @@ WebApplicationBuilder InitServices()
 
     myBuilder.Services
         .AddGraphQLServer()
-        .AddQueryType(d => d.Name("Query"))
-        .AddType<MovimientosQuery>()
+        .AddQueryType<MovimientosQuery>()
         .AddFiltering()
         .AddSorting();
        // .AddAuthorizationCore();

@@ -5,7 +5,6 @@ using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
 namespace VivesBankApi.Rest.Movimientos.Resolver;
 
-[ExtendObjectType(Name = "Query")]
 public class MovimientosQuery(IMovimientoService movimientoService)
 {
 
