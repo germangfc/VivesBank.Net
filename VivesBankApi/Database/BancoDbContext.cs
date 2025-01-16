@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Models;
+using VivesBankApi.Rest.Product.Base.Models;
 using VivesBankApi.Rest.Product.CreditCard.Models;
 using VivesBankApi.Rest.Users.Models;
 

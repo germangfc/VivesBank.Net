@@ -19,7 +19,7 @@ public class estUserService
     public void SetUp()
     {
         userRepositoryMock = new Mock<IUserRepository>();
-        userService = new UserService(userRepositoryMock.Object);
+        //userService = new UserService(userRepositoryMock.Object);
         
         _user1 = new User
         {
