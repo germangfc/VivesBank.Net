@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace VivesBankApi.Rest.Product.CreditCard.Models;
 
@@ -23,7 +22,7 @@ public class CreditCard
     public String Cvc { get; set; }
     
     [Required]
-    public JSType.Date ExpirationDate { get; set; }
+    public DateOnly ExpirationDate { get; set; }
     
     public DateTime CreatedAt = DateTime.Now;
     public DateTime UpdatedAt = DateTime.Now;
