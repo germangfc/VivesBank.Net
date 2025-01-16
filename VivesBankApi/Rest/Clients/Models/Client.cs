@@ -9,7 +9,6 @@ public class Client
     public String FullName { get; set; }
     public String Photo { get; set; }
     public String PhotoDni { get; set; }
-    public List<String> cuentasIds { get; set; }
+    public List<String> CuentasIds { get; set; }
     public String role { get; set; }
-    
 }
