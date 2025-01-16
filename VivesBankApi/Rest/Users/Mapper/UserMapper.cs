@@ -4,9 +4,9 @@ using VivesBankApi.Rest.Users.Models;
 
 namespace VivesBankApi.Rest.Users.Mapper;
 
-class UserMapper
+public class UserMapper
 {
-    protected UserMapper(){}
+    protected  UserMapper(){}
     
     public static UserResponse ToUserResponse(User user)
     {

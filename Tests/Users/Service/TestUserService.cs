@@ -2,6 +2,7 @@
 using NUnit.Framework.Legacy;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
+using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Service;
@@ -20,8 +21,6 @@ public class TestUserService
         userRepositoryMock = new Mock<IUserRepository>();
         userService = new UserService(userRepositoryMock.Object);
         
-
-        // Initialize common test data
         _user1 = new User
         {
             Id = "1",
@@ -50,6 +49,7 @@ public class TestUserService
     {
         // Arrange
         var mockUsers = new List<User> { _user1, _user2 };
+        
         userRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(mockUsers);
 
         // Act
@@ -60,13 +60,11 @@ public class TestUserService
         {
             ClassicAssert.IsNotNull(result);
             ClassicAssert.AreEqual(2, result.Count);
-
-            // Validate first user
+            
             ClassicAssert.AreEqual(_user1.Username, result[0].Username);
             ClassicAssert.AreEqual(_user1.Password, result[0].Password);
             ClassicAssert.AreEqual(_user1.Role, result[0].Role);
-
-            // Validate second user
+            
             ClassicAssert.AreEqual(_user2.Username, result[1].Username);
             ClassicAssert.AreEqual(_user2.Password, result[1].Password);
             ClassicAssert.AreEqual(_user2.Role, result[1].Role);
@@ -113,15 +111,15 @@ public class TestUserService
         userRepositoryMock.Verify(repo => repo.GetByIdAsync("3"), Times.Once);
     }
     
-    /*[Test]
-    public async Task AddUserAsync_ShouldAddUser_WhenUserDoesNotExist()
+    [Test]
+    public async Task AddUserAsync()
     {
         // Arrange
         var userRequest = new CreateUserRequest
         {
-            Username = "User1",
+            Username = "User3",
             Password = "Password123",
-            Role = Role.Admin
+            Role = "Admin"
         };
 
         var newUser = UserMapper.ToUser(userRequest);
@@ -135,10 +133,10 @@ public class TestUserService
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.IsNotNull(result);
-            Assert.AreEqual(newUser.Username, result.Username);
-            Assert.AreEqual(newUser.Password, result.Password);
-            Assert.AreEqual(newUser.Role, result.Role);
+            ClassicAssert.IsNotNull(result);
+            ClassicAssert.AreEqual(newUser.Username, result.Username);
+            ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(userRequest.Password, result.Password), "Password hash does not match");
+            ClassicAssert.AreEqual(newUser.Role, result.Role);
         });
 
         // Verify
@@ -146,15 +144,16 @@ public class TestUserService
         userRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Once);
     }
 
+
     [Test]
-    public void AddUserAsync_ShouldThrowException_WhenUserAlreadyExists()
+    public void AddUserAsync_AlreadyExists()
     {
         // Arrange
         var userRequest = new CreateUserRequest
         {
             Username = "User1",
             Password = "Password123",
-            Role = Role.Admin
+            Role = Role.Admin.ToString()
         };
 
         var existingUser = new User
@@ -176,14 +175,15 @@ public class TestUserService
         // Verify
         userRepositoryMock.Verify(repo => repo.GetByUsernameAsync(userRequest.Username), Times.Once);
         userRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Never);
-    }*/
+    }
 
 
     [Test]
-    public async Task GetUserByUsernameAsync_Exists()
+    public async Task GetUserByUsernameAsync()
     {
         // Arrange
         string username = "User1"; 
+        
         userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(username)).ReturnsAsync(_user1);
 
         // Act
@@ -207,6 +207,7 @@ public class TestUserService
     {
         // Arrange
         string username = "NonExistentUser"; 
+        
         userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(username)).ReturnsAsync((User)null);
 
         // Act
@@ -216,7 +217,7 @@ public class TestUserService
         ClassicAssert.IsNull(result);
 
         // Verify
-        userRepositoryMock.Verify(repo => repo.GetByUsernameAsync(username), Times.Once); // Verifica que se haya llamado al repositorio una vez
+        userRepositoryMock.Verify(repo => repo.GetByUsernameAsync(username), Times.Once);
     }
 
     
@@ -235,8 +236,8 @@ public class TestUserService
         var existingUser = new User
         {
             Id = userId,
-            Username = "ExistingUser",
-            Password = "ExistingPassword",
+            Username = "user1",
+            Password = "Password123",
             Role = Role.Admin
         };
 
@@ -260,7 +261,7 @@ public class TestUserService
         {
             ClassicAssert.IsNotNull(result);
             ClassicAssert.AreEqual(updatedUser.Username, result.Username);
-            ClassicAssert.AreEqual(updatedUser.Password, result.Password);
+            ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(userUpdateRequest.Password, result.Password), "Password hash does not match");
             ClassicAssert.AreEqual(updatedUser.Role, result.Role);
         });
 
@@ -270,12 +271,13 @@ public class TestUserService
         userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Once);
     }
 
+
     
     [Test]
     public async Task UpdateUserAsync_NotExist()
     {
         // Arrange
-        var userId = "aaaaaaa"; 
+        var userId = "999"; 
         var userUpdateRequest = new UserUpdateRequest { Username = "NewUsername" };
     
         userRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<string>())).ReturnsAsync((User)null); 
@@ -288,13 +290,12 @@ public class TestUserService
     }
     
     [Test]
-    public async Task UpdateUserAsync_UserNameIsTakenByAnotherUser()
+    public async Task UpdateUserAsync_UserNameTaken()
     {
         // Arrange
-        var userId = "1"; // ID del usuario
+        var userId = "1"; 
         var userToUpdate = new User { Id = userId, Username = "User1" }; 
         var userUpdateRequest = new UserUpdateRequest { Username = "NewUsername" };
-
         var existingUserSameName = new User { Id = "2", Username = "NewUsername" };
 
         userRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(userToUpdate);
@@ -333,9 +334,11 @@ public class TestUserService
     public async Task DeleteUserAsync_NotExist()
     {
         // Arrange
-        var userId = "aaaaaaaaa";
+        var userId = "999";
+
         userRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<string>())).ReturnsAsync((User)null); 
         
+        // Act & Assert
         var ex = Assert.ThrowsAsync<UserNotFoundException>(async () =>
             await userService.DeleteUserAsync(userId, true)
         );
@@ -348,7 +351,7 @@ public class TestUserService
         // Arrange
         var userId = "1";
         var userToUpdate = new User { Id = userId, Username = "TestUser", IsDeleted = false }; 
-    
+        
         userRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(userToUpdate);
         userRepositoryMock.Setup(repo => repo.DeleteAsync(It.IsAny<string>())).Returns(Task.CompletedTask);
     
