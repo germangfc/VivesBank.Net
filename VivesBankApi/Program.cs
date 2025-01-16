@@ -18,6 +18,7 @@ using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Product.Base.Repository;
+using VivesBankApi.Rest.Product.CreditCard.Service;
 using VivesBankApi.Rest.Product.Service;
 using VivesBankApi.Utils.ApiConfig;
 using VivesBankApi.Utils.IbanGenerator;
@@ -150,6 +151,9 @@ WebApplicationBuilder InitServices()
 //Product
     myBuilder.Services.AddScoped<IProductRepository, ProductRepository>();
     myBuilder.Services.AddScoped<IProductService, ProductService>();
+//Credit Card
+    myBuilder.Services.AddScoped<ICreditCardRepository, CreditCardRepository>();
+    myBuilder.Services.AddScoped<ICreditCardService, CreditCardService>();
     
 // CLIENTE
     myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
