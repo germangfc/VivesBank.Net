@@ -8,6 +8,5 @@ public interface IClientService
     Task<ClientResponse> GetClientByIdAsync(string id);
     Task<ClientResponse> CreateClientAsync(ClientRequest request);
     Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request);
-    Task DeleteClientAsync(string id);
     Task LogicDeleteClientAsync(string id);
 }

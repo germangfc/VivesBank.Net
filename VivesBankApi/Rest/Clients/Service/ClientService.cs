@@ -56,13 +56,7 @@ public class ClientService : IClientService
     }
     
     //TODO UPDATE PHOTO DNI  y Photo Perfil unicamente para el patch
-
-    public Task DeleteClientAsync(string id)
-    {
-        _logger.LogInformation($"Deleting Client with id {id}");
-        return _clientRepository.DeleteAsync(id);
-    }
-
+    
     public async Task LogicDeleteClientAsync(string id)
     {
         _logger.LogInformation($"Setting Client with id {id} to deleted");
