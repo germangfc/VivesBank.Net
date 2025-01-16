@@ -190,6 +190,8 @@ public class DomiciliacionServiceTest
         
         // Assert
         ClassicAssert.IsNotNull(result);
+        ClassicAssert.AreEqual(domiciliacion, result);
+
         _repositoryMock.Verify(repo => repo.DeleteDomiciliacionAsync(id), Times.Once);
     }
 
