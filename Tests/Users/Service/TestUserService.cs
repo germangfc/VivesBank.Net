@@ -8,7 +8,7 @@ using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Service;
 
 [TestFixture]
-public class TestUserService
+public class estUserService
 {
     private Mock<IUserRepository> userRepositoryMock;
     private UserService userService;

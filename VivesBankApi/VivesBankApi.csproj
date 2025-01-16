@@ -34,6 +34,7 @@
         <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
         <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="7.2.0" />
+        <PackageReference Include="TestContainers.Container.Database.PostgreSql" Version="1.5.4" />
     </ItemGroup>
 
     <ItemGroup>
