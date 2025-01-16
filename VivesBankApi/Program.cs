@@ -14,6 +14,8 @@ using VivesBankApi.Rest.Movimientos.Resolver;
 using VivesBankApi.Rest.Movimientos.Services;
 using VivesBankApi.Rest.Movimientos.Services.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
+using VivesBankApi.Rest.Users.Repository;
+using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
 
 Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
@@ -136,6 +138,10 @@ WebApplicationBuilder InitServices()
     // DOMICILIACION    
     myBuilder.Services.AddScoped<IDomiciliacionService, DomiciliacionService>();
     myBuilder.Services.AddScoped<IDomiciliacionRepository, DomiciliacionRepository>();
+    
+    // USERS
+    myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
+    myBuilder.Services.AddScoped<IUserService, UserService>();
     
 // // CATEGORIA
 //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
