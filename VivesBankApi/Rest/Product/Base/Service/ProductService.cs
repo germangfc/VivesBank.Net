@@ -66,9 +66,7 @@ public class ProductService : IProductService
 
         await _productRepository.UpdateAsync(product);
 
-        var response = product.ToDtoResponse();
-
-        return response;
+        return product.ToDtoResponse();
     }
 
     public Task DeleteProductAsync(string productId)

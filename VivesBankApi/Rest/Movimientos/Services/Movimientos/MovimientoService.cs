@@ -39,18 +39,16 @@ public class MovimientoService(IMovimientoRepository movimientoRepository, ILogg
         return await movimientoRepository.GetMovimientosByClientAsync(clienteId);
     }
 
-    public async Task<string> AddMovimientoAsync(Movimiento movimiento)
+    public async Task<Movimiento> AddMovimientoAsync(Movimiento movimiento)
     {
         logger.LogInformation($"Adding movimiento: {movimiento}");
-        var movimientoAdded = await movimientoRepository.AddMovimientoAsync(movimiento);
-        return apiConfig.Value.BaseEndpoint + "/movimientos/" + movimientoAdded.Id;
+        return await movimientoRepository.AddMovimientoAsync(movimiento);
     }
 
-    public async Task<string> UpdateMovimientoAsync(String id, Movimiento movimiento)
+    public async Task<Movimiento> UpdateMovimientoAsync(String id, Movimiento movimiento)
     {
         logger.LogInformation($"Updating movimiento with id: {id}");
-        var movimientoUpdated = await movimientoRepository.UpdateMovimientoAsync(id, movimiento);
-        return apiConfig.Value.BaseEndpoint + "/movimientos/" + movimientoUpdated.Id;
+        return await movimientoRepository.UpdateMovimientoAsync(id, movimiento);
     }
 
     public async Task<Movimiento> DeleteMovimientoAsync(String id)

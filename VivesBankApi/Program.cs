@@ -7,6 +7,7 @@ using Serilog;
 using Serilog.Core;
 using VivesBankApi.Database;
 using VivesBankApi.Rest.Clients.Repositories;
+using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Repositories;
 using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
@@ -18,6 +19,8 @@ using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Product.Base.Repository;
+using VivesBankApi.Rest.Product.CreditCard.Generators;
+using VivesBankApi.Rest.Product.CreditCard.Service;
 using VivesBankApi.Rest.Product.Service;
 using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Service;
@@ -47,7 +50,6 @@ if (app.Environment.IsDevelopment()) // Verifica si el entorno es de desarrollo.
 }
 
 app.ApplyMigrations(); // Aplica las migraciones de la base de datos si es necesario.
-ClearDatabaseOnDevelopment(app.Services);
 
 //StorageInit(); // Inicializa el almacenamiento de archivos
 
@@ -75,29 +77,6 @@ string InitLocalEnvironment()
     Console.WriteLine($"Environment: {myEnvironment}");
     return myEnvironment;
 }
-static void ClearDatabaseOnDevelopment(IServiceProvider serviceProvider)
-{
-    using (var scope = serviceProvider.CreateScope()) // Crea un scope para resolver los servicios scoped
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<BancoDbContext>(); // Obtener el contexto de la base de datos
-        var environment = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>(); // Obtener el entorno de la aplicación
-
-        if (environment.IsDevelopment()) // Verifica si está en modo desarrollo
-        {
-            Console.WriteLine("🚨 El entorno es desarrollo. Limpiando la base de datos...");
-
-            // Se ejecuta el comando SQL para eliminar todas las tablas y datos
-            dbContext.Database.ExecuteSqlRaw("DO $$ BEGIN " +
-                                             "  PERFORM pg_catalog.set_config('search_path', '', false); " +
-                                             "  DROP SCHEMA public CASCADE; " +
-                                             "  CREATE SCHEMA public; " +
-                                             "END $$;");
-            Console.WriteLine("✅ Base de datos limpiada exitosamente.");
-        }
-    }
-}
-
-
 
 IConfiguration InitConfiguration()
 {
@@ -176,14 +155,19 @@ WebApplicationBuilder InitServices()
 //Product
     myBuilder.Services.AddScoped<IProductRepository, ProductRepository>();
     myBuilder.Services.AddScoped<IProductService, ProductService>();
+//Credit Card
+    myBuilder.Services.AddScoped<ICreditCardRepository, CreditCardRepository>();
+    myBuilder.Services.AddScoped<ICreditCardService, CreditCardService>();
+    myBuilder.Services.AddScoped<CvcGenerator>();
+    myBuilder.Services.AddScoped<ExpirationDateGenerator>();
+    myBuilder.Services.AddScoped<NumberGenerator>();
     
 // CLIENTE
-    myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
-    
+    myBuilder.Services.AddScoped<IClientRepository, ClientRepository>();
+    myBuilder.Services.AddScoped<IClientService, ClientService>();
 // User
     myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
     myBuilder.Services.AddScoped<IUserService, UserService>();
-   
 // // CATEGORIA
 //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 //     myBuilder.Services.AddScoped<ICategoryService, CategoryService>();
