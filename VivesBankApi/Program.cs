@@ -5,8 +5,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Core;
+using StackExchange.Redis;
 using VivesBankApi.Database;
 using VivesBankApi.Rest.Clients.Repositories;
+using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Repositories;
 using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
@@ -18,8 +20,11 @@ using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Product.Base.Repository;
+using VivesBankApi.Rest.Product.CreditCard.Generators;
 using VivesBankApi.Rest.Product.CreditCard.Service;
 using VivesBankApi.Rest.Product.Service;
+using VivesBankApi.Rest.Users.Repository;
+using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
 using VivesBankApi.Utils.IbanGenerator;
 
@@ -109,6 +114,11 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddMemoryCache(
         options => options.ExpirationScanFrequency = TimeSpan.FromSeconds(30)
         );
+    
+    /*************************** CACHE REDIS **************/
+    myBuilder.Services.AddSingleton<IConnectionMultiplexer>(
+         ConnectionMultiplexer.Connect(myBuilder.Configuration.GetSection("CacheRedis")["Host"])
+    );
 
     
     /**************** BANCO POSTGRESQL DATABASE SETTINGS **************/
@@ -157,6 +167,18 @@ WebApplicationBuilder InitServices()
     
 // CLIENTE
     myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
+    myBuilder.Services.AddScoped<IClientService, ClientService>();
+    
+// USUARIO
+    myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
+    myBuilder.Services.AddScoped<IUserService, UserService>();
+    
+// CVCGENERATOR
+    myBuilder.Services.AddScoped<CvcGenerator>();
+// EXPIRATION GENERATOR
+    myBuilder.Services.AddScoped<ExpirationDateGenerator>();
+// NUMBER GENERATOR
+    myBuilder.Services.AddScoped<NumberGenerator>();
 // // CATEGORIA
 //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 //     myBuilder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -202,10 +224,10 @@ WebApplicationBuilder InitServices()
 
     myBuilder.Services
         .AddGraphQLServer()
-        .AddQueryType(d => d.Name("Query"))
-        .AddType<MovimientosQuery>()
+        .AddQueryType<MovimientosQuery>()
         .AddFiltering()
-        .AddSorting();
+        .AddSorting()
+        .AddErrorFilter(error => error.WithMessage($"{error.Exception.Message}"));
        // .AddAuthorizationCore();
 /*********************************************************/
 return myBuilder;

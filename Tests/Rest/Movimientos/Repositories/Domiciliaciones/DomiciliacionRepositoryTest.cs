@@ -1,9 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Mongo2Go;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.IdGenerators;
 using MongoDB.Driver;
 using Moq;
 using NUnit.Framework.Legacy;
+using Testcontainers.MongoDb;
 using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
@@ -15,104 +19,133 @@ namespace Tests.Rest.Movimientos.Repositories.Domiciliaciones;
 [TestOf(typeof(DomiciliacionRepository))]
 public class DomiciliacionRepositoryTest
 {
-    private MongoDbRunner _mongoDbRunner;
-    private IMongoDatabase _database;
-    private IMongoCollection<Domiciliacion> _collection;
-    private Mock<ILogger<DomiciliacionRepository>> _mockLogger;
-    private DomiciliacionRepository _repository;
-    private Mock<IOptions<MongoDatabaseConfig>> _mockMongoDatabaseSettings;
-    private readonly string _dataBaseName = "TestDatabase";
+    private MongoDbContainer _mongoDbContainer;
+    private IDomiciliacionRepository _repository;
 
     [SetUp]
-    public void SetUp()
+    public async Task Setup()
     {
-        // Inicializar MongoDB en memoria
-        _mongoDbRunner = MongoDbRunner.Start();
-        
-        // Crear configuración de base de datos en memoria
-        _mockMongoDatabaseSettings = new Mock<IOptions<MongoDatabaseConfig>>();
-        _mockMongoDatabaseSettings.Setup(m => m.Value).Returns(new MongoDatabaseConfig
+        _mongoDbContainer = new MongoDbBuilder()
+            .WithImage("mongo:4.4")
+            .WithPortBinding(27017, true)
+            .Build();
+
+        await _mongoDbContainer.StartAsync();
+
+        var mongoConfig = Options.Create(new MongoDatabaseConfig
         {
-            ConnectionString = _mongoDbRunner.ConnectionString,
-            //DatabaseName = _mongoDbRunner.DatabaseName,
-            DatabaseName = _dataBaseName,
-            DomiciliacionCollectionName = "Domiciliaciones"
+            ConnectionString = _mongoDbContainer.GetConnectionString(),
+            DatabaseName = "testdb",
+            DomiciliacionCollectionName = "domiciliaciones"
         });
 
-        // Conectar a la base de datos en memoria
-        var client = new MongoClient(_mongoDbRunner.ConnectionString);
-        _database = client.GetDatabase(_dataBaseName);
-        _collection = _database.GetCollection<Domiciliacion>("Domiciliaciones");
-
-        // Mock de Logger
-        _mockLogger = new Mock<ILogger<DomiciliacionRepository>>();
-
-        // Crear el repositorio
-        _repository = new DomiciliacionRepository(
-            _mockMongoDatabaseSettings.Object,
-            _mockLogger.Object
-        );
+        _repository = new DomiciliacionRepository(mongoConfig, NullLogger<DomiciliacionRepository>.Instance);
     }
 
-    [TearDown]
-    public void TearDown()
+    [TearDown] // Se ejecuta UNA VEZ después de todos los tests
+    public async Task TearDown()
     {
-        // Detener el servidor en memoria
-        _mongoDbRunner.Dispose();
+            await _mongoDbContainer.StopAsync(); // Detiene el contenedor
+            await _mongoDbContainer.DisposeAsync(); // Libera los recursos
     }
 
     [Test]
-    public async Task GetAllDomiciliacionesAsync_ReturnsListOfDomiciliaciones()
+    public async Task GetAllDomiciliaciones()
     {
-        // Arrange
-        var expectedList = new List<Domiciliacion>
+        var domiciliacion = new Domiciliacion
         {
-            new Domiciliacion { 
-                Guid = GuuidGenerator.GenerateHash(),
-                ClienteGuid = "Cliente1",
-                IbanOrigen = "ES12345678901234567890",
-                IbanDestino = "ES98765432109876543210",
-                Cantidad = 100,
-                NombreAcreedor = "Acreedor1",
-                FechaInicio = new DateTime(2021, 1, 1),
-                Periodicidad = Periodicidad.SEMANAL,
-                Activa = true,
-                UltimaEjecucion = new DateTime(2024, 1, 1)
-            },
-            new Domiciliacion {  
-                Guid = GuuidGenerator.GenerateHash(),
-                ClienteGuid = "Cliente1",
-                IbanOrigen = "ES12345678901234567890",
-                IbanDestino = "ES98765432109876543210",
-                Cantidad = 200,
-                NombreAcreedor = "Acreedor2",
-                FechaInicio = new DateTime(2024, 10, 23),
-                Periodicidad = Periodicidad.ANUAL,
-                Activa = true,
-                UltimaEjecucion = new DateTime(2025, 1, 2)
-            }
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
         };
+        await _repository.AddDomiciliacionAsync(domiciliacion);
+        var domiciliaciones = await _repository.GetAllDomiciliacionesAsync();
 
-        await _collection.InsertManyAsync(expectedList);
+        Assert.That(domiciliaciones, Is.Not.Empty);
+        Assert.That(domiciliaciones.First().Guid, Is.EqualTo(domiciliacion.Guid));
+        Assert.That(domiciliaciones.Count(), Is.EqualTo(1));
+    }
 
-        // Act
-        var result = await _repository.GetAllDomiciliacionesAsync();
-
-        // Assert
-        Assert.Multiple(() =>
+    [Test]
+    public async Task GetDomiciliacionByIdAsync()
+    {
+        var domiciliacion = new Domiciliacion
         {
-            ClassicAssert.IsNotNull(result);
-            ClassicAssert.IsNotEmpty(result);
-            ClassicAssert.AreEqual(expectedList.Count, result.Count);
-            ClassicAssert.AreEqual(expectedList[0].Id, result[0].Id);
-            ClassicAssert.AreEqual(expectedList[1].Id, result[1].Id);
-            ClassicAssert.AreEqual(expectedList[0].Guid, result[0].Guid);
-            ClassicAssert.AreEqual(expectedList[1].Guid, result[1].Guid);
-            ClassicAssert.AreEqual(expectedList[0].ClienteGuid, result[0].ClienteGuid);
-            ClassicAssert.AreEqual(expectedList[1].ClienteGuid, result[1].ClienteGuid);
-            ClassicAssert.AreEqual(expectedList[0].IbanOrigen, result[0].IbanOrigen);
-            ClassicAssert.AreEqual(expectedList[1].IbanOrigen, result[1].IbanOrigen);
-        });
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+        };
+        await _repository.AddDomiciliacionAsync(domiciliacion);
+        var domiciliacionById = await _repository.GetDomiciliacionByIdAsync(domiciliacion.Id);
 
+        Assert.That(domiciliacionById, Is.Not.Null);
+        Assert.That(domiciliacionById.Guid, Is.EqualTo(domiciliacion.Guid));
+
+    }
+    [Test]
+    public async Task GetDomiciliacionByIdAsync_NotFound()
+    {
+        var result = await _repository.GetDomiciliacionByIdAsync(ObjectId.GenerateNewId().ToString());
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    public async Task AddDomiciliacionAsync()
+    {
+        var domiciliacion = new Domiciliacion
+        {
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+        };
+        var result = await _repository.AddDomiciliacionAsync(domiciliacion);
+
+        Assert.That(result.Id, Is.Not.Null);
+        Assert.That(result.Guid, Is.Not.Null);
+        Assert.That(result.ClienteGuid, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task UpdateDomiciliacionAsync()
+    {
+        var domiciliacion = new Domiciliacion
+        {
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+        };
+        await _repository.AddDomiciliacionAsync(domiciliacion);
+        domiciliacion.Guid = "Nueva descripcion";
+        var result = await _repository.UpdateDomiciliacionAsync(domiciliacion.Id, domiciliacion);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo("Nueva descripcion"));
+    }
+    
+    [Test]
+    public async Task UpdateDomiciliacionesAsync_NotFund()
+    {
+        var result = await _repository.UpdateDomiciliacionAsync(ObjectId.GenerateNewId().ToString(), new Domiciliacion());
+        Assert.That(result, Is.Null);
+    }
+    
+    [Test]
+    public async Task DeleteDomiciliacionAsync_NotFound()
+    {
+        var result = await _repository.DeleteDomiciliacionAsync(ObjectId.GenerateNewId().ToString());
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    public async Task DeleteDomiciliacionAsync()
+    {
+        var domiciliacion = new Domiciliacion
+        {
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+        };
+        await _repository.AddDomiciliacionAsync(domiciliacion);
+        var result = await _repository.DeleteDomiciliacionAsync(domiciliacion.Id);
+
+        Assert.That(result, Is.Not.Null);
+        
     }
 }
