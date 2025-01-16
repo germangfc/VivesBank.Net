@@ -1,16 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Mongo2Go;
 using MongoDB.Driver;
 using Moq;
+using NUnit.Framework.Legacy;
 using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
-using NUnit.Framework;
-using MongoDB.Bson;
-using Mongo2Go;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 using VivesBankApi.utils.GuuidGenerator;
 
 namespace Tests.Rest.Movimientos.Repositories.Domiciliaciones;
@@ -71,7 +67,7 @@ public class DomiciliacionRepositoryTest
         // Arrange
         var expectedList = new List<Domiciliacion>
         {
-            new Domiciliacion { Id = "1", 
+            new Domiciliacion { 
                 Guid = GuuidGenerator.GenerateHash(),
                 ClienteGuid = "Cliente1",
                 IbanOrigen = "ES12345678901234567890",
@@ -83,7 +79,7 @@ public class DomiciliacionRepositoryTest
                 Activa = true,
                 UltimaEjecucion = new DateTime(2024, 1, 1)
             },
-            new Domiciliacion { Id = "2", 
+            new Domiciliacion {  
                 Guid = GuuidGenerator.GenerateHash(),
                 ClienteGuid = "Cliente1",
                 IbanOrigen = "ES12345678901234567890",
@@ -103,8 +99,20 @@ public class DomiciliacionRepositoryTest
         var result = await _repository.GetAllDomiciliacionesAsync();
 
         // Assert
-        Assert.AreEqual(2, result.Count);
-        Assert.AreEqual("Domiciliacion1", result[0].Nombre);
-        Assert.AreEqual("Domiciliacion2", result[1].Nombre);
+        Assert.Multiple(() =>
+        {
+            ClassicAssert.IsNotNull(result);
+            ClassicAssert.IsNotEmpty(result);
+            ClassicAssert.AreEqual(expectedList.Count, result.Count);
+            ClassicAssert.AreEqual(expectedList[0].Id, result[0].Id);
+            ClassicAssert.AreEqual(expectedList[1].Id, result[1].Id);
+            ClassicAssert.AreEqual(expectedList[0].Guid, result[0].Guid);
+            ClassicAssert.AreEqual(expectedList[1].Guid, result[1].Guid);
+            ClassicAssert.AreEqual(expectedList[0].ClienteGuid, result[0].ClienteGuid);
+            ClassicAssert.AreEqual(expectedList[1].ClienteGuid, result[1].ClienteGuid);
+            ClassicAssert.AreEqual(expectedList[0].IbanOrigen, result[0].IbanOrigen);
+            ClassicAssert.AreEqual(expectedList[1].IbanOrigen, result[1].IbanOrigen);
+        });
+
     }
 }
