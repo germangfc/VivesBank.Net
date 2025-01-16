@@ -10,8 +10,8 @@ public interface IMovimientoService
     Task<Movimiento> FindMovimientoByIdAsync(String id);
     Task<Movimiento> FindMovimientoByGuidAsync(string guid);
     Task<List<Movimiento>> FindAllMovimientosByClientAsync(string clienteId);
-    Task<String> AddMovimientoAsync(Movimiento movimiento);
-    Task<String> UpdateMovimientoAsync(String id, Movimiento movimiento);
+    Task<Movimiento> AddMovimientoAsync(Movimiento movimiento);
+    Task<Movimiento> UpdateMovimientoAsync(String id, Movimiento movimiento);
     Task<Movimiento> DeleteMovimientoAsync(String id);
     
     Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion);
