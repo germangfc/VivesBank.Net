@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Core;
 using VivesBankApi.Database;
+using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Repositories;
 using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
@@ -14,9 +15,13 @@ using VivesBankApi.Rest.Movimientos.Resolver;
 using VivesBankApi.Rest.Movimientos.Services;
 using VivesBankApi.Rest.Movimientos.Services.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
-using VivesBankApi.Rest.Users.Repository;
-using VivesBankApi.Rest.Users.Service;
+using VivesBankApi.Rest.Product.BankAccounts.Repositories;
+using VivesBankApi.Rest.Product.BankAccounts.Services;
+using VivesBankApi.Rest.Product.Base.Repository;
+using VivesBankApi.Rest.Product.CreditCard.Service;
+using VivesBankApi.Rest.Product.Service;
 using VivesBankApi.Utils.ApiConfig;
+using VivesBankApi.Utils.IbanGenerator;
 
 Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -139,10 +144,19 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IDomiciliacionService, DomiciliacionService>();
     myBuilder.Services.AddScoped<IDomiciliacionRepository, DomiciliacionRepository>();
     
-    // USERS
-    myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
-    myBuilder.Services.AddScoped<IUserService, UserService>();
+//CUENTAS    
+    myBuilder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
+    myBuilder.Services.AddScoped<IAccountsService, AccountService>();
+    myBuilder.Services.AddScoped<IbanGenerator>();
+//Product
+    myBuilder.Services.AddScoped<IProductRepository, ProductRepository>();
+    myBuilder.Services.AddScoped<IProductService, ProductService>();
+//Credit Card
+    myBuilder.Services.AddScoped<ICreditCardRepository, CreditCardRepository>();
+    myBuilder.Services.AddScoped<ICreditCardService, CreditCardService>();
     
+// CLIENTE
+    myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
 // // CATEGORIA
 //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 //     myBuilder.Services.AddScoped<ICategoryService, CategoryService>();
