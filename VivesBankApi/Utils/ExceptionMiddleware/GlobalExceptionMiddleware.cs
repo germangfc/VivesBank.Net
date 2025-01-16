@@ -56,6 +56,12 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;
+                
+                case UserAlreadyExistsException:
+                    statusCode = HttpStatusCode.Conflict;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
                 /********************************************************************************/
                 
                 default:

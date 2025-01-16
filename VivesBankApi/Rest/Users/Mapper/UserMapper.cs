@@ -49,7 +49,7 @@ public class UserMapper
                     user.Role = Role.SuperAdmin;
                     break;
                 default:
-                    throw new InvalidUserException(request.Role);
+                    throw new InvalidUserException($"The role {request.Role} is not valid");
             } 
         }
         
@@ -74,7 +74,7 @@ public class UserMapper
                 newUser.Role = Role.SuperAdmin;
                 break;
             default:
-                throw new InvalidUserException(request.Role);
+                throw new InvalidUserException($"The role {request.Role} is not valid");
         }
         return newUser;
     }

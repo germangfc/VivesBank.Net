@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Core;
+using StackExchange.Redis;
 using VivesBankApi.Database;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Clients.Service;
@@ -110,6 +111,11 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddMemoryCache(
         options => options.ExpirationScanFrequency = TimeSpan.FromSeconds(30)
         );
+    
+    /*************************** CACHE REDIS **************/
+    myBuilder.Services.AddSingleton<IConnectionMultiplexer>(
+         ConnectionMultiplexer.Connect(myBuilder.Configuration.GetSection("CacheRedis")["Host"])
+    );
 
     
     /**************** BANCO POSTGRESQL DATABASE SETTINGS **************/
