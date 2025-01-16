@@ -23,11 +23,36 @@ public class AccountService : IAccountsService
         _clientRepository = clientRepository;
         _productRepository = productRepository;
     }
-    public async Task<List<AccountResponse>> GetAccountsAsync()
+    public async Task<PageResponse<AccountResponse>> GetAccountsAsync(int pageNumber = 0, int pageSize = 10, string sortBy = "id", string direction = "asc")
     {
-        _logger.LogInformation("Getting all accounts");
-        var res = await _accountsRepository.GetAllAsync();
-        return res.Select(a => a.toResponse()).ToList();
+        _logger.LogInformation("Getting all accounts with pagination");
+        
+        var pagedAccounts = await _accountsRepository.GetAllPagedAsync(pageNumber, pageSize);
+        
+        var accountResponses = pagedAccounts.Select(a => a.toResponse()).ToList();
+        
+        var response = new PageResponse<AccountResponse>
+        {
+            Content = accountResponses,
+            TotalPages = pagedAccounts.PageCount,
+            TotalElements = pagedAccounts.TotalCount,
+            PageSize = pagedAccounts.PageSize,
+            PageNumber = pagedAccounts.PageNumber,
+            TotalPageElements = pagedAccounts.Count,
+            Empty = pagedAccounts.Count == 0,
+            First = pagedAccounts.IsFirstPage,
+            Last = pagedAccounts.IsLastPage,
+            SortBy = sortBy,
+            Direction = direction
+        };
+
+        return response;
+    }
+
+
+    public Task<List<AccountResponse>> GetAccountsAsync()
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<AccountResponse> GetAccountByIdAsync(string id)
