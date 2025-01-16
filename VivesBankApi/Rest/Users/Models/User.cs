@@ -19,8 +19,6 @@ public class User
     public String Username { get; set; }
     
     [Required]
-    [MinLength(8)]
-    [MaxLength(50)]
     [JsonProperty("password")]
     public String Password { get; set; }
     
@@ -29,10 +27,10 @@ public class User
     public Role Role { get; set; }
     
     [JsonProperty("createdAt")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.Now.ToUniversalTime();
     
     [JsonProperty("updatedAt")]
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.Now.ToUniversalTime();
     
     [JsonProperty("isDeleted")]
     public bool IsDeleted { get; set; } = false;

@@ -8,16 +8,16 @@ class UserMapper
 {
     protected UserMapper(){}
     
-    public static UserResponse ToUserResponse(User response)
+    public static UserResponse ToUserResponse(User user)
     {
         return new UserResponse
         {
-            Id = response.Id,
-            Username = response.Username,
-            Role = response.Role.GetType().Name,
-            CreatedAt = response.CreatedAt,
-            UpdatedAt = response.UpdatedAt,
-            IsDeleted = response.IsDeleted
+            Id = user.Id,
+            Username = user.Username,
+            Role = user.Role.ToString(),
+            CreatedAt = user.CreatedAt.ToLocalTime(),
+            UpdatedAt = user.UpdatedAt.ToLocalTime(),
+            IsDeleted = user.IsDeleted
         };
     }
     
@@ -53,7 +53,7 @@ class UserMapper
             } 
         }
         
-        user.UpdatedAt = DateTime.Now;
+        user.UpdatedAt = DateTime.Now.ToUniversalTime();
         return user;
     }
 
