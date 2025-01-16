@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Mapper;
-using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 
 namespace VivesBankApi.Rest.Users.Controller;
