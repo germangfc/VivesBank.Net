@@ -20,6 +20,19 @@ public class GenericRepository<C, T> : IGenericRepository<T> where T : class whe
         _logger.LogInformation($"Getting all {typeof(T).Name}s");
         return await _dbSet.ToListAsync();
     }
+    public async Task<PagedList<T>> GetAllPagedAsync(int pageNumber, int pageSize)
+    {
+        var query = _dbSet.AsQueryable();
+        
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip(pageNumber * pageSize) 
+            .Take(pageSize)             
+            .ToListAsync();
+
+        return new PagedList<T>(items, totalCount, pageNumber, pageSize);
+    }
 
     public async Task<T?> GetByIdAsync(String id)
     {
