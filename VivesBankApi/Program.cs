@@ -19,8 +19,11 @@ using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Product.Base.Repository;
+using VivesBankApi.Rest.Product.CreditCard.Generators;
 using VivesBankApi.Rest.Product.CreditCard.Service;
 using VivesBankApi.Rest.Product.Service;
+using VivesBankApi.Rest.Users.Repository;
+using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
 using VivesBankApi.Utils.IbanGenerator;
 
@@ -155,10 +158,16 @@ WebApplicationBuilder InitServices()
 //Credit Card
     myBuilder.Services.AddScoped<ICreditCardRepository, CreditCardRepository>();
     myBuilder.Services.AddScoped<ICreditCardService, CreditCardService>();
+    myBuilder.Services.AddScoped<CvcGenerator>();
+    myBuilder.Services.AddScoped<ExpirationDateGenerator>();
+    myBuilder.Services.AddScoped<NumberGenerator>();
     
 // CLIENTE
-    myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
+    myBuilder.Services.AddScoped<IClientRepository, ClientRepository>();
     myBuilder.Services.AddScoped<IClientService, ClientService>();
+// User
+    myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
+    myBuilder.Services.AddScoped<IUserService, UserService>();
 // // CATEGORIA
 //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 //     myBuilder.Services.AddScoped<ICategoryService, CategoryService>();

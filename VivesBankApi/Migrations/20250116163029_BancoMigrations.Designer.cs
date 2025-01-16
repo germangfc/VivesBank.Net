@@ -13,7 +13,7 @@ using VivesBankApi.Database;
 namespace VivesBankApi.Migrations
 {
     [DbContext(typeof(BancoDbContext))]
-    [Migration("20250116122711_BancoMigrations")]
+    [Migration("20250116163029_BancoMigrations")]
     partial class BancoMigrations
     {
         /// <inheritdoc />
@@ -31,9 +31,20 @@ namespace VivesBankApi.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
+                    b.PrimitiveCollection<List<string>>("AccountsIds")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("Adress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Photo")
                         .IsRequired()
@@ -46,10 +57,6 @@ namespace VivesBankApi.Migrations
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.PrimitiveCollection<List<string>>("cuentasIds")
-                        .IsRequired()
-                        .HasColumnType("text[]");
 
                     b.Property<string>("role")
                         .IsRequired()
@@ -95,6 +102,33 @@ namespace VivesBankApi.Migrations
                     b.ToTable("BankAccounts");
                 });
 
+            modelBuilder.Entity("VivesBankApi.Rest.Product.Base.Models.Product", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("ProductType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Products");
+                });
+
             modelBuilder.Entity("VivesBankApi.Rest.Users.Models.User", b =>
                 {
                     b.Property<string>("Id")
@@ -108,8 +142,7 @@ namespace VivesBankApi.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("text");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
