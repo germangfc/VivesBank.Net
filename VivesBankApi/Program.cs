@@ -20,8 +20,11 @@ using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Product.Base.Repository;
+using VivesBankApi.Rest.Product.CreditCard.Generators;
 using VivesBankApi.Rest.Product.CreditCard.Service;
 using VivesBankApi.Rest.Product.Service;
+using VivesBankApi.Rest.Users.Repository;
+using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
 using VivesBankApi.Utils.IbanGenerator;
 
@@ -165,6 +168,17 @@ WebApplicationBuilder InitServices()
 // CLIENTE
     myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
     myBuilder.Services.AddScoped<IClientService, ClientService>();
+    
+// USUARIO
+    myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
+    myBuilder.Services.AddScoped<IUserService, UserService>();
+    
+// CVCGENERATOR
+    myBuilder.Services.AddScoped<CvcGenerator>();
+// EXPIRATION GENERATOR
+    myBuilder.Services.AddScoped<ExpirationDateGenerator>();
+// NUMBER GENERATOR
+    myBuilder.Services.AddScoped<NumberGenerator>();
 // // CATEGORIA
 //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 //     myBuilder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -212,7 +226,8 @@ WebApplicationBuilder InitServices()
         .AddGraphQLServer()
         .AddQueryType<MovimientosQuery>()
         .AddFiltering()
-        .AddSorting();
+        .AddSorting()
+        .AddErrorFilter(error => error.WithMessage($"{error.Exception.Message}"));
        // .AddAuthorizationCore();
 /*********************************************************/
 return myBuilder;

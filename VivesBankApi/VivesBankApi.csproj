@@ -14,8 +14,8 @@
         <PackageReference Include="HotChocolate.AspNetCore" Version="15.0.0-p.21" />
         <PackageReference Include="HotChocolate.Authorization" Version="15.0.0-p.21" />
         <PackageReference Include="HotChocolate.Data.EntityFramework" Version="15.0.0-p.21" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

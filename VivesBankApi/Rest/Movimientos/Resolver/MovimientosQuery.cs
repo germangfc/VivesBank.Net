@@ -1,5 +1,7 @@
 ﻿using HotChocolate.Authorization;
 using MongoDB.Bson;
+using VivesBankApi.Rest.Movimientos.Errors;
+using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
@@ -32,6 +34,7 @@ public class MovimientosQuery(IMovimientoService movimientoService)
         public async Task<Movimiento> GetMovimientoById(String id)
         {
             var movimiento =  await movimientoService.FindMovimientoByIdAsync(id);
+            if (movimiento == null) throw new GraphQLException(new MovimientoNotFoundError(id));
             return new Movimiento
             {
                 Guid = movimiento.Guid,
@@ -45,9 +48,9 @@ public class MovimientosQuery(IMovimientoService movimientoService)
             };
         }
         
-        [UsePaging]
-        [UseFiltering]
-        [UseSorting]
+        // [UsePaging]
+        // [UseFiltering]
+        // [UseSorting]
        // [Authorize(Policy = "User")]
         public async Task<IQueryable<Movimiento>> GetMovimientosByCliente(string clienteGuid)
         {
@@ -70,6 +73,7 @@ public class MovimientosQuery(IMovimientoService movimientoService)
         public async Task<Movimiento> GetMovimientoByGuid(string guid)
         {
             var movimiento =  await movimientoService.FindMovimientoByGuidAsync(guid);
+            if (movimiento == null) throw new GraphQLException(new MovimientoNotFoundError(guid));
             return new Movimiento
             {
                 ClienteGuid = movimiento.ClienteGuid,
