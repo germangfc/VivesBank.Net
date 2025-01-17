@@ -6,7 +6,7 @@ public class ProductResponse
 {
 
     [Required]
-    public Guid Id { get; set; }
+    public String Id { get; set; }
     
     [Required]
     [MaxLength(100)]
