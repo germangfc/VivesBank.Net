@@ -1,3 +1,4 @@
+using ApiFranfurkt.Properties.Currency.Exceptions;
 using ApiFranfurkt.Properties.Currency.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,13 +21,32 @@ public class CurrencyController : ControllerBase
         [FromQuery] string baseCurrency = "EUR",
         [FromQuery] string? symbols = null)
     {
-        var targetCurrencies = symbols ?? string.Empty;
-        
-        var apiResponse = await _currencyApiService.GetLatestRatesAsync(baseCurrency, amount);
-        
-        var exchangeRateResponse = apiResponse.Content;
-        
-        return Ok(exchangeRateResponse);
-    }
+        try
+        {
+            var targetCurrencies = symbols ?? string.Empty;
 
+            var apiResponse = await _currencyApiService.GetLatestRatesAsync(baseCurrency, targetCurrencies);
+
+            if (!apiResponse.IsSuccessStatusCode || apiResponse.Content == null)
+            {
+                return NotFound("Exchange rates not found for the given parameters.");
+            }
+
+            var exchangeRateResponse = apiResponse.Content;
+
+            return Ok(exchangeRateResponse);
+        }
+        catch (CurrencyEmptyResponseException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (CurrencyUnexpectedException ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+        }
+    }
 }

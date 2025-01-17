@@ -1,4 +1,4 @@
-
+using ApiFranfurkt.Properties.Currency.Services;
 using Refit;
 
 namespace ApiFrankfurt.Configuration;
@@ -24,16 +24,6 @@ public static class CurrencyRefitConfig
             });
     }
 }
-    
-public interface ICurrencyApiService
-{
-    [Get("/api/v1/currency/latest")]
-    Task<ApiResponse<ExchangeRateResponse>> GetLatestRatesAsync(
-        [Refit.Query] string baseCurrency,
-        [Refit.Query] string symbols,
-        [Refit.Query] string amount
-    );
-}   
 
 public class ExchangeRateResponse
 {
