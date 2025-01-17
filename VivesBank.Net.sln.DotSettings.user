@@ -25,5 +25,9 @@
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Controller.AccountContollerTest.GetAccountById_ShouldReturnAccount_WhenAccountExists&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Controller.AccountContollerTest.GetAccountById_ShouldReturnNotFound&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Controller.AccountContollerTest.GetAccountByIban_ShouldReturnAccountByIban&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Controller.AccountContollerTest.GetAccountByIban_ShouldReturnNotFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Controller.AccountContollerTest.CreateAccount_ShouldCreateAccount&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Controller.AccountContollerTest.DeleteById_Should_Logically_Delete&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Controller.AccountContollerTest.DeleteById_Should_Return_NotFound&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

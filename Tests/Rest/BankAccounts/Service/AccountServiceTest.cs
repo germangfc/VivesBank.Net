@@ -87,11 +87,9 @@ public class AccountServiceTest
     public void GetAccountByClientIdAsync_ShouldThrowAccountNotFoundException_WhenNoAccountsFound()
     {
         var id = "NotFound";
-        // Configuración: El repositorio devuelve null
         _accountRepository.Setup(r => r.getAccountByClientIdAsync(It.IsAny<string>()))
             .ReturnsAsync((List<Account>)null);
-
-        // Acción y Aserción
+        
         var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotFoundException>(async () =>
             await _accountService.GetAccountByClientIdAsync(id));
 

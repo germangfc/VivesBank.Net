@@ -35,11 +35,9 @@ public class AccountContollerTest
     [SetUp]
     public void SetUp()
     {
-        // Crear mocks para las dependencias
         _mockAccountsService = new Mock<IAccountsService>();
         _mockLogger = new Mock<ILogger<AccountController>>();
-
-        // Crear una instancia del controlador con dependencias simuladas
+        
         _accountController = new AccountController(_mockAccountsService.Object, _mockLogger.Object);
     }
     
@@ -59,17 +57,16 @@ public class AccountContollerTest
     [Test]
     public async Task GetAccountById_ShouldReturnNotFound()
     {
-        _mockAccountsService.Setup(service => service.GetAccountByIdAsync(It.Is<string>(id => id == account.Id)))
-            .ThrowsAsync(new AccountsExceptions.AccountNotFoundException(account.Id));  // Lanzamos la excepción para simular una cuenta no encontrada
+        _mockAccountsService
+            .Setup(service => service.GetAccountByIdAsync(It.IsAny<string>()))
+            .ThrowsAsync(new AccountsExceptions.AccountNotFoundException("TkjPO5u_2w"));
+        
+        var result = await _accountController.GetAccountById("TkjPO5u_2w");
 
-        // Act
-        var result = await _accountController.GetAccountById(account.Id);
-
-        // Assert
-        var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult, Is.Not.Null);  // Verifica que el resultado es NotFound
-        Assert.That(notFoundResult.StatusCode, Is.EqualTo(404));  // Verifica que el código de estado es 404
-        Assert.That(notFoundResult.Value, Is.Not.Null);
+        
+        var notFoundResult = result.Result as NotFoundResult;
+        Assert.That(notFoundResult, Is.Not.Null);
+        Assert.That(notFoundResult.StatusCode, Is.EqualTo(404));
     }
 
     [Test]
@@ -84,4 +81,69 @@ public class AccountContollerTest
         Assert.That(okResult, Is.Not.Null);
         Assert.That(okResult.Value, Is.EqualTo(_expectedAccountResponse));
     }
+
+    [Test]
+    public async Task GetAccountByIban_ShouldReturnNotFound()
+    {
+        var id = "notfound";
+        _mockAccountsService.Setup(service => service.GetAccountByIbanAsync(It.IsAny<string>()))
+            .ThrowsAsync(new AccountsExceptions.AccountNotFoundByIban(id));
+        
+        var result = await _accountController.GetAccountByIban(id);
+        
+        var notFoundResult = result.Result as NotFoundResult;
+        Assert.That(notFoundResult, Is.Not.Null);
+        Assert.That(notFoundResult.StatusCode, Is.EqualTo(404));
+    }
+
+    [Test]
+    public async Task CreateAccount_ShouldCreateAccount()
+    {
+        var request = new CreateAccountRequest
+        {
+            ClientId = "Q5hsVJ2-oQ",
+            ProductName = "guay",
+            AccountType = AccountType.STANDARD
+        };
+        var response = new AccountResponse
+        {
+            AccountType = AccountType.STANDARD,
+            IBAN = "ES9121000418450200051332"
+        };
+        
+        _mockAccountsService.Setup(service => service.CreateAccountAsync(It.Is<CreateAccountRequest>(r =>r.ClientId == request.ClientId)))
+           .ReturnsAsync(response);
+        
+        var result = await _accountController.CreateAccount(request);
+        
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult.StatusCode, Is.EqualTo(200));
+        Assert.That(okResult.Value, Is.EqualTo(response));
+    }
+
+    [Test]
+    public async Task DeleteById_Should_Logically_Delete()
+    {
+        _mockAccountsService.Setup(service => service.DeleteAccountAsync(It.Is<string>(id => id == account.Id))).Returns(Task.CompletedTask);
+        
+        await _accountController.DeleteAccount(account.Id);
+        
+        _mockAccountsService.Verify(service => service.DeleteAccountAsync(account.Id), Times.Once);
+    }
+
+    [Test]
+    public async Task DeleteById_Should_Return_NotFound()
+    {
+        _mockAccountsService.Setup(service => service.DeleteAccountAsync(It.IsAny<string>()))
+           .ThrowsAsync(new AccountsExceptions.AccountNotFoundException("TkjPO5u_2w"));
+        
+        var result = await _accountController.DeleteAccount("TkjPO5u_2w");
+        
+        var notFoundResult = result as NotFoundResult;
+        Assert.That(notFoundResult, Is.Not.Null);
+        Assert.That(notFoundResult.StatusCode, Is.EqualTo(404));
+    }
+    
+    
 }
