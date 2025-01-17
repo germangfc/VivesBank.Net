@@ -9,6 +9,7 @@ public static class ProductMapper
     {
         return new ProductResponse
         {
+            Id = product.Id,
             Name = product.Name,
             Type = product.ProductType.ToString(),
             CreatedAt = product.CreatedAt.ToString(),

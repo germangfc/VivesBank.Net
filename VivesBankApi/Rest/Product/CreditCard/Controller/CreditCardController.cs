@@ -10,10 +10,10 @@ namespace VivesBankApi.Rest.Product.CreditCard.Controller;
 [Route("api/[controller]")]
 public class CreditCardController : ControllerBase
 {
-    private readonly CreditCardService _creditCardService;
+    private readonly ICreditCardService _creditCardService;
     private readonly ILogger _logger;
 
-    public CreditCardController(CreditCardService creditCardService, ILogger<CreditCardController> logger)
+    public CreditCardController(ICreditCardService creditCardService, ILogger<CreditCardController> logger)
     {
         _creditCardService = creditCardService;
         _logger = logger;
@@ -48,7 +48,7 @@ public class CreditCardController : ControllerBase
 
     [HttpPut("{cardId}")]
     public async Task<ActionResult<CreditCardClientResponse>> UpdateCardAsync(string cardId,
-        CreditCardRequest updateRequest)
+        CreditCardUpdateRequest updateRequest)
     {
         _logger.LogInformation($"Updating card with id {cardId}");
         var result = await _creditCardService.UpdateCreditCardAsync(cardId, updateRequest);

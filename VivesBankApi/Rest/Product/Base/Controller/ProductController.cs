@@ -9,10 +9,10 @@ namespace VivesBankApi.Rest.Product.Base.Controller;
 [Route("api/[controller]")]
 public class ProductController : ControllerBase
 {
-    private readonly ProductService _productService;
+    private readonly IProductService _productService;
     private readonly ILogger _logger;
     
-    public ProductController(ProductService productService, ILogger<ProductController> logger)
+    public ProductController(IProductService productService, ILogger<ProductController> logger)
     {
         _productService = productService;
         _logger = logger;

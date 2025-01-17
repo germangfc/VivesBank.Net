@@ -5,6 +5,7 @@ namespace VivesBankApi.Rest.Product.BankAccounts.Dto;
 
 public class AccountResponse
 {
+    public String Id { get; set; }
     [Required(ErrorMessage = "The IBAN of the account must be specified")]
     public string IBAN { get; set; }
     [Required(ErrorMessage = "The id of the client who owns the account must be specified")]

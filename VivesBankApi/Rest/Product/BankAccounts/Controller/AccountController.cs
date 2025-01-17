@@ -32,7 +32,7 @@ public class AccountController : ControllerBase
         return await _accountsService.GetAccountByIdAsync(id);
     }
 
-    [HttpGet("iban/{id}")]
+    [HttpGet("iban/{iban}")]
     public async Task<ActionResult<AccountResponse>> GetAccountByIban(String iban)
     {
         _logger.LogInformation($"Getting account with IBAN {iban}");
@@ -46,7 +46,7 @@ public class AccountController : ControllerBase
         return await _accountsService.CreateAccountAsync(request);
     }
 
-    [HttpDelete]
+    [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAccount(string id)
     {
         _logger.LogInformation($"Deleting account with id {id}");

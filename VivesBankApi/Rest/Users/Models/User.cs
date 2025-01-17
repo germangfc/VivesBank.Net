@@ -27,10 +27,10 @@ public class User
     public Role Role { get; set; }
     
     [JsonProperty("createdAt")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now.ToUniversalTime();
-    
-    [JsonProperty("updatedAt")]
-    public DateTime UpdatedAt { get; set; } = DateTime.Now.ToUniversalTime();
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [JsonProperty("updatedAt")] 
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow; 
     
     [JsonProperty("isDeleted")]
     public bool IsDeleted { get; set; } = false;

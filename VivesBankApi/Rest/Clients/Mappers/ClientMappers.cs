@@ -28,6 +28,9 @@ public static class ClientMappers
             FullName = createRequest.FullName,
             UserId = createRequest.UserId,
             Adress = createRequest.Address,
+            PhotoDni = createRequest.PhotoDni,
+            Photo = createRequest.Photo,
+            role = "User",
             IsDeleted = false
         };
     }

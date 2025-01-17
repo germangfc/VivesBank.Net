@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using VivesBankApi.utils.GuuidGenerator;
 
 namespace VivesBankApi.Rest.Product.CreditCard.Models;
 
 [Table("CreditCards")]
 public class CreditCard
 {
-    [Key]
-    public String Id { get; set; }
+    [Key] public String Id { get; set; } = GuuidGenerator.GenerateHash();
     
     [Required]
     public String AccountId { get; set; }
