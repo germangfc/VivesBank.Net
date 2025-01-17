@@ -1,3 +1,4 @@
+using System.Data;
 using System.Text;
 using ApiFranfurkt.Properties.Currency.Services;
 using ApiFunkosCS.Utils.DevApplyMigrations;
@@ -46,13 +47,13 @@ builder.Services.AddEndpointsApiExplorer(); // Agrega servicios para explorar lo
 
 var app = builder.Build(); // Construye la aplicación web a partir del WebApplicationBuilder.
 
+app.ApplyMigrations(); // Aplica las migraciones de la base de datos si es necesario.
 if (app.Environment.IsDevelopment()) // Verifica si el entorno es de desarrollo.
 {
+    DropDatabaseTables(app.Services);
     app.UseSwagger(); // Habilita Swagger para generar documentación de la API.
     app.UseSwaggerUI(); // Habilita Swagger UI para explorar y probar la API visualmente.
 }
-
-app.ApplyMigrations(); // Aplica las migraciones de la base de datos si es necesario.
 
 //StorageInit(); // Inicializa el almacenamiento de archivos
 
@@ -72,6 +73,28 @@ logger.Information("🚀 Banco API started 🟢"); // Registra un mensaje inform
 Console.WriteLine("🚀 Banco API started 🟢"); // Muestra un mensaje en la consola indicando que la API ha iniciado.
 
 app.Run(); // Inicia la aplicación y comienza a escuchar las solicitudes HTTP entrantes.
+static void DropDatabaseTables(IServiceProvider serviceProvider)
+{
+    using var scope = serviceProvider.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<BancoDbContext>();
+
+    if (context.Database.IsRelational())
+    {
+        // Obtén la lista de tablas de la base de datos
+        var tables = context.Database.GetDbConnection()
+            .GetSchema("Tables")
+            .Rows.Cast<DataRow>()
+            .Select(row => row["TABLE_NAME"].ToString())
+            .ToList();
+
+        using var command = context.Database.GetDbConnection().CreateCommand();
+        foreach (var table in tables)
+        {
+            command.CommandText = $"DROP TABLE IF EXISTS \"{table}\" CASCADE;";
+            command.ExecuteNonQuery();
+        }
+    }
+}
 
 string InitLocalEnvironment()
 {
