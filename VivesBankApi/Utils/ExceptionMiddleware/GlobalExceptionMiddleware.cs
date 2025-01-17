@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using VivesBankApi.Rest.Movimientos.Exceptions;
+using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Exceptions;
 
 namespace ApiFunkosCS.Utils.ExceptionMiddleware;
@@ -56,7 +57,27 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;
-                /********************************************************************************/
+                /************************** ACCOUNT EXCEPTIONS *****************************************************/
+                case AccountsExceptions.AccountNotFoundException:
+                    statusCode = HttpStatusCode.NotFound;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                case AccountsExceptions.AccountNotCreatedException:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                case AccountsExceptions.AccountNotFoundByIban:
+                    statusCode = HttpStatusCode.NotFound;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                case AccountsExceptions.AccountIbanNotGeneratedException:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
                 
                 default:
                     logger.LogError(exception, "An unhandled exception occurred.");

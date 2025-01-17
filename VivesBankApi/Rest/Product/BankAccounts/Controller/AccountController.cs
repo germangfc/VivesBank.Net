@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 
@@ -29,14 +30,16 @@ public class AccountController : ControllerBase
     public async Task<ActionResult<AccountResponse>> GetAccountById(string id)
     {
         _logger.LogInformation($"Getting account with id {id}");
-        return await _accountsService.GetAccountByIdAsync(id);
+        var account =  await _accountsService.GetAccountByIdAsync(id);
+        return Ok(account);
     }
 
     [HttpGet("iban/{id}")]
     public async Task<ActionResult<AccountResponse>> GetAccountByIban(String iban)
     {
         _logger.LogInformation($"Getting account with IBAN {iban}");
-        return await _accountsService.GetAccountByIbanAsync(iban);
+        var account =  await _accountsService.GetAccountByIbanAsync(iban);
+        return Ok(account);
     }
 
     [HttpPost]
