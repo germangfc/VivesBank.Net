@@ -8,6 +8,7 @@ using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
+using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Utils.ApiConfig;
 using VivesBankApi.utils.GuuidGenerator;
 
@@ -73,7 +74,7 @@ public class MovimientoServiceTest
     }
     
     [Test]
-    public async Task FindDomiciliacionByIdAsyncOk()
+    public async Task FindMovimientoByIdAsyncOk()
     {
         
         // Arrange
@@ -88,6 +89,7 @@ public class MovimientoServiceTest
         // Assert
         ClassicAssert.IsNotNull(result);
         ClassicAssert.AreEqual(movimiento.Guid, result.Guid);
+        
         _repositoryMock.Verify(repo => repo.GetMovimientoByIdAsync(id), Times.Once);
     }
     
@@ -103,7 +105,7 @@ public class MovimientoServiceTest
             await _movimientoService.FindMovimientoByIdAsync(id));
         
         // Assert
-        ClassicAssert.AreEqual(ex.Message, $"Movimiento not found with ID {id}");
+        ClassicAssert.AreEqual(ex.Message, $"No se encontro el movimiento con el ID/Guid {id}");
         
         _repositoryMock.Verify(repo => repo.GetMovimientoByIdAsync(id), Times.Once);
     }
@@ -143,20 +145,19 @@ public class MovimientoServiceTest
     }
 
     [Test]
-    public void UpdateMovimientoAsyncIdNotFound()
+    public async Task UpdateMovimientoAsyncIdNotFound()
     {
         // Arrange
         const string id = "xxx";
         var updatedMovimiento = _expectedMovimientoList.First();
-        _repositoryMock.Setup(repo => repo.UpdateMovimientoAsync(id, updatedMovimiento))
+        _repositoryMock.Setup(repo => repo.UpdateMovimientoAsync(id, updatedMovimiento))!
             .ReturnsAsync((Movimiento)null);
         
         // Act & Assert
-        var ex = Assert.ThrowsAsync<MovimientoNotFoundException>(async () => 
-            await _movimientoService.UpdateMovimientoAsync(id, updatedMovimiento));
+        var result = await _movimientoService.UpdateMovimientoAsync(id, updatedMovimiento);
         
         // Assert
-        ClassicAssert.AreEqual(ex.Message, $"Movimiento not found with ID {id}");
+        ClassicAssert.IsNull(result);
         
         _repositoryMock.Verify(repo => repo.UpdateMovimientoAsync(id, updatedMovimiento), Times.Once);
     }
@@ -180,19 +181,137 @@ public class MovimientoServiceTest
     }
 
     [Test]
-    public void DeleteMovimientoAsyncIdNotFound()
+    public async Task DeleteMovimientoAsyncIdNotFound()
     {
         // Arrange
-        const string id = "invalidId";
-        _repositoryMock.Setup(repo => repo.DeleteMovimientoAsync(id)).ReturnsAsync((Movimiento)null);
+        const string id = "xxx";
+        _repositoryMock.Setup(repo => repo.DeleteMovimientoAsync(id))!.ReturnsAsync((Movimiento)null!);
         
         // Act & Assert
-        var ex = Assert.ThrowsAsync<MovimientoNotFoundException>(async () => await _movimientoService.DeleteMovimientoAsync(id));
+        var result = await _movimientoService.DeleteMovimientoAsync(id);
         
         // Assert
-        ClassicAssert.AreEqual(ex.Message, $"Movimiento not found with ID {id}");
+        ClassicAssert.IsNull(result);
         
         _repositoryMock.Verify(repo => repo.DeleteMovimientoAsync(id), Times.Once);
+    }
+
+    [Test]
+    public async Task FindMovimientoByGuidAsyncOk()
+    {
+        // Arrange
+        const string guid = "G1";
+        var expectedMovimiento = _expectedMovimientoList.First();
+    
+        _repositoryMock.Setup(repo => repo.GetMovimientoByGuidAsync(guid))
+            .ReturnsAsync(expectedMovimiento);  // Simulamos que el repositorio devuelve el movimiento esperado
+
+        // Act
+        var result = await _movimientoService.FindMovimientoByGuidAsync(guid);
+
+        // Assert
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.AreEqual(expectedMovimiento.Guid, result.Guid);
+        
+        _repositoryMock.Verify(repo => repo.GetMovimientoByGuidAsync(guid), Times.Once);
+    }
+
+    [Test]
+    public async Task FindMovimientoByGuidAsyncNotFound()
+    {
+        // Arrange
+        const string guid = "xxx"; 
+        _repositoryMock.Setup(repo => repo.GetMovimientoByGuidAsync(guid))!
+            .ReturnsAsync((Movimiento)null!);  
+    
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<MovimientoNotFoundException>(async () => 
+            await _movimientoService.FindMovimientoByGuidAsync(guid));
+        
+        // Assert
+        ClassicAssert.AreEqual(ex.Message, $"No se encontro el movimiento con el ID/Guid {guid}");
+        
+        _repositoryMock.Verify(repo => repo.GetMovimientoByGuidAsync(guid), Times.Once);
+    }
+
+    [Test]
+    public async Task FindAllMovimientosByClientAsyncOk()
+    {
+        // Arrange
+        const string clienteId = "1";  
+        _repositoryMock.Setup(repo => repo.GetMovimientosByClientAsync(clienteId))
+            .ReturnsAsync(_expectedMovimientoList);  
+
+        // Act
+        var result = await _movimientoService.FindAllMovimientosByClientAsync(clienteId);
+
+        // Assert
+        ClassicAssert.AreEqual(_expectedMovimientoList, result);  
+        
+        _repositoryMock.Verify(repo => repo.GetMovimientosByClientAsync(clienteId), Times.Once);
+    }
+    
+    [Test]
+    public async Task FindAllMovimientosByClientAsyncEmptyList()
+    {
+        // Arrange
+        const string clienteId = "10";  
+        var expectedEmptyList = new List<Movimiento>();  
+
+        _repositoryMock.Setup(repo => repo.GetMovimientosByClientAsync(clienteId))
+            .ReturnsAsync(expectedEmptyList);
+
+        // Act
+        var result = await _movimientoService.FindAllMovimientosByClientAsync(clienteId);
+
+        // Assert
+        ClassicAssert.AreEqual(expectedEmptyList, result);
+        
+        _repositoryMock.Verify(repo => repo.GetMovimientosByClientAsync(clienteId), Times.Once);
+        
+    }
+
+
+    
+    
+    
+    [Test]
+    public void AddDomiciliacionAsyncNotImplementedException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<NotImplementedException>(async () => 
+            await _movimientoService.AddDomiciliacionAsync(new User(), new Domiciliacion()));
+    }
+    
+    [Test]
+    public async Task AddIngresoDeNominaAsyncNotImplementedException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<NotImplementedException>(async () => 
+            await _movimientoService.AddIngresoDeNominaAsync(new User(), new IngresoDeNomina()));
+    }
+    
+    [Test]
+    public async Task AddPagoConTarjetaAsyncNotImplementedException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<NotImplementedException>(async () => 
+            await _movimientoService.AddPagoConTarjetaAsync(new User(), new PagoConTarjeta()));
+    }
+
+    [Test]
+    public async Task AddTransferenciaAsyncNotImplementedException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<NotImplementedException>(async () => 
+            await _movimientoService.AddTransferenciaAsync(new User(), new Transferencia()));
+    }
+    [Test]
+    public async Task RevocarTransferenciaNotImplementedException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<NotImplementedException>(async () => 
+            await _movimientoService.RevocarTransferencia(new User(), "some-guid"));
     }
 
 }

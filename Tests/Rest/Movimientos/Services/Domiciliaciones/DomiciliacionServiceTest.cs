@@ -164,7 +164,7 @@ public class DomiciliacionServiceTest
         // Arrange
         const string id = "xxx";
         var updatedDomiciliacion = _expectedDomiciliacionList.First();
-        _repositoryMock.Setup(repo => repo.UpdateDomiciliacionAsync(id, updatedDomiciliacion))
+        _repositoryMock.Setup(repo => repo.UpdateDomiciliacionAsync(id, updatedDomiciliacion))!
             .ReturnsAsync((Domiciliacion)null);
         
         // Act & Assert
@@ -200,7 +200,7 @@ public class DomiciliacionServiceTest
     {
         // Arrange
         const string id = "invalidId";
-        _repositoryMock.Setup(repo => repo.DeleteDomiciliacionAsync(id)).ReturnsAsync((Domiciliacion)null);
+        _repositoryMock.Setup(repo => repo.DeleteDomiciliacionAsync(id))!.ReturnsAsync((Domiciliacion)null!);
         
         // Act & Assert
         var ex = Assert.ThrowsAsync<DomiciliacionNotFoundException>(async () => await _domiciliacionService.DeleteDomiciliacionAsync(id));
