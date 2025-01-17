@@ -34,14 +34,6 @@ public class CurrencyApiService : ICurrencyApiService
         // Verificar si la llamada fue exitosa
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"API returned non-success status code: {response.StatusCode}");
-            if (response.Content != null)
-            {
-                // Convertimos el contenido de la respuesta a String si es necesario para el log
-                var errorContent = response.Content.ToString();
-                _logger.LogError($"API Response Content: {errorContent}");
-            }
-
             throw new CurrencyConnectionException(
                 $"Error connecting to API. Status code: {(int)response.StatusCode} ({response.StatusCode})");
         }
