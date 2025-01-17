@@ -1,10 +1,13 @@
 using System.Text;
+using ApiFranfurkt.Properties.Currency.Services;
 using ApiFunkosCS.Utils.DevApplyMigrations;
 using ApiFunkosCS.Utils.ExceptionMiddleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Refit;
 using Serilog;
 using Serilog.Core;
+using StackExchange.Redis;
 using VivesBankApi.Database;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Clients.Service;
@@ -113,6 +116,11 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddMemoryCache(
         options => options.ExpirationScanFrequency = TimeSpan.FromSeconds(30)
         );
+    
+    /*************************** CACHE REDIS **************/
+    myBuilder.Services.AddSingleton<IConnectionMultiplexer>(
+         ConnectionMultiplexer.Connect(myBuilder.Configuration.GetSection("CacheRedis")["Host"])
+    );
 
     
     /**************** BANCO POSTGRESQL DATABASE SETTINGS **************/
@@ -158,16 +166,39 @@ WebApplicationBuilder InitServices()
 //Credit Card
     myBuilder.Services.AddScoped<ICreditCardRepository, CreditCardRepository>();
     myBuilder.Services.AddScoped<ICreditCardService, CreditCardService>();
-    myBuilder.Services.AddScoped<CvcGenerator>();
-    myBuilder.Services.AddScoped<ExpirationDateGenerator>();
-    myBuilder.Services.AddScoped<NumberGenerator>();
     
 // CLIENTE
-    myBuilder.Services.AddScoped<IClientRepository, ClientRepository>();
+    myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
     myBuilder.Services.AddScoped<IClientService, ClientService>();
-// User
+    
+// USUARIO
     myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
     myBuilder.Services.AddScoped<IUserService, UserService>();
+    
+// API FRANKFURTER 
+    string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
+    if (string.IsNullOrEmpty(frankfurterBaseUrl))
+    {
+        throw new InvalidOperationException("Frankfurter BaseUrl is not configured.");
+    }
+
+// Registro del cliente HTTP con Refit
+    myBuilder.Services.AddRefitClient<ICurrencyApiService>()
+        .ConfigureHttpClient(client =>
+        {
+            client.BaseAddress = new Uri(frankfurterBaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30); 
+        });
+    
+    myBuilder.Services.AddScoped<CurrencyApiService>();
+    
+    
+// CVCGENERATOR
+    myBuilder.Services.AddScoped<CvcGenerator>();
+// EXPIRATION GENERATOR
+    myBuilder.Services.AddScoped<ExpirationDateGenerator>();
+// NUMBER GENERATOR
+    myBuilder.Services.AddScoped<NumberGenerator>();
 // // CATEGORIA
 //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 //     myBuilder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -213,10 +244,10 @@ WebApplicationBuilder InitServices()
 
     myBuilder.Services
         .AddGraphQLServer()
-        .AddQueryType(d => d.Name("Query"))
-        .AddType<MovimientosQuery>()
+        .AddQueryType<MovimientosQuery>()
         .AddFiltering()
-        .AddSorting();
+        .AddSorting()
+        .AddErrorFilter(error => error.WithMessage($"{error.Exception.Message}"));
        // .AddAuthorizationCore();
 /*********************************************************/
 return myBuilder;

@@ -1,18 +1,18 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
+using VivesBankApi.utils.GuuidGenerator;
 
 namespace VivesBankApi.Rest.Product.BankAccounts.Models;
 [Table("BankAccounts")]
 public class Account
 {
-    [Key]
-    public String Id { get; set; }
+    [Key] public String Id { get; set; } = GuuidGenerator.GenerateHash();
     [Required]
     public String ProductId { get; set; }
     [Required]
     public String ClientId { get; set; }
-    [Required]
+    
     public String? TarjetaId { get; set; }
     [Required]
     public String IBAN { get; set; }

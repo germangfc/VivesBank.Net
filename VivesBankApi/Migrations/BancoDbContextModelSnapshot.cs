@@ -91,7 +91,6 @@ namespace VivesBankApi.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("TarjetaId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -124,6 +123,38 @@ namespace VivesBankApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("VivesBankApi.Rest.Product.CreditCard.Models.CreditCard", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AccountId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CardNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Cvc")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("ExpirationDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Pin")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CreditCards");
                 });
 
             modelBuilder.Entity("VivesBankApi.Rest.Users.Models.User", b =>

@@ -2,7 +2,7 @@
 
 public class InvalidUserException : UserException
 {
-    public InvalidUserException(String role) : base($"The role {role} is not valid")
+    public InvalidUserException(String message) : base(message)
     {
     }
 }

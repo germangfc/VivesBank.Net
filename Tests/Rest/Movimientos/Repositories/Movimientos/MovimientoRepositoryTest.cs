@@ -16,7 +16,7 @@ public class MovimientoRepositoryTest
     private MongoDbContainer _mongoDbContainer;
     private IMovimientoRepository _repository;
     
-    [OneTimeSetUp]  // Se ejecuta UNA VEZ antes de todos los tests
+    [SetUp]  // Se ejecuta UNA VEZ antes de todos los tests
     public async Task GlobalSetup()
     {
         _mongoDbContainer = new MongoDbBuilder()
@@ -36,7 +36,7 @@ public class MovimientoRepositoryTest
         _repository = new MovimientoRepository(mongoConfig, NullLogger<MovimientoRepository>.Instance);
     }
 
-    [OneTimeTearDown]  // Se ejecuta UNA VEZ después de todos los tests
+    [TearDown]  // Se ejecuta UNA VEZ después de todos los tests
     public async Task GlobalTeardown()
     {
         if (_mongoDbContainer != null)
@@ -83,6 +83,16 @@ public class MovimientoRepositoryTest
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Id, Is.EqualTo(movimiento.Id));
     }
+
+    [Test]
+    public async Task GetMovimientoByIdAsync_NotFound()
+    {
+        // Act
+        var result = await _repository.GetMovimientoByIdAsync(ObjectId.GenerateNewId().ToString());
+
+        // Assert
+        Assert.That(result, Is.Null);
+    }
     
     [Test]
     public async Task GetMovimientoByGuidAsync()
@@ -101,6 +111,16 @@ public class MovimientoRepositoryTest
         // Assert
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Id, Is.EqualTo(movimiento.Id));
+    }
+    
+    [Test]
+    public async Task GetMovimientoByGuidAsync_NotFound()
+    {
+        // Act
+        var result = await _repository.GetMovimientoByGuidAsync(Guid.NewGuid().ToString());
+
+        // Assert
+        Assert.That(result, Is.Null);
     }
     
     [Test]
@@ -165,6 +185,24 @@ public class MovimientoRepositoryTest
     }
 
     [Test]
+    public async Task UpdateMovimientoAsync_NotFound()
+    {
+        // Arrange
+        var movimiento = new Movimiento
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+        };
+
+        // Act
+        var result = await _repository.UpdateMovimientoAsync(ObjectId.GenerateNewId().ToString(), movimiento);
+
+        // Assert
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
     public async Task DeleteMovimientoAsync()
     {
         // Arrange
@@ -181,6 +219,16 @@ public class MovimientoRepositoryTest
 
         // Assert
         var result = await _repository.GetMovimientoByIdAsync(movimiento.Id);
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    public async Task DeleteMovimientoAsync_NotFound()
+    {
+        // Act
+       var result = await _repository.DeleteMovimientoAsync(ObjectId.GenerateNewId().ToString());
+
+        // Assert
         Assert.That(result, Is.Null);
     }
 }
