@@ -3,8 +3,9 @@ using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
-using System.Collections.Generic;
 using NUnit.Framework.Legacy;
+
+namespace Tests.Rest.Users.Mapper;
 
 public class UserMapperTests
 {

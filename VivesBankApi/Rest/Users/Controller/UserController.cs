@@ -61,7 +61,6 @@ public class UserController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-
         var updatedUser = await _userService.UpdateUserAsync(id, user);
 
         return Ok(UserMapper.ToUserResponse(updatedUser));
