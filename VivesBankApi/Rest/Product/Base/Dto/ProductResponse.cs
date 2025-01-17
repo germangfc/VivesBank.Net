@@ -4,9 +4,7 @@ namespace VivesBankApi.Rest.Product.Base.Dto;
 
 public class ProductResponse
 {
-    
 
-    
     [Required]
     public String Id { get; set; }
     
