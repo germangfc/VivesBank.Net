@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using VivesBankApi.utils.GuuidGenerator;
 
 namespace VivesBankApi.Rest.Clients.Models;
 [Table("Clients")]
 public class Client
 {
     [Key]
-    public String Id { get; set; }
+    public String Id { get; set; } = GuuidGenerator.GenerateHash();
     [Required]
     public String UserId { get; set; }
     [Required]
@@ -18,7 +19,7 @@ public class Client
     [Required]
     public String PhotoDni { get; set; }
     [Required]
-    public List<String> AccountsIds { get; set; }
+    public List<String> AccountsIds { get; set; } = new();
     [Required]
     public String role { get; set; }
     public DateTime CreatedAt = DateTime.Now;

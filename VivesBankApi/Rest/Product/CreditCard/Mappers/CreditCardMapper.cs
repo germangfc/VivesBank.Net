@@ -8,6 +8,8 @@ public static class CreditCardMapper
     {
         return new CreditCardAdminResponse
         {
+            Id = creditCard.Id,
+            
             CardNumber = creditCard.CardNumber,
             ExpirationDate = creditCard.ExpirationDate.ToString(),
         };
@@ -25,6 +27,10 @@ public static class CreditCardMapper
     {
         return new CreditCardClientResponse
         {
+            Id = creditCard.Id,
+            Pin = creditCard.Pin,
+            Cvc = creditCard.Cvc,
+            AccountId = creditCard.AccountId,
             CardNumber = creditCard.CardNumber,
             ExpirationDate = creditCard.ExpirationDate.ToString(),
         };

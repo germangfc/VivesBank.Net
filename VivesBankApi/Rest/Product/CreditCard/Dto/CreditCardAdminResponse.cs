@@ -5,6 +5,9 @@ namespace VivesBankApi.Rest.Product.CreditCard.Dto;
 public class CreditCardAdminResponse
 {
     [Required]
+    public String Id { get; set; }
+    
+    [Required]
     public String AccountId { get; set; }
     
     [Required]

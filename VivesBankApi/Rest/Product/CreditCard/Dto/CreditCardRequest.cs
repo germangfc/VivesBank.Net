@@ -6,4 +6,7 @@ public class CreditCardRequest
 {
     [Required]
     public String Pin { get; set; }
+    
+    [Required]
+    public String AccountIban { get; set; }
 }

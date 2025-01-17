@@ -9,6 +9,9 @@ public class ProductResponse
     public String Id { get; set; }
     
     [Required]
+    public String Id { get; set; }
+    
+    [Required]
     [MaxLength(100)]
     public String Name { get; set; }
     
