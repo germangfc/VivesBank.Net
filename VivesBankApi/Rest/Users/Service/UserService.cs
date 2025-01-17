@@ -73,17 +73,17 @@ public class UserService : IUserService
 
     public async Task<User> UpdateUserAsync(String id, UserUpdateRequest user)
     {
+        if (user.Username != null && !UserValidator.ValidateDni(user.Username))
+        {
+             throw new InvalidUserException($"The DNI {user.Username} is not valid");
+        }
+        
         User? userToUpdate = await GetUserByIdAsync(id);
         if (userToUpdate == null)
         {
             throw new UserNotFoundException(id);
         }
         
-        if (user.Username != null && !UserValidator.ValidateDni(user.Username))
-        {
-            throw new InvalidUserException($"The DNI {user.Username} is not valid");
-        }
-
         if (user.Username != null)
         {
             User? userWithTheSameUsername = await _userRepository.GetByUsernameAsync(user.Username);
