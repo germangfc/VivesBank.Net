@@ -15,6 +15,7 @@ public class CurrencyApiService : ICurrencyApiService
     private readonly ILogger<CurrencyApiService> _logger;
 
     // Constructor que inicializa el cliente API usando un HttpClient y un logger.
+    
     public CurrencyApiService(ICurrencyApiService apiClient, ILogger<CurrencyApiService> logger)
     {
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
@@ -77,6 +78,7 @@ public class CurrencyApiService : ICurrencyApiService
 
 
     // Método para obtener las tasas de cambio más recientes con la cantidad especificada.
+    
     public async Task<ExchangeRateResponse> GetLatestRatesAsync(string baseCurrency, string targetCurrencies,
         string amount)
     {
