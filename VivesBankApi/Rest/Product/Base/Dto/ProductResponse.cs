@@ -4,9 +4,9 @@ namespace VivesBankApi.Rest.Product.Base.Dto;
 
 public class ProductResponse
 {
-    
 
-    
+    [Required]
+    public Guid Id { get; set; }
     
     [Required]
     [MaxLength(100)]
