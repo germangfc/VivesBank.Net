@@ -17,11 +17,11 @@ public class Movimiento
     
     public Domiciliacion? Domiciliacion { get; set; }
     
-    public IngresoDeNomina? IngresoDeNomina;
+    public IngresoDeNomina? IngresoDeNomina { get; set; }
     
-    public PagoConTarjeta? PagoConTarjeta;
+    public PagoConTarjeta? PagoConTarjeta { get; set; }
     
-    public Transferencia? Transferencia;
+    public Transferencia? Transferencia { get; set; }
     
     [JsonPropertyName("createdAt")] 
     public DateTime? CreatedAt { get; set; }
