@@ -30,11 +30,10 @@ public class estUserService
         _connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
         
         userRepositoryMock = new Mock<IUserRepository>();
-<<<<<<< HEAD
+
         // userService = new UserService(userRepositoryMock.Object);
-=======
+
         userService = new UserService(userRepositoryMock.Object, _connection.Object);
->>>>>>> 97a8dfef7f7e679126f1e04354df376e36d6c1bf
         
         _user1 = new User
         {
