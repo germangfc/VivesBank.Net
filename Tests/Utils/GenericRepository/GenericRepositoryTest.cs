@@ -14,7 +14,7 @@ public class GenericRepositoryTests
     private BancoDbContext _dbContext;
     private GenericRepository<BancoDbContext, Product> _repository;
 
-    [OneTimeSetUp]
+    [SetUp]
     public async Task Setup()
     {
         _postgreSqlContainer = new PostgreSqlBuilder()
@@ -34,13 +34,22 @@ public class GenericRepositoryTests
         _dbContext = new BancoDbContext(options);
         await _dbContext.Database.EnsureCreatedAsync();
 
-        _repository = new GenericRepository<BancoDbContext, Product>(_dbContext, NullLogger<GenericRepository<BancoDbContext, Product>>.Instance);
+        _repository = new GenericRepository<BancoDbContext, Product>(
+            _dbContext, 
+            NullLogger<GenericRepository<BancoDbContext, Product>>.Instance
+        );
+
+        await _repository.DeleteAllAsync();
     }
 
-    [OneTimeTearDown]
+    [TearDown]
     public async Task Teardown()
     {
-        if (_dbContext != null) await _dbContext.DisposeAsync();
+        if (_dbContext != null)
+        {
+            await _dbContext.DisposeAsync();
+        }
+
         if (_postgreSqlContainer != null)
         {
             await _postgreSqlContainer.StopAsync();
@@ -67,6 +76,31 @@ public class GenericRepositoryTests
         Assert.That(result.Count, Is.EqualTo(products.Count));
         Assert.That(result.Select(p => p.Id), Is.EquivalentTo(products.Select(p => p.Id)));
     }
+    
+    [Test]
+    public async Task GetAllPagedAsync()
+    {
+        var products = new List<Product>
+        {
+            new Product("Producto 1", Product.Type.BankAccount),
+            new Product("Producto 2", Product.Type.CreditCard),
+            new Product("Producto 3", Product.Type.BankAccount),
+            new Product("Producto 4", Product.Type.CreditCard)
+        };
+
+        foreach (var product in products)
+        {
+            await _repository.AddAsync(product);
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _repository.GetAllPagedAsync(1, 2);
+
+        Assert.That(result.TotalCount, Is.EqualTo(4), "El total de productos no coincide.");
+        Assert.That(result.Count, Is.EqualTo(2), "El tamaño de la página no es correcto.");
+    }
+
 
     [Test]
     public async Task GetByIdAsync()
