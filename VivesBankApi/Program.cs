@@ -182,7 +182,7 @@ WebApplicationBuilder InitServices()
 //CUENTAS    
     myBuilder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
     myBuilder.Services.AddScoped<IAccountsService, AccountService>();
-    myBuilder.Services.AddScoped<IbanGenerator>();
+    myBuilder.Services.AddScoped<IIbanGenerator, IbanGenerator>();
 //Product
     myBuilder.Services.AddScoped<IProductRepository, ProductRepository>();
     myBuilder.Services.AddScoped<IProductService, ProductService>();

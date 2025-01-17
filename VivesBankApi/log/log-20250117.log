@@ -722,3 +722,7 @@ VivesBankApi.Rest.Product.CreditCard.Exceptions.CreditCardException+CreditCardNo
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
+[2025-01-17 16:12:50.600] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (25ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
