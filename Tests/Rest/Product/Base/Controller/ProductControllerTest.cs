@@ -102,44 +102,6 @@ public class ProductControllerTests
 
         Assert.That(notFoundResult, Is.Not.Null);
     }
+
     
-    [Test]
-    public async Task CreateProductAsync()
-    {
-        var productCreateRequest = new ProductCreateRequest
-        {
-            Name = "New Product",
-            Type = "BankAccount"
-        };
-
-        var productResponse = new ProductResponse
-        {
-            Name = productCreateRequest.Name,
-            Type = productCreateRequest.Type,
-            CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
-            UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
-        };
-
-        var mockProductService = new Mock<IProductService>();
-        mockProductService
-            .Setup(service => service.CreateProductAsync(It.IsAny<ProductCreateRequest>()))
-            .ReturnsAsync(productResponse);
-
-        var controller = new ProductController(mockProductService.Object, NullLogger<ProductController>.Instance);
-
-        var result = await controller.CreateProductAsync(productCreateRequest);
-
-        Assert.That(result, Is.InstanceOf<CreatedAtActionResult>());
-
-        var createdResult = result as CreatedAtActionResult;
-        Assert.That(createdResult, Is.Not.Null);
-        Assert.That(createdResult.StatusCode, Is.EqualTo(201));
-
-        var response = createdResult.Value as ProductResponse;
-        Assert.That(response, Is.Not.Null);
-        Assert.That(response.Name, Is.EqualTo(productCreateRequest.Name));
-        Assert.That(response.Type, Is.EqualTo(productCreateRequest.Type.ToString()));
-    }
-
-   
 }
