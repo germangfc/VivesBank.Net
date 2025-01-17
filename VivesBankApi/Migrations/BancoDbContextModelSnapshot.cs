@@ -91,6 +91,7 @@ namespace VivesBankApi.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("TarjetaId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");

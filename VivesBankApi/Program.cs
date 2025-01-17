@@ -80,25 +80,42 @@ static void DropDatabaseTables(IServiceProvider serviceProvider)
 
     if (context.Database.IsRelational())
     {
-        // Obtén la lista de tablas de la base de datos
-        var tables = context.Database.GetDbConnection()
-            .GetSchema("Tables")
-            .Rows.Cast<DataRow>()
-            .Select(row => row["TABLE_NAME"].ToString())
-            .ToList();
+        var connection = context.Database.GetDbConnection();
 
-        using var command = context.Database.GetDbConnection().CreateCommand();
-        foreach (var table in tables)
+        try
         {
-            command.CommandText = $"DROP TABLE IF EXISTS \"{table}\" CASCADE;";
-            command.ExecuteNonQuery();
+            if (connection.State != ConnectionState.Open)
+            {
+                connection.Open();
+            }
+            
+            var tables = connection.GetSchema("Tables")
+                .Rows.Cast<DataRow>()
+                .Select(row => row["TABLE_NAME"].ToString())
+                .ToList();
+
+            using var command = connection.CreateCommand();
+            foreach (var table in tables)
+            {
+                command.CommandText = $"DROP TABLE IF EXISTS \"{table}\" CASCADE;";
+                command.ExecuteNonQuery();
+            }
+        }
+        finally
+        {
+            
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
         }
     }
 }
 
+
 string InitLocalEnvironment()
 {
-    Console.OutputEncoding = Encoding.UTF8; // Necesario para mostrar emojis
+    Console.OutputEncoding = Encoding.UTF8; 
     var myEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "";
     Console.WriteLine($"Environment: {myEnvironment}");
     return myEnvironment;
