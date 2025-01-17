@@ -34,14 +34,16 @@ public class ClientController : ControllerBase
     public async Task<ActionResult<ClientResponse>> CreateClient([FromBody] ClientRequest request)
     {
         _logger.LogInformation("Creating new client");
-        return await _clientService.CreateClientAsync(request);
+        var client =  await _clientService.CreateClientAsync(request);
+        return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult<ClientResponse>> UpdateClient(string id, ClientUpdateRequest request)
     {
         _logger.LogInformation($"Updating client with id {id}");
-        return await _clientService.UpdateClientAsync(id, request);
+        var client = await _clientService.UpdateClientAsync(id, request);
+        return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
     }
     
     [HttpDelete("{id}")]
