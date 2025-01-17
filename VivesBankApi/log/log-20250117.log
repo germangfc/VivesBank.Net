@@ -1,0 +1,101 @@
+[2025-01-17 00:50:44.672] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "BankAccounts" (
+    "Id" text NOT NULL,
+    "ProductId" text NOT NULL,
+    "ClientId" text NOT NULL,
+    "TarjetaId" text NOT NULL,
+    "IBAN" text NOT NULL,
+    "Balance" numeric NOT NULL,
+    "AccountType" integer NOT NULL,
+    "IsDeleted" boolean NOT NULL,
+    CONSTRAINT "PK_BankAccounts" PRIMARY KEY ("Id")
+);
+[2025-01-17 00:54:08.805] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-17 00:54:08.941] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "BankAccounts" (
+    "Id" text NOT NULL,
+    "ProductId" text NOT NULL,
+    "ClientId" text NOT NULL,
+    "TarjetaId" text NOT NULL,
+    "IBAN" text NOT NULL,
+    "Balance" numeric NOT NULL,
+    "AccountType" integer NOT NULL,
+    "IsDeleted" boolean NOT NULL,
+    CONSTRAINT "PK_BankAccounts" PRIMARY KEY ("Id")
+);
+[2025-01-17 01:02:01.449] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "BankAccounts" (
+    "Id" text NOT NULL,
+    "ProductId" text NOT NULL,
+    "ClientId" text NOT NULL,
+    "TarjetaId" text NOT NULL,
+    "IBAN" text NOT NULL,
+    "Balance" numeric NOT NULL,
+    "AccountType" integer NOT NULL,
+    "IsDeleted" boolean NOT NULL,
+    CONSTRAINT "PK_BankAccounts" PRIMARY KEY ("Id")
+);
+[2025-01-17 01:04:22.409] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (5ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "BankAccounts" (
+    "Id" text NOT NULL,
+    "ProductId" text NOT NULL,
+    "ClientId" text NOT NULL,
+    "TarjetaId" text NOT NULL,
+    "IBAN" text NOT NULL,
+    "Balance" numeric NOT NULL,
+    "AccountType" integer NOT NULL,
+    "IsDeleted" boolean NOT NULL,
+    CONSTRAINT "PK_BankAccounts" PRIMARY KEY ("Id")
+);
+[2025-01-17 01:07:20.160] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (5ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "BankAccounts" (
+    "Id" text NOT NULL,
+    "ProductId" text NOT NULL,
+    "ClientId" text NOT NULL,
+    "TarjetaId" text NOT NULL,
+    "IBAN" text NOT NULL,
+    "Balance" numeric NOT NULL,
+    "AccountType" integer NOT NULL,
+    "IsDeleted" boolean NOT NULL,
+    CONSTRAINT "PK_BankAccounts" PRIMARY KEY ("Id")
+);
+[2025-01-17 01:08:45.938] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (5ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "BankAccounts" (
+    "Id" text NOT NULL,
+    "ProductId" text NOT NULL,
+    "ClientId" text NOT NULL,
+    "TarjetaId" text NOT NULL,
+    "IBAN" text NOT NULL,
+    "Balance" numeric NOT NULL,
+    "AccountType" integer NOT NULL,
+    "IsDeleted" boolean NOT NULL,
+    CONSTRAINT "PK_BankAccounts" PRIMARY KEY ("Id")
+);
+[2025-01-17 01:11:00.736] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (7ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "BankAccounts" (
+    "Id" text NOT NULL,
+    "ProductId" text NOT NULL,
+    "ClientId" text NOT NULL,
+    "TarjetaId" text NOT NULL,
+    "IBAN" text NOT NULL,
+    "Balance" numeric NOT NULL,
+    "AccountType" integer NOT NULL,
+    "IsDeleted" boolean NOT NULL,
+    CONSTRAINT "PK_BankAccounts" PRIMARY KEY ("Id")
+);
+[2025-01-17 01:14:50.511] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Clients" (
+    "Id" text NOT NULL,
+    "UserId" text NOT NULL,
+    "FullName" text NOT NULL,
+    "Adress" text NOT NULL,
+    "Photo" text NOT NULL,
+    "PhotoDni" text NOT NULL,
+    "AccountsIds" text[] NOT NULL,
+    role text NOT NULL,
+    "IsDeleted" boolean NOT NULL,
+    CONSTRAINT "PK_Clients" PRIMARY KEY ("Id")
+);
