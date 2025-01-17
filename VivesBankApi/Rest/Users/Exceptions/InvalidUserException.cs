@@ -1,8 +1,3 @@
 ﻿namespace VivesBankApi.Rest.Users.Exceptions;
 
-public class InvalidUserException : UserException
-{
-    public InvalidUserException(String message) : base(message)
-    {
-    }
-}
+public class InvalidUserException(String message) : UserException($"The DNI {message} is not valid");
