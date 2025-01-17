@@ -20,12 +20,13 @@ public class UserService : IUserService
         _cache = connectionMultiplexer.GetDatabase();
     }
     
-    public async Task<List<User>> GetAllUsersAsync()
+    public async Task<List<UserResponse>> GetAllUsersAsync()
     {
-        return await _userRepository.GetAllAsync();
+        var users = await _userRepository.GetAllAsync();
+        return users.Select(UserMapper.ToUserResponse).ToList();
     }
 
-    public async Task<User?> GetUserByIdAsync(string id)
+    public async Task<UserResponse> GetUserByIdAsync(string id)
     {
         //Attempting to find it in the cache first
         var cachedUser = await _cache.StringGetAsync(id);
@@ -36,7 +37,7 @@ public class UserService : IUserService
             
             if (!json.IsNullOrEmpty)
             {
-                return JsonSerializer.Deserialize<User>(json);
+                return JsonSerializer.Deserialize<UserResponse>(json);
             }
         }
 
@@ -46,10 +47,10 @@ public class UserService : IUserService
         {
             await _cache.StringSetAsync(id, JsonSerializer.Serialize(user), TimeSpan.FromMinutes(10));
         }
-        return user;
+        return user.ToUserResponse();
     }
 
-    public async Task<User> AddUserAsync(CreateUserRequest userRequest)
+    public async Task<UserResponse> AddUserAsync(CreateUserRequest userRequest)
     {
         if (!UserValidator.ValidateDni(userRequest.Username))
         {
@@ -62,23 +63,28 @@ public class UserService : IUserService
             throw new UserAlreadyExistsException(userRequest.Username);
         }
         await _userRepository.AddAsync(newUser);
-        return newUser;
+        return newUser.ToUserResponse();
     }
 
-    public async Task<User?> GetUserByUsernameAsync(string username)
+    public async Task<UserResponse> GetUserByUsernameAsync(string username)
     {
-        return await _userRepository.GetByUsernameAsync(username);
+        var user = await _userRepository.GetByUsernameAsync(username);
+        if (user == null)
+        {
+            throw new UserNotFoundException(username);
+        }
+        return user.ToUserResponse();
     }
 
 
-    public async Task<User> UpdateUserAsync(String id, UserUpdateRequest user)
+    public async Task<UserResponse> UpdateUserAsync(String id, UserUpdateRequest user)
     {
         if (user.Username != null && !UserValidator.ValidateDni(user.Username))
         {
-             throw new InvalidUserException($"The DNI {user.Username} is not valid");
+             throw new InvalidUserException(user.Username);
         }
         
-        User? userToUpdate = await GetUserByIdAsync(id);
+        User? userToUpdate = await _userRepository.GetByIdAsync(id);
         if (userToUpdate == null)
         {
             throw new UserNotFoundException(id);
@@ -97,12 +103,12 @@ public class UserService : IUserService
         await _userRepository.UpdateAsync(updatedUser);
         await _cache.KeyDeleteAsync(id);
         await _cache.StringSetAsync(id, JsonSerializer.Serialize(updatedUser), TimeSpan.FromMinutes(10));
-        return updatedUser;
+        return updatedUser.ToUserResponse();
     }
 
     public async Task DeleteUserAsync(String id, bool logically)
     {
-        User? userToUpdate = await GetUserByIdAsync(id);
+        User? userToUpdate = await _userRepository.GetByIdAsync(id);
         if (userToUpdate == null)
         {
             throw new UserNotFoundException(id);

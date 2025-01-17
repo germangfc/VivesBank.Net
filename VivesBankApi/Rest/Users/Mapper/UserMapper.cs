@@ -4,11 +4,11 @@ using VivesBankApi.Rest.Users.Models;
 
 namespace VivesBankApi.Rest.Users.Mapper;
 
-public class UserMapper
+public static class UserMapper
 {
-    protected  UserMapper(){}
+
     
-    public static UserResponse ToUserResponse(User user)
+    public static UserResponse ToUserResponse(this User user)
     {
         return new UserResponse
         {
@@ -21,7 +21,7 @@ public class UserMapper
         };
     }
     
-    public static User UpdateUserFromInput(UserUpdateRequest request, User existingUser)
+    public static User UpdateUserFromInput(this UserUpdateRequest request, User existingUser)
     {
         User user = existingUser;
         
@@ -57,7 +57,7 @@ public class UserMapper
         return user;
     }
 
-    public static User ToUser(CreateUserRequest request)
+    public static User ToUser(this CreateUserRequest request)
     {
         User newUser = new User();
         newUser.Username = request.Username;
