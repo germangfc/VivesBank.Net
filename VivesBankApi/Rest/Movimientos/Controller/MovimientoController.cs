@@ -12,13 +12,13 @@ namespace VivesBankApi.Rest.Movimientos.Controller;
 [Route("api/[controller]")]
 public class MovimientoController(
     IMovimientoService movimientoService,
-    IUserRepository userService,
+    IUserRepository userRepository,
     ILogger<MovimientoController> logger,
     IHttpContextAccessor httpContextAccessor)
     : ControllerBase
 {
     [Authorize]
-    [HttpPost("/domiciliacion/")]
+    [HttpPost("Domiciliacion/")]
     public async Task<ActionResult<Domiciliacion>> CreateDomiciliacion([FromBody] Domiciliacion domiciliacion)
     {
         logger.LogInformation("Creating new domiciliacion");
@@ -28,7 +28,7 @@ public class MovimientoController(
     }
     
     [Authorize]
-    [HttpPost("/transferencia/")]
+    [HttpPost("Transferencia/")]
     public async Task<ActionResult<Movimiento>> AddTransferencia([FromBody] Transferencia transferencia)
     {
         logger.LogInformation("Creating new transferencia");
@@ -38,7 +38,7 @@ public class MovimientoController(
     }
     
     [Authorize]
-    [HttpPost("/ingresonomina/")]
+    [HttpPost("Ingresonomina/")]
     public async Task<ActionResult<Movimiento>> AddIngresoDeNomina([FromBody] IngresoDeNomina ingresoDeNomina)
     {
         logger.LogInformation("Creating new ingreso de nomina");
@@ -47,7 +47,7 @@ public class MovimientoController(
         return await movimientoService.AddIngresoDeNominaAsync(appUser, ingresoDeNomina);
     }
     [Authorize]
-    [HttpPost("/pagotarjeta/")]
+    [HttpPost("Pagotarjeta/")]
     public async Task<ActionResult<Movimiento>> AddPagoConTarjeta([FromBody] PagoConTarjeta pagoConTarjeta)
     {
         logger.LogInformation("Creating new pago con tarjeta");
@@ -57,7 +57,7 @@ public class MovimientoController(
     }
     
     [Authorize]
-    [HttpDelete("/transferencia/{transfGuid}")]
+    [HttpDelete("Transferencia/{transfGuid}")]
     public async Task<ActionResult<Movimiento>> RevocarTransferencia(string transfGuid)
     {
         logger.LogInformation("Revoking transferencia");
@@ -70,6 +70,6 @@ public class MovimientoController(
     private async Task<User> ConvertClaimsPrincipalToUser(ClaimsPrincipal user)
     {
         var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return await userService.GetByIdAsync(id);
+        return await userRepository.GetByIdAsync(id);
     }
 }
