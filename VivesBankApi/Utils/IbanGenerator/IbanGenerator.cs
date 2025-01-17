@@ -5,7 +5,7 @@ using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 
 namespace VivesBankApi.Utils.IbanGenerator;
 
-public class IbanGenerator
+public class IbanGenerator : IIbanGenerator
 {
     private readonly IAccountsRepository _bankAccountRepository;
     

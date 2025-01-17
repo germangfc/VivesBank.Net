@@ -12,5 +12,15 @@
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Movimientos.Repositories.Movimientos.MovimientoRepositoryTest.AddMovimientoAsync&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Movimientos.Repositories.Movimientos.MovimientoRepositoryTest.UpdateMovimientoAsync&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Movimientos.Repositories.Movimientos.MovimientoRepositoryTest.DeleteMovimientoAsync&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.GetAccountByIdAsync_ShouldReturnAccount&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.GetAccountByIdAsync_ShouldReturnNotFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.getAccountByClientIdAsync_ShouldReturnAccount&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.GetAccountByClientIdAsync_ShouldThrowAccountNotFoundException_WhenNoAccountsFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.GetAccountByIbanAsync_ShouldThrowAccountNotFoundException_WhenNoAccountsFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.GetAccountByIbanAsync_ShouldReturnAccount&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.CreateAccountAsync_ShouldCreateSuccesfull&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.CreateAccountAsync_ShouldThrowClientNotFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.CreateAccountAsync_ShouldThrowProductNotFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.DeleteAccountAsync_ShouldDeleteLogically&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

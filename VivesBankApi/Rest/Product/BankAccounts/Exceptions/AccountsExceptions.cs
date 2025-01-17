@@ -4,6 +4,8 @@ public class AccountsExceptions(String message) : Exception(message)
 {
     public class AccountNotFoundException(String id) : AccountsExceptions($"Account not found by id {id}");
 
+    public class AccountNotFoundByIban(String Iban) : AccountsExceptions($"Account not found by IBAN {Iban}");
+
     public class AccountNotCreatedException()
         : AccountsExceptions($"Account couldnt be created, check that te client and the product exists");
 
