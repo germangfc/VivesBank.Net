@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VivesBankApi.Migrations
 {
     /// <inheritdoc />
-    public partial class vivesBankMigration : Migration
+    public partial class myBank : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

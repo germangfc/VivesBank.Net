@@ -47,14 +47,14 @@ builder.Services.AddEndpointsApiExplorer(); // Agrega servicios para explorar lo
 
 var app = builder.Build(); // Construye la aplicación web a partir del WebApplicationBuilder.
 
-app.ApplyMigrations(); // Aplica las migraciones de la base de datos si es necesario.
+
 if (app.Environment.IsDevelopment()) // Verifica si el entorno es de desarrollo.
 {
     DropDatabaseTables(app.Services);
     app.UseSwagger(); // Habilita Swagger para generar documentación de la API.
     app.UseSwaggerUI(); // Habilita Swagger UI para explorar y probar la API visualmente.
 }
-
+app.ApplyMigrations(); // Aplica las migraciones de la base de datos si es necesario.
 //StorageInit(); // Inicializa el almacenamiento de archivos
 
 app.UseMiddleware<GlobalExceptionMiddleware>(); // Agrega el middleware de manejo de excepciones globales para loguear y manejar errores.

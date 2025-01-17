@@ -13,8 +13,8 @@ using VivesBankApi.Database;
 namespace VivesBankApi.Migrations
 {
     [DbContext(typeof(BancoDbContext))]
-    [Migration("20250117154908_NetBank")]
-    partial class NetBank
+    [Migration("20250117172422_myBank")]
+    partial class myBank
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
