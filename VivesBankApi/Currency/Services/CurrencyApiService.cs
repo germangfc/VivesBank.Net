@@ -41,6 +41,7 @@ public class CurrencyApiService : ICurrencyApiService
                     var errorContent = response.Content.ToString();
                     _logger.LogError($"API Response Content: {errorContent}");
                 }
+
                 throw new CurrencyConnectionException(
                     $"Error connecting to API. Status code: {(int)response.StatusCode} ({response.StatusCode})"
                 );
@@ -76,41 +77,51 @@ public class CurrencyApiService : ICurrencyApiService
 
 
     // Método para obtener las tasas de cambio más recientes con la cantidad especificada.
-    public async Task<ExchangeRateResponse> GetLatestRatesAsync(string baseCurrency, string targetCurrencies, string amount)
+    public async Task<ExchangeRateResponse> GetLatestRatesAsync(string baseCurrency, string targetCurrencies,
+        string amount)
     {
+        _logger.LogInformation($"Fetching rates for {baseCurrency} with targets {targetCurrencies}");
+
         try
         {
-            _logger.LogInformation($"Processing exchange rates for Amount: {amount}, BaseCurrency: {baseCurrency}, TargetCurrencies: {targetCurrencies}");
+            if (string.IsNullOrWhiteSpace(baseCurrency))
+                throw new ArgumentException("Base currency cannot be null or empty.", nameof(baseCurrency));
+            if (string.IsNullOrWhiteSpace(targetCurrencies))
+                throw new ArgumentException("Target currencies cannot be null or empty.", nameof(targetCurrencies));
 
-            // Llamada para obtener las tasas más recientes.
-            var response = await GetLatestRatesAsync(baseCurrency, targetCurrencies);
+            var response = await _apiClient.GetLatestRatesAsync(baseCurrency, targetCurrencies);
 
-            // Validamos la respuesta y su contenido.
             if (!response.IsSuccessStatusCode || response.Content == null)
-            { 
-                _logger.LogError("API response is either unsuccessful or content is null."); 
+            {
+                _logger.LogError($"API returned an unsuccessful status or null content: {response.StatusCode}");
+                throw new CurrencyConnectionException($"Failed to connect to the currency API: {response.StatusCode}");
+            }
+
+            if (response.Content.Rates == null || response.Content.Rates.Count == 0)
+            {
+                _logger.LogError("API response contains no rates.");
                 throw new CurrencyEmptyResponseException();
             }
 
-            // Convertimos las tasas de cambio según la cantidad.
             ConvertExchangeRates(response.Content, amount);
+            _logger.LogInformation("Successfully fetched and processed rates.");
 
-            _logger.LogInformation("Exchange rates successfully processed.");
             return response.Content;
         }
-        catch (CurrencyEmptyResponseException ex)
+        catch (Refit.ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            _logger.LogError(ex, "Empty response exception occurred during processing.");
-            throw;
+            _logger.LogError("The requested resource was not found on the remote server.");
+            throw new CurrencyEmptyResponseException();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected exception occurred while processing exchange rates.");
-            throw new CurrencyUnexpectedException("Error processing exchange rates.", ex);
+            _logger.LogError(ex, "An error occurred while fetching exchange rates.");
+            throw new CurrencyUnexpectedException("An unexpected error occurred while retrieving the exchange rates.",
+                ex);
         }
     }
 
-    // Método para convertir las tasas de cambio según la cantidad especificada.
+
     public void ConvertExchangeRates(ExchangeRateResponse response, string amount)
     {
         _logger.LogInformation($"Converting exchange rates with Amount: {amount}");
@@ -133,7 +144,7 @@ public class CurrencyApiService : ICurrencyApiService
         {
             convertedRates[rate.Key] = rate.Value * parsedAmount;
         }
-        
+
         response.Rates = convertedRates;
         _logger.LogInformation("Exchange rates successfully converted.");
     }

@@ -176,7 +176,6 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IUserService, UserService>();
     
 // API FRANKFURTER 
-    // API Frankfurter: Configuración del cliente HTTP y servicio
     string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
     if (string.IsNullOrEmpty(frankfurterBaseUrl))
     {
@@ -190,8 +189,7 @@ WebApplicationBuilder InitServices()
             client.BaseAddress = new Uri(frankfurterBaseUrl);
             client.Timeout = TimeSpan.FromSeconds(30); 
         });
-
-// Registro del servicio de Frankfurter
+    
     myBuilder.Services.AddScoped<CurrencyApiService>();
     
     

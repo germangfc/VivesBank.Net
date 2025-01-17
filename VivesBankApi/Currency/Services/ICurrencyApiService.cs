@@ -11,7 +11,7 @@ public interface ICurrencyApiService
 {
     [Get("/latest")]
     Task<ApiResponse<ExchangeRateResponse>> GetLatestRatesAsync(
-        [Refit.Query] string baseCurrency,
-        [Refit.Query] string symbols
+        [AliasAs("base")] string baseCurrency,
+        [AliasAs("symbols")] string targetCurrencies
     );
 }
