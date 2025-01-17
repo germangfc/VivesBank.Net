@@ -8,8 +8,6 @@ public class ProductResponse
     [Required]
     public String Id { get; set; }
     
-    [Required]
-    public String Id { get; set; }
     
     [Required]
     [MaxLength(100)]
