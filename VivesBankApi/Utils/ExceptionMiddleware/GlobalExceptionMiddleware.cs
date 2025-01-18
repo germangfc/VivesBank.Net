@@ -35,9 +35,12 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     logger.LogWarning(exception, "Invalid operation.");
                     break;
                 
-                /**************** MOVIMIENTO EXCEPTIONS *****************************************/
+                /**************** NOTFOUND EXCEPTIONS *****************************************/
                 case MovimientoNotFoundException:
                 case DomiciliacionNotFoundException:
+                case UserNotFoundException:
+                case AccountsExceptions.AccountNotFoundException:
+                case AccountsExceptions.AccountNotFoundByIban:
                     statusCode = HttpStatusCode.NotFound;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
@@ -46,13 +49,13 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 /********************************************************************************/
                 
                 /**************** USER EXCEPTIONS *****************************************/
-                case UserNotFoundException:
-                    statusCode = HttpStatusCode.NotFound;
+                
+                case InvalidUsernameException:
+                    statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;
-                
-                case InvalidUserException:
+                case InvalidRoleException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
@@ -63,18 +66,8 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     logger.LogWarning(exception, exception.Message);
                     break;
                 /************************** ACCOUNT EXCEPTIONS *****************************************************/
-                case AccountsExceptions.AccountNotFoundException:
-                    statusCode = HttpStatusCode.NotFound;
-                    errorResponse = new { message = exception.Message };
-                    logger.LogWarning(exception, exception.Message);
-                    break;
                 case AccountsExceptions.AccountNotCreatedException:
                     statusCode = HttpStatusCode.BadRequest;
-                    errorResponse = new { message = exception.Message };
-                    logger.LogWarning(exception, exception.Message);
-                    break;
-                case AccountsExceptions.AccountNotFoundByIban:
-                    statusCode = HttpStatusCode.NotFound;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;

@@ -116,7 +116,7 @@ public class UserMapperTests
         };
 
         // Act & Assert
-        Assert.Throws<InvalidUserException>(() => UserMapper.UpdateUserFromInput(request, _user1));
+        Assert.Throws<InvalidRoleException>(() => UserMapper.UpdateUserFromInput(request, _user1));
     }
 
     [Test]
@@ -181,7 +181,7 @@ public class UserMapperTests
         };
 
         // Act & Assert
-        Assert.Throws<InvalidUserException>(() => UserMapper.ToUser(request));
+        Assert.Throws<InvalidRoleException>(() => UserMapper.ToUser(request));
     }
 
     [Test]
