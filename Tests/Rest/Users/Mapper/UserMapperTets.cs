@@ -62,7 +62,7 @@ public class UserMapperTests
         // Arrange
         var request = new UserUpdateRequest
         {
-            Username = "updatedUsername",
+            Dni = "updatedUsername",
             Password = "updatedPassword",
             Role = "Admin"
         };
@@ -87,7 +87,7 @@ public class UserMapperTests
         // Arrange
         var request = new UserUpdateRequest
         {
-            Username = "updatedUsername",
+            Dni = "updatedUsername",
             Password = "updatedPassword",
             Role = "SuperAdmin"
         };

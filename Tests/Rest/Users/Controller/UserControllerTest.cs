@@ -239,7 +239,7 @@ namespace Tests.Rest.Users.Controller
             // Arrange
             var userUpdateRequest = new UserUpdateRequest
             {
-                Username = "UpdatedUser",
+                Dni = "UpdatedUser",
                 Role = "admin"
             };
             _service.Setup(s => s.UpdateUserAsync("1", userUpdateRequest))
@@ -266,7 +266,7 @@ namespace Tests.Rest.Users.Controller
             // Arrange
             var userUpdateRequest = new UserUpdateRequest
             {
-                Username = "1234567890",
+                Dni = "1234567890",
                 Password = "password",
                 Role = "admin"
             };
@@ -293,7 +293,7 @@ namespace Tests.Rest.Users.Controller
             // Arrange
             var userUpdateRequest = new UserUpdateRequest
             {
-                Username = "UpdatedUser",
+                Dni = "UpdatedUser",
                 Role = "admin"
             };
 
