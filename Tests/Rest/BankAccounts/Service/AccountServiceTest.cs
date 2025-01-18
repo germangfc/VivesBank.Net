@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq;
+using NUnit.Framework.Legacy;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
@@ -51,6 +52,38 @@ public class AccountServiceTest
         AccountType = AccountType.STANDARD,
         IBAN = "ES9121000418450200051332",
     };
+    [Test]
+    public async Task GetAccountsAsync_ReturnsPagedAccounts()
+    {
+        var accounts = new List<Account>
+        {
+            new Account { Id = "1", ClientId = "C1", ProductId = "P1", AccountType = AccountType.STANDARD, IBAN = "IBAN1", Balance = 1000 },
+            new Account { Id = "2", ClientId = "C2", ProductId = "P2", AccountType = AccountType.STANDARD, IBAN = "IBAN2", Balance = 2000 },
+            new Account { Id = "3", ClientId = "C3", ProductId = "P3", AccountType = AccountType.STANDARD, IBAN = "IBAN3", Balance = 3000 }
+        };
+        var pagedList = PagedList<Account>.Create(accounts, pageNumber: 0, pageSize: 2);
+
+        _accountRepository
+            .Setup(repo => repo.GetAllPagedAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(pagedList);
+
+        var result = await _accountService.GetAccountsAsync(pageNumber: 0, pageSize: 2, sortBy: "id", direction: "asc");
+        
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.AreEqual(2, result.Content.Count);
+        ClassicAssert.AreEqual("1", result.Content[0].Id);
+        ClassicAssert.AreEqual("2", result.Content[1].Id);
+        ClassicAssert.AreEqual(2, result.PageSize);
+        ClassicAssert.AreEqual(0, result.PageNumber);
+        ClassicAssert.AreEqual(2, result.TotalPageElements);
+        ClassicAssert.AreEqual(2, result.TotalPages);
+        ClassicAssert.IsFalse(result.Empty);
+        ClassicAssert.IsTrue(result.First);
+        ClassicAssert.IsFalse(result.Last);
+        
+        _accountRepository.Verify(repo => repo.GetAllPagedAsync(0, 2), Times.Once);
+    }
+
 
     [Test]
     public async Task GetAccountByIdAsync_ShouldReturnAccount()
@@ -60,6 +93,8 @@ public class AccountServiceTest
         var result = await _accountService.GetAccountByIdAsync(account.Id);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.IBAN, Is.EqualTo(_response.IBAN));
+        
+        _accountRepository.Verify(repo => repo.GetByIdAsync(account.Id),Times.Once);
     }
 
     [Test]
@@ -71,6 +106,8 @@ public class AccountServiceTest
         var result =Assert.ThrowsAsync<AccountsExceptions.AccountNotFoundException>(async () =>
             await _accountService.GetAccountByIdAsync(id));
         Assert.That(result.Message, Is.EqualTo($"Account not found by id {id}"));
+        
+        _accountRepository.Verify(repo => repo.GetByIdAsync(id), Times.Once);
     }
 
     [Test]
@@ -81,6 +118,8 @@ public class AccountServiceTest
         var result = await _accountService.GetAccountByClientIdAsync(account.ClientId);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.First().IBAN, Is.EqualTo(_response.IBAN));
+        
+        _accountRepository.Verify(repo => repo.getAccountByClientIdAsync(account.ClientId), Times.Once);
     }
     
     [Test]
@@ -94,6 +133,7 @@ public class AccountServiceTest
             await _accountService.GetAccountByClientIdAsync(id));
 
         Assert.That(exception.Message, Is.EqualTo($"Account not found by id {id}"));
+        _accountRepository.Verify(repo => repo.getAccountByClientIdAsync(id), Times.Once);
     }
 
     [Test]
@@ -104,6 +144,8 @@ public class AccountServiceTest
         var result = await _accountService.GetAccountByIbanAsync(account.IBAN);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.IBAN, Is.EqualTo(_response.IBAN));
+        
+        _accountRepository.Verify(repo => repo.GetByIdAsync(account.IBAN), Times.Once);
     }
 
     [Test]
@@ -117,6 +159,8 @@ public class AccountServiceTest
             await _accountService.GetAccountByIbanAsync(iban));
 
         Assert.That(exception.Message, Is.EqualTo($"Account not found by IBAN {iban}"));
+        
+        _accountRepository.Verify(repo => repo.GetByIdAsync(iban), Times.Once);
     }
 
     [Test]
@@ -142,6 +186,11 @@ public class AccountServiceTest
         var result = await _accountService.CreateAccountAsync(request);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.IBAN, Is.EqualTo(generatedIban));
+        
+        _clientRepository.Verify(r => r.GetByIdAsync(request.ClientId), Times.Once);
+        _productRepository.Verify(r => r.GetByNameAsync(request.ProductName), Times.Once);
+        _ibanGenerator.Verify(g => g.GenerateUniqueIbanAsync(), Times.Once);
+        _accountRepository.Verify(r => r.AddAsync(It.Is<Account>(a => a.ClientId == request.ClientId && a.ProductId == product.Id && a.IBAN == generatedIban)), Times.Once);
     }
 
     [Test]
@@ -158,6 +207,11 @@ public class AccountServiceTest
         var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotCreatedException>(async () =>
             await _accountService.CreateAccountAsync(request));
         Assert.That(exception.Message, Is.EqualTo("Account couldnt be created, check that te client and the product exists"));
+        
+        _clientRepository.Verify(r => r.GetByIdAsync(request.ClientId), Times.Once);
+        _productRepository.Verify(r => r.GetByNameAsync(request.ProductName), Times.Never);
+        _ibanGenerator.Verify(g => g.GenerateUniqueIbanAsync(), Times.Never);
+        _accountRepository.Verify(r => r.AddAsync(It.IsAny<Account>()), Times.Never);
     }
 
     [Test]
@@ -176,6 +230,11 @@ public class AccountServiceTest
         var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotCreatedException>(async () =>
             await _accountService.CreateAccountAsync(request));
         Assert.That(exception.Message, Is.EqualTo("Account couldnt be created, check that te client and the product exists"));
+        
+        _clientRepository.Verify(r => r.GetByIdAsync(request.ClientId), Times.Once);
+        _productRepository.Verify(r => r.GetByNameAsync(request.ProductName), Times.Once);
+        _ibanGenerator.Verify(g => g.GenerateUniqueIbanAsync(), Times.Never);
+        _accountRepository.Verify(r => r.AddAsync(It.IsAny<Account>()), Times.Never);
     }
 
     [Test]
