@@ -14,7 +14,6 @@ public class Account
     public String ProductId { get; set; }
     [Required]
     public String ClientId { get; set; }
-    [Required]
     public String? TarjetaId { get; set; }
     [Required]
     public String IBAN { get; set; }

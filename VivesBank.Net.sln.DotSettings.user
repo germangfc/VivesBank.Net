@@ -6,6 +6,14 @@
 	<s:Boolean x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/ShowAdvancedOptions/@EntryValue">True</s:Boolean>
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestProjectMapping/=387E43A0_002DA2E6_002D4E32_002D89CC_002D3E029C82EB62/@EntryIndexedValue">25919506-285A-4870-8A96-91AEA75D359E</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestTemplateMapping/=NUnit3x/@EntryIndexedValue">db4927dd-2e12-48a7-9a84-2b7e3e31b9c8</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=4f50959b_002Df1a1_002D421d_002D8721_002D9cb1e250a290/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GetAccountByIbanAsync_ReturnsAccount" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Repository.AccountsRepositoryTests.GetAccountByIbanAsync_ReturnsAccount&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Repository.AccountsRepositoryTests.GetAccountByIbanAsync_ReturnsNull_WhenNoAccountFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Repository.AccountsRepositoryTests.GetAccountByClientId_ShouldReturnClient&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Repository.AccountsRepositoryTests.GetAccountByClientId_ShouldReturnEmptyList_WhenNoAccountFound&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6a9e7222_002D1184_002D433d_002Daa08_002De2e85fb2ece1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetByIdAsync" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
