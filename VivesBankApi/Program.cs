@@ -273,7 +273,7 @@ WebApplicationBuilder InitServices()
             Description = "An api where you can have all the basic functionality of a bank",
             Contact = new OpenApiContact
             {
-                Name = "Álvaro Herrero, Javier Hernández, Raúl Fernandez, Samuel Cortés, German Fernández, Diego",
+                Name = "Álvaro Herrero, Javier Hernández, Raúl Fernandez, Samuel Cortés, German Fernández, Diego Novillo",
                 Url = new Uri("https://github.com/Javierhvicente/VivesBank.Net")
             },
         });

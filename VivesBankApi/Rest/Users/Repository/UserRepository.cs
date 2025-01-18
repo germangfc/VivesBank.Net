@@ -1,4 +1,3 @@
-using ApiFunkosCS.Utils.GenericRepository;
 using Microsoft.EntityFrameworkCore;
 using VivesBankApi.Database;
 using VivesBankApi.Rest.Users.Models;
@@ -14,5 +13,33 @@ public class UserRepository : GenericRepository<BancoDbContext,User>, IUserRepos
     public async Task<User?> GetByUsernameAsync(string username)
     {
         return await _dbSet.FirstOrDefaultAsync(u => u.Username == username);
+    }
+
+    public async Task<PagedList<User>> GetAllUsersPagedAsync(
+        int pageNumber,
+        int pageSize,
+        string role,
+        bool? isDeleted,
+        string direction)
+    {
+        var query = _dbSet.AsQueryable();
+        
+        query = query.Where(a => a.Role.ToString().ToUpper().Contains(role.Trim().ToUpper()));
+        
+        if (isDeleted.HasValue)
+        {
+            query = query.Where(a => a.IsDeleted == isDeleted.Value);
+        }
+        
+        query = direction.ToLower() switch
+        {
+            "desc" => query.OrderByDescending(e => e.Username),
+            _ => query.OrderBy(e => e.Username)
+        };
+        
+        query = query.Skip(pageNumber * pageSize).Take(pageSize);
+        
+        List<User> users =  await query.ToListAsync();
+        return new PagedList<User>(users, await _dbSet.CountAsync(), pageNumber, pageSize);
     }
 }

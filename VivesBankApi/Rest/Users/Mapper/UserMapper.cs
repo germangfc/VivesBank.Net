@@ -6,8 +6,6 @@ namespace VivesBankApi.Rest.Users.Mapper;
 
 public static class UserMapper
 {
-
-    
     public static UserResponse ToUserResponse(this User user)
     {
         return new UserResponse
@@ -37,45 +35,31 @@ public static class UserMapper
 
         if (request.Role != null)
         {
-            switch (request.Role.ToLower())
+            if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
             {
-                case "user":
-                    user.Role = Role.User;
-                    break;
-                case "admin":
-                    user.Role = Role.Admin;
-                    break;
-                case "superadmin":
-                    user.Role = Role.SuperAdmin;
-                    break;
-                default:
-                    throw new InvalidUserException($"The role {request.Role} is not valid");
-            } 
+                user.Role = userRole;
+            }
+            else
+            {
+                throw new InvalidRoleException(request.Role);
+            }
         }
         
-        user.UpdatedAt = DateTime.Now.ToUniversalTime();
+        user.UpdatedAt = DateTime.UtcNow;
         return user;
     }
 
     public static User ToUser(this CreateUserRequest request)
     {
         User newUser = new User();
-        newUser.Username = request.Username;
-        newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
-        switch (request.Role.ToLower())
+        if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
         {
-            case "user":
-                newUser.Role = Role.User;
-                break;
-            case "admin":
-                newUser.Role = Role.Admin;
-                break;
-            case "superadmin":
-                newUser.Role = Role.SuperAdmin;
-                break;
-            default:
-                throw new InvalidUserException($"The role {request.Role} is not valid");
+            newUser.Username = request.Username;
+            newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            newUser.Role = userRole;
+            return newUser;
         }
-        return newUser;
+        throw new InvalidRoleException(request.Role); 
+        
     }
 }
