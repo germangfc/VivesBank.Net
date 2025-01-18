@@ -27,8 +27,8 @@ namespace Tests.Rest.Users.Controller
             // Arrange
             var users = new List<UserResponse>
             {
-                new UserResponse { Id = "1", Username = "TestUser1", Role = Role.User.ToString() },
-                new UserResponse { Id = "2", Username = "TestUser2", Role = Role.Admin.ToString() }
+                new UserResponse { Id = "1", Dni = "TestUser1", Role = Role.User.ToString() },
+                new UserResponse { Id = "2", Dni = "TestUser2", Role = Role.Admin.ToString() }
             };
 
             var pagedList = new PagedList<UserResponse>(users, 2, 10, 2);
@@ -67,7 +67,7 @@ namespace Tests.Rest.Users.Controller
         public async Task GetUser_ReturnsOk_WhenUserExists()
         {
             // Arrange
-            var user = new UserResponse { Id = "1", Username = "TestUser", Role = Role.User.ToString() };
+            var user = new UserResponse { Id = "1", Dni = "TestUser", Role = Role.User.ToString() };
 
             _service.Setup(s => s.GetUserByIdAsync("1")).ReturnsAsync(user);
 
@@ -78,7 +78,7 @@ namespace Tests.Rest.Users.Controller
             ClassicAssert.NotNull(result);
             ClassicAssert.AreEqual(200, result.StatusCode);
             var returnedUser = result.Value as UserResponse;
-            ClassicAssert.AreEqual(user.Username, returnedUser.Username);
+            ClassicAssert.AreEqual(user.Dni, returnedUser.Dni);
         }
 
         [Test]
@@ -89,7 +89,7 @@ namespace Tests.Rest.Users.Controller
             var user = new UserResponse
             {
                 Id = "1",
-                Username = "testuser",
+                Dni = "testuser",
                 Role = Role.User.ToString()
             };
 
@@ -102,7 +102,7 @@ namespace Tests.Rest.Users.Controller
             ClassicAssert.NotNull(result);
             ClassicAssert.AreEqual(200, result.StatusCode);
             var returnedUser = result.Value as UserResponse;
-            ClassicAssert.AreEqual(user.Username, returnedUser.Username);
+            ClassicAssert.AreEqual(user.Dni, returnedUser.Dni);
         }
 
         [Test]
@@ -134,7 +134,7 @@ namespace Tests.Rest.Users.Controller
             // Arrange
             var userRequest = new CreateUserRequest
             {
-                Username = "TestUser",
+                Dni = "TestUser",
                 Password = "aPassword",
                 Role = "user"
             };
@@ -142,7 +142,7 @@ namespace Tests.Rest.Users.Controller
             var createdUser = new UserResponse
             {
                 Id = "1",
-                Username = "TestUser",
+                Dni = "TestUser",
                 Role = Role.User.ToString()
             };
 
@@ -155,7 +155,7 @@ namespace Tests.Rest.Users.Controller
             ClassicAssert.NotNull(result);
             ClassicAssert.AreEqual(201, result.StatusCode);
             var returnedUser = result.Value as UserResponse;
-            ClassicAssert.AreEqual(createdUser.Username, returnedUser.Username);
+            ClassicAssert.AreEqual(createdUser.Dni, returnedUser.Dni);
         }
         
         [Test]
@@ -164,7 +164,7 @@ namespace Tests.Rest.Users.Controller
             // Arrange
             var userRequest = new CreateUserRequest
             {
-                Username = "TestUser",
+                Dni = "TestUser",
                 Password = "aPassword",
                 Role = "user"
             };
@@ -192,7 +192,7 @@ namespace Tests.Rest.Users.Controller
             // Arrange
             var userRequest = new CreateUserRequest
             {
-                Username = "InvalidDni",
+                Dni = "InvalidDni",
                 Password = "aPassword",
                 Role = "user"
             };
@@ -300,7 +300,7 @@ namespace Tests.Rest.Users.Controller
             var updatedUser = new UserResponse
             {
                 Id = "1",
-                Username = "UpdatedUser",
+                Dni = "UpdatedUser",
                 Role = Role.Admin.ToString()
             };
 
@@ -313,7 +313,7 @@ namespace Tests.Rest.Users.Controller
             ClassicAssert.NotNull(result);
             ClassicAssert.AreEqual(200, result.StatusCode);
             var returnedUser = result.Value as UserResponse;
-            ClassicAssert.AreEqual(updatedUser.Username, returnedUser.Username);
+            ClassicAssert.AreEqual(updatedUser.Dni, returnedUser.Dni);
         }
 
         [Test]

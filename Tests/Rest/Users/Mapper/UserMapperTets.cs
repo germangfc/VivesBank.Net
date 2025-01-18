@@ -17,7 +17,7 @@ public class UserMapperTests
         _user1 = new User
         {
             Id = "1",
-            Username = "user1",
+            Dni = "user1",
             Password = "hashedPassword1",
             Role = Role.User,
             CreatedAt = DateTime.UtcNow.AddDays(-1),
@@ -28,7 +28,7 @@ public class UserMapperTests
         _user2 = new User
         {
             Id = "2",
-            Username = "user2",
+            Dni = "user2",
             Password = "hashedPassword2",
             Role = Role.Admin,
             CreatedAt = DateTime.UtcNow.AddDays(-2),
@@ -48,7 +48,7 @@ public class UserMapperTests
         {
             ClassicAssert.IsNotNull(result);
             ClassicAssert.AreEqual(_user1.Id, result.Id);
-            ClassicAssert.AreEqual(_user1.Username, result.Username);
+            ClassicAssert.AreEqual(_user1.Dni, result.Dni);
             ClassicAssert.AreEqual(_user1.Role.ToString(), result.Role);
             ClassicAssert.AreEqual(_user1.CreatedAt.ToLocalTime(), result.CreatedAt);
             ClassicAssert.AreEqual(_user1.UpdatedAt.ToLocalTime(), result.UpdatedAt);
@@ -74,7 +74,7 @@ public class UserMapperTests
         Assert.Multiple(() =>
         {
             ClassicAssert.IsNotNull(updatedUser);
-            ClassicAssert.AreEqual("updatedUsername", updatedUser.Username);
+            ClassicAssert.AreEqual("updatedUsername", updatedUser.Dni);
             ClassicAssert.IsNotNull(updatedUser.Password);
             ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(request.Password, updatedUser.Password), "Password hash does not match");
             ClassicAssert.AreEqual(Role.Admin, updatedUser.Role);
@@ -99,7 +99,7 @@ public class UserMapperTests
         Assert.Multiple(() =>
         {
             ClassicAssert.IsNotNull(updatedUser);
-            ClassicAssert.AreEqual("updatedUsername", updatedUser.Username);
+            ClassicAssert.AreEqual("updatedUsername", updatedUser.Dni);
             ClassicAssert.IsNotNull(updatedUser.Password);
             ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(request.Password, updatedUser.Password), "Password hash does not match");
             ClassicAssert.AreEqual(Role.SuperAdmin, updatedUser.Role);
@@ -125,7 +125,7 @@ public class UserMapperTests
         // Arrange
         var request = new CreateUserRequest
         {
-            Username = "newuser",
+            Dni = "newuser",
             Password = "securePassword",
             Role = "SuperAdmin"
         };
@@ -137,7 +137,7 @@ public class UserMapperTests
         Assert.Multiple(() =>
         {
             ClassicAssert.IsNotNull(newUser);
-            ClassicAssert.AreEqual(request.Username, newUser.Username);
+            ClassicAssert.AreEqual(request.Dni, newUser.Dni);
             ClassicAssert.IsNotNull(newUser.Password);
             ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(request.Password, newUser.Password), "Password hash does not match");
             ClassicAssert.AreEqual(Role.SuperAdmin, newUser.Role);
@@ -150,7 +150,7 @@ public class UserMapperTests
         // Arrange
         var request = new CreateUserRequest
         {
-            Username = "newuser",
+            Dni = "newuser",
             Password = "securePassword",
             Role = "SuperAdmin"
         };
@@ -162,7 +162,7 @@ public class UserMapperTests
         Assert.Multiple(() =>
         {
             ClassicAssert.IsNotNull(newUser);
-            ClassicAssert.AreEqual(request.Username, newUser.Username);
+            ClassicAssert.AreEqual(request.Dni, newUser.Dni);
             ClassicAssert.IsNotNull(newUser.Password);
             ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(request.Password, newUser.Password), "Password hash does not match");
             ClassicAssert.AreEqual(Role.SuperAdmin, newUser.Role);
@@ -175,7 +175,7 @@ public class UserMapperTests
         // Arrange
         var request = new CreateUserRequest
         {
-            Username = "newuser",
+            Dni = "newuser",
             Password = "securePassword",
             Role = "InvalidRole"
         };
@@ -199,10 +199,10 @@ public class UserMapperTests
             ClassicAssert.IsNotNull(result);
             ClassicAssert.AreEqual(2, result.Count);
 
-            ClassicAssert.AreEqual(_user1.Username, result[0].Username);
+            ClassicAssert.AreEqual(_user1.Dni, result[0].Dni);
             ClassicAssert.AreEqual(_user1.Role.ToString(), result[0].Role);
 
-            ClassicAssert.AreEqual(_user2.Username, result[1].Username);
+            ClassicAssert.AreEqual(_user2.Dni, result[1].Dni);
             ClassicAssert.AreEqual(_user2.Role.ToString(), result[1].Role);
         });
     }
@@ -213,7 +213,7 @@ public class UserMapperTests
         // Arrange
         var request = new CreateUserRequest
         {
-            Username = "newuser",
+            Dni = "newuser",
             Password = "securePassword",
             Role = "user"
         };
@@ -225,7 +225,7 @@ public class UserMapperTests
         Assert.Multiple(() =>
         {
             ClassicAssert.IsNotNull(newUser);
-            ClassicAssert.AreEqual(request.Username, newUser.Username);
+            ClassicAssert.AreEqual(request.Dni, newUser.Dni);
             ClassicAssert.IsNotNull(newUser.Password);
             ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(request.Password, newUser.Password), "Password hash does not match");
             ClassicAssert.AreEqual(Role.User, newUser.Role);

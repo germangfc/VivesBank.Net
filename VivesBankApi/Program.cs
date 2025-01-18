@@ -151,7 +151,7 @@ WebApplicationBuilder InitServices()
         logging.AddSerilog(logger, true); // Añade Serilog como un proveedor de log
     });
     logger.Debug("Serilog added as default logger");
-
+    
 
     myBuilder.Services.AddMemoryCache(
         options => options.ExpirationScanFrequency = TimeSpan.FromSeconds(30)

@@ -12,7 +12,7 @@ public class UserRepository : GenericRepository<BancoDbContext,User>, IUserRepos
 
     public async Task<User?> GetByUsernameAsync(string username)
     {
-        return await _dbSet.FirstOrDefaultAsync(u => u.Username == username);
+        return await _dbSet.FirstOrDefaultAsync(u => u.Dni == username);
     }
 
     public async Task<PagedList<User>> GetAllUsersPagedAsync(
@@ -33,8 +33,8 @@ public class UserRepository : GenericRepository<BancoDbContext,User>, IUserRepos
         
         query = direction.ToLower() switch
         {
-            "desc" => query.OrderByDescending(e => e.Username),
-            _ => query.OrderBy(e => e.Username)
+            "desc" => query.OrderByDescending(e => e.Dni),
+            _ => query.OrderBy(e => e.Dni)
         };
         
         query = query.Skip(pageNumber * pageSize).Take(pageSize);

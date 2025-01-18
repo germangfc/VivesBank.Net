@@ -46,15 +46,15 @@ public class UserService : IUserService
 
     public async Task<UserResponse> AddUserAsync(CreateUserRequest userRequest)
     {
-        if (!UserValidator.ValidateDni(userRequest.Username))
+        if (!UserValidator.ValidateDni(userRequest.Dni))
         {
-            throw new  InvalidUsernameException(userRequest.Username);
+            throw new  InvalidUsernameException(userRequest.Dni);
         }
         User newUser = userRequest.ToUser();
-        User? userWithTheSameUsername = await GetByUsernameAsync(userRequest.Username);
+        User? userWithTheSameUsername = await GetByUsernameAsync(userRequest.Dni);
         if (userWithTheSameUsername != null)
         {
-            throw new UserAlreadyExistsException(userRequest.Username);
+            throw new UserAlreadyExistsException(userRequest.Dni);
         }
         await _userRepository.AddAsync(newUser);
         return newUser.ToUserResponse();
@@ -69,19 +69,19 @@ public class UserService : IUserService
 
     public async Task<UserResponse> UpdateUserAsync(String id, UserUpdateRequest user)
     {
-        if (user.Username != null && !UserValidator.ValidateDni(user.Username))
+        if (user.Dni != null && !UserValidator.ValidateDni(user.Dni))
         {
-             throw new InvalidUsernameException(user.Username);
+             throw new InvalidUsernameException(user.Dni);
         }
 
         User? userToUpdate = await GetByIdAsync(id) ?? throw new UserNotFoundException(id);
         
-        if (user.Username != null)
+        if (user.Dni != null)
         {
-            User? userWithTheSameUsername = await GetByUsernameAsync(userToUpdate.Username);
+            User? userWithTheSameUsername = await GetByUsernameAsync(userToUpdate.Dni);
             if (userWithTheSameUsername != null && userWithTheSameUsername.Id != id)
             {
-                throw new UserAlreadyExistsException(user.Username);
+                throw new UserAlreadyExistsException(user.Dni);
             }
         }
         
@@ -89,7 +89,7 @@ public class UserService : IUserService
         await _userRepository.UpdateAsync(updatedUser);
         // Removing old cache entry
         await _cache.KeyDeleteAsync(id);
-        await _cache.KeyDeleteAsync("users:" + userToUpdate.Username.Trim().ToUpper());
+        await _cache.KeyDeleteAsync("users:" + userToUpdate.Dni.Trim().ToUpper());
         // Adding new cache entry
         await _cache.StringSetAsync(id, JsonConvert.SerializeObject(updatedUser), TimeSpan.FromMinutes(10));
         return updatedUser.ToUserResponse();
@@ -108,12 +108,12 @@ public class UserService : IUserService
             userToUpdate.IsDeleted = true;
             await _userRepository.UpdateAsync(userToUpdate);
             await _cache.KeyDeleteAsync(id);
-            await _cache.KeyDeleteAsync("users:" + userToUpdate.Username.Trim().ToUpper());
+            await _cache.KeyDeleteAsync("users:" + userToUpdate.Dni.Trim().ToUpper());
         }
         else
         {
             await _cache.KeyDeleteAsync(id);
-            await _cache.KeyDeleteAsync("users:" + userToUpdate.Username.Trim().ToUpper());
+            await _cache.KeyDeleteAsync("users:" + userToUpdate.Dni.Trim().ToUpper());
             await _userRepository.DeleteAsync(id);
         }
     }

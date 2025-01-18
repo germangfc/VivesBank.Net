@@ -69,7 +69,7 @@ public class UserRepositoryTest
         // Arrange
         var user = new User
         {
-            Username = "testuser",
+            Dni = "testuser",
             Password = "testpassword",
             Role = Role.User,
             IsDeleted = false
@@ -81,7 +81,7 @@ public class UserRepositoryTest
 
         // Assert
         ClassicAssert.NotNull(result);
-        ClassicAssert.AreEqual("testuser", result.Username);
+        ClassicAssert.AreEqual("testuser", result.Dni);
     }
 
     [Test]
@@ -102,7 +102,7 @@ public class UserRepositoryTest
         {
             await _repository.AddAsync(new User
             {
-                Username = $"user{i}",
+                Dni = $"user{i}",
                 Role = Role.User,
                 Password = "testpassword",
                 IsDeleted = false
@@ -115,7 +115,7 @@ public class UserRepositoryTest
         // Assert
         ClassicAssert.NotNull(result);
         ClassicAssert.AreEqual(5, result.Count);
-        ClassicAssert.AreEqual("user1", result[0].Username);
+        ClassicAssert.AreEqual("user1", result[0].Dni);
     }
 
     [Test]
@@ -126,7 +126,7 @@ public class UserRepositoryTest
         {
             await _repository.AddAsync(new User
             {
-                Username = $"user{i}",
+                Dni = $"user{i}",
                 Role = i % 2 == 0 ? Role.Admin : Role.User,
                 Password = "testpassword",
                 IsDeleted = false
@@ -139,6 +139,6 @@ public class UserRepositoryTest
         // Assert
         ClassicAssert.NotNull(result);
         ClassicAssert.AreEqual(3, result.Count);
-        ClassicAssert.AreEqual("user8", result[0].Username);
+        ClassicAssert.AreEqual("user8", result[0].Dni);
     }
 }
