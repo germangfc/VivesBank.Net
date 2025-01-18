@@ -50,7 +50,12 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 
                 /**************** USER EXCEPTIONS *****************************************/
                 
-                case InvalidUserException:
+                case InvalidUsernameException:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                case InvalidRoleException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
