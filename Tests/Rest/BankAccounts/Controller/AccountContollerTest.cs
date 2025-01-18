@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NUnit.Framework.Legacy;
 using Serilog;
 using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
 using VivesBankApi.Rest.Product.BankAccounts.Controller;
@@ -42,6 +43,58 @@ public class AccountContollerTest
     }
     
     [Test]
+        public async Task GetAllAccounts_ReturnsOkWithPageResponse()
+        {
+            var page = 0;
+            var size = 2;
+            var sortBy = "id";
+            var direction = "asc";
+
+            var accountResponses = new List<AccountResponse>
+            {
+                new AccountResponse { Id = "1", IBAN = "IBAN1"},
+                new AccountResponse { Id = "2", IBAN = "IBAN2"}
+            };
+
+            var pageResponse = new PageResponse<AccountResponse>
+            {
+                Content = accountResponses,
+                TotalPages = 1,
+                TotalElements = 2,
+                PageSize = 2,
+                PageNumber = 0,
+                TotalPageElements = 2,
+                Empty = false,
+                First = true,
+                Last = true,
+                SortBy = sortBy,
+                Direction = direction
+            };
+
+            _mockAccountsService
+                .Setup(service => service.GetAccountsAsync(page, size, sortBy, direction))
+                .ReturnsAsync(pageResponse);
+            
+            var result = await _accountController.GetAllAccounts(page, size, sortBy, direction) as OkObjectResult;
+            
+            ClassicAssert.IsNotNull(result);
+            ClassicAssert.AreEqual(200, result.StatusCode);
+
+            var response = result.Value as PageResponse<AccountResponse>;
+            ClassicAssert.IsNotNull(response);
+            ClassicAssert.AreEqual(2, response.Content.Count);
+            ClassicAssert.AreEqual("1", response.Content[0].Id);
+            ClassicAssert.AreEqual("2", response.Content[1].Id);
+            ClassicAssert.AreEqual(2, response.PageSize);
+            ClassicAssert.AreEqual(0, response.PageNumber);
+            ClassicAssert.IsFalse(response.Empty);
+            ClassicAssert.IsTrue(response.First);
+            ClassicAssert.IsTrue(response.Last);
+            
+            _mockAccountsService.Verify(service => service.GetAccountsAsync(page, size, sortBy, direction), Times.Once);
+        }
+    
+    [Test]
     public async Task GetAccountById_ShouldReturnAccount_WhenAccountExists()
     {
         _mockAccountsService.Setup(service => service.GetAccountByIdAsync(It.Is<string>(id => id == account.Id)))
@@ -52,6 +105,9 @@ public class AccountContollerTest
         var okResult = result.Result as OkObjectResult;
         Assert.That(okResult, Is.Not.Null);
         Assert.That(okResult.Value, Is.EqualTo(_expectedAccountResponse));
+        
+        _mockAccountsService.Verify(service => service.GetAccountByIdAsync(account.Id), Times.Once);
+        
     }
 
     [Test]
@@ -67,6 +123,8 @@ public class AccountContollerTest
         var notFoundResult = result.Result as NotFoundResult;
         Assert.That(notFoundResult, Is.Not.Null);
         Assert.That(notFoundResult.StatusCode, Is.EqualTo(404));
+        
+        _mockAccountsService.Verify(service => service.GetAccountByIdAsync(account.Id), Times.Once);
     }
 
     [Test]
@@ -80,6 +138,8 @@ public class AccountContollerTest
         var okResult = result.Result as OkObjectResult;
         Assert.That(okResult, Is.Not.Null);
         Assert.That(okResult.Value, Is.EqualTo(_expectedAccountResponse));
+        
+        _mockAccountsService.Verify(service => service.GetAccountByIbanAsync(account.IBAN), Times.Once);
     }
 
     [Test]
@@ -94,6 +154,7 @@ public class AccountContollerTest
         var notFoundResult = result.Result as NotFoundResult;
         Assert.That(notFoundResult, Is.Not.Null);
         Assert.That(notFoundResult.StatusCode, Is.EqualTo(404));
+        
     }
 
     [Test]
@@ -120,6 +181,8 @@ public class AccountContollerTest
         Assert.That(okResult, Is.Not.Null);
         Assert.That(okResult.StatusCode, Is.EqualTo(200));
         Assert.That(okResult.Value, Is.EqualTo(response));
+        
+        _mockAccountsService.Verify(service => service.CreateAccountAsync(request), Times.Once);
     }
 
     [Test]
@@ -143,6 +206,8 @@ public class AccountContollerTest
         var notFoundResult = result as NotFoundResult;
         Assert.That(notFoundResult, Is.Not.Null);
         Assert.That(notFoundResult.StatusCode, Is.EqualTo(404));
+        
+        _mockAccountsService.Verify(service => service.DeleteAccountAsync("TkjPO5u_2w"), Times.Once);
     }
     
     

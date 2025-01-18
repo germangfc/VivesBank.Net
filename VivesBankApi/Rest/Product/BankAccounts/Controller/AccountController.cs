@@ -17,6 +17,7 @@ public class AccountController : ControllerBase
         _logger = logger;
     }
     
+    
     [HttpGet]
     public async Task<IActionResult> GetAllAccounts([FromQuery] int page = 0, [FromQuery] int size = 10, [FromQuery] string sortBy = "id", [FromQuery] string direction = "asc")
     {
@@ -64,7 +65,8 @@ public class AccountController : ControllerBase
     public async Task<ActionResult<AccountResponse>> CreateAccount([FromBody] CreateAccountRequest request)
     {
         _logger.LogInformation("Creating new account");
-        return await _accountsService.CreateAccountAsync(request);
+        var res =  await _accountsService.CreateAccountAsync(request);
+        return Ok(res);
     }
 
     [HttpDelete("{id}")]

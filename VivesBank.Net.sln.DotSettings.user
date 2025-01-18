@@ -14,6 +14,8 @@
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Repository.AccountsRepositoryTests.GetAccountByClientId_ShouldReturnEmptyList_WhenNoAccountFound&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest.GetAccountsAsync_ReturnsPagedAccounts&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Service.AccountServiceTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Controller.AccountContollerTest.GetAllAccounts_ReturnsOkWithPageResponse&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.BankAccounts.Controller.AccountContollerTest&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6a9e7222_002D1184_002D433d_002Daa08_002De2e85fb2ece1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetByIdAsync" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
