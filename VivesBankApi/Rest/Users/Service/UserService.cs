@@ -108,10 +108,12 @@ public class UserService : IUserService
             userToUpdate.IsDeleted = true;
             await _userRepository.UpdateAsync(userToUpdate);
             await _cache.KeyDeleteAsync(id);
+            await _cache.KeyDeleteAsync("users:" + userToUpdate.Username.Trim().ToUpper());
         }
         else
         {
             await _cache.KeyDeleteAsync(id);
+            await _cache.KeyDeleteAsync("users:" + userToUpdate.Username.Trim().ToUpper());
             await _userRepository.DeleteAsync(id);
         }
     }
