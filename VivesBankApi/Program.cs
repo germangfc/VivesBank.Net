@@ -54,7 +54,7 @@ if (app.Environment.IsDevelopment()) // Verifica si el entorno es de desarrollo.
     app.UseSwagger(); // Habilita Swagger para generar documentación de la API.
     app.UseSwaggerUI(); // Habilita Swagger UI para explorar y probar la API visualmente.
 }
-app.ApplyMigrations(); // Aplica las migraciones de la base de datos si es necesario.
+app.ApplyMigrations(); // Aplica las migraciones de la base de datos si es necesario.   
 //StorageInit(); // Inicializa el almacenamiento de archivos
 
 app.UseMiddleware<GlobalExceptionMiddleware>(); // Agrega el middleware de manejo de excepciones globales para loguear y manejar errores.
