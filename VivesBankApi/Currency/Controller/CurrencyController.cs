@@ -1,4 +1,3 @@
-using ApiFranfurkt.Properties.Currency.Exceptions;
 using ApiFranfurkt.Properties.Currency.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,7 +38,7 @@ public class CurrencyController : ControllerBase
                 .Select(s => s.Trim())
                 .ToList();
 
-            // Verificar si `symbols` contiene valores vacíos o inválidos.
+            // Verificar si symbols contiene valores vacíos o inválidos.
             if (symbolList.Any(string.IsNullOrWhiteSpace))
             {
                 return BadRequest("Invalid symbols parameter. Please provide valid currency codes separated by commas.");
@@ -54,15 +53,14 @@ public class CurrencyController : ControllerBase
         // Multiplicar las tasas de cambio por la cantidad deseada.
         var exchangeRateResponse = apiResponse.Content;
 
-        // Ejemplo: Supongamos que las tasas de cambio están en un diccionario.
+        // Multiplicar las tasas de cambio por la cantidad deseada.
         if (exchangeRateResponse.Rates != null)
-        { 
+        {
             foreach (var currency in exchangeRateResponse.Rates.Keys.ToList())
             {
                 exchangeRateResponse.Rates[currency] *= (double)parsedAmount;
             }
         }
-
         return Ok(exchangeRateResponse);
     }
 }
