@@ -21,32 +21,29 @@ public class CurrencyController : ControllerBase
         [FromQuery] string baseCurrency = "EUR",
         [FromQuery] string? symbols = null)
     {
-        try
+        // Validar y convertir el parámetro `amount`.
+        if (!decimal.TryParse(amount, out var parsedAmount) || parsedAmount <= 0)
         {
-            var targetCurrencies = symbols ?? string.Empty;
+            return BadRequest("Invalid amount. The value must be a positive number.");
+        }
 
-            var apiResponse = await _currencyApiService.GetLatestRatesAsync(baseCurrency, targetCurrencies);
+        var targetCurrencies = symbols ?? string.Empty;
 
-            if (!apiResponse.IsSuccessStatusCode || apiResponse.Content == null)
+        // Llamar al servicio para obtener las tasas de cambio.
+        var apiResponse = await _currencyApiService.GetLatestRatesAsync(baseCurrency, targetCurrencies);
+        
+        // Multiplicar las tasas de cambio por la cantidad deseada.
+        var exchangeRateResponse = apiResponse.Content;
+
+        // Ejemplo: Supongamos que las tasas de cambio están en un diccionario.
+        if (exchangeRateResponse.Rates != null)
+        { 
+            foreach (var currency in exchangeRateResponse.Rates.Keys.ToList())
             {
-                return NotFound("Exchange rates not found for the given parameters.");
+                exchangeRateResponse.Rates[currency] *= (double)parsedAmount;
             }
+        }
 
-            var exchangeRateResponse = apiResponse.Content;
-
-            return Ok(exchangeRateResponse);
-        }
-        catch (CurrencyEmptyResponseException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (CurrencyUnexpectedException ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
-        }
+        return Ok(exchangeRateResponse);
     }
 }

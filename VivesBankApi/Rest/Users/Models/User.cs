@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using VivesBankApi.utils.GuuidGenerator;
 
 namespace VivesBankApi.Rest.Users.Models;
@@ -9,7 +10,7 @@ namespace VivesBankApi.Rest.Users.Models;
 public class User
 {
     [Key] 
-    [JsonProperty()]
+    [JsonProperty("id")]
     public String Id { get; set; } = GuuidGenerator.GenerateHash();
     
     [Required]
@@ -24,6 +25,7 @@ public class User
     
     [Required]
     [JsonProperty("role")]
+    [JsonConverter(typeof(StringEnumConverter))]
     public Role Role { get; set; }
     
     [JsonProperty("createdAt")]
@@ -34,15 +36,6 @@ public class User
     
     [JsonProperty("isDeleted")]
     public bool IsDeleted { get; set; } = false;
-
-    public User() { }
-    public User(String username, String password, Role role)
-    {
-        this.Username = username;
-        this.Password = password;
-        this.Role = role;
-    }
-    
 }
 
 public enum Role

@@ -1,3 +1,4 @@
+using System.Data;
 using System.Text;
 using ApiFranfurkt.Properties.Currency.Services;
 using ApiFunkosCS.Utils.DevApplyMigrations;
@@ -46,14 +47,14 @@ builder.Services.AddEndpointsApiExplorer(); // Agrega servicios para explorar lo
 
 var app = builder.Build(); // Construye la aplicación web a partir del WebApplicationBuilder.
 
+
 if (app.Environment.IsDevelopment()) // Verifica si el entorno es de desarrollo.
 {
+    DropDatabaseTables(app.Services);
     app.UseSwagger(); // Habilita Swagger para generar documentación de la API.
     app.UseSwaggerUI(); // Habilita Swagger UI para explorar y probar la API visualmente.
 }
-
 app.ApplyMigrations(); // Aplica las migraciones de la base de datos si es necesario.
-
 //StorageInit(); // Inicializa el almacenamiento de archivos
 
 app.UseMiddleware<GlobalExceptionMiddleware>(); // Agrega el middleware de manejo de excepciones globales para loguear y manejar errores.
@@ -72,10 +73,49 @@ logger.Information("🚀 Banco API started 🟢"); // Registra un mensaje inform
 Console.WriteLine("🚀 Banco API started 🟢"); // Muestra un mensaje en la consola indicando que la API ha iniciado.
 
 app.Run(); // Inicia la aplicación y comienza a escuchar las solicitudes HTTP entrantes.
+static void DropDatabaseTables(IServiceProvider serviceProvider)
+{
+    using var scope = serviceProvider.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<BancoDbContext>();
+
+    if (context.Database.IsRelational())
+    {
+        var connection = context.Database.GetDbConnection();
+
+        try
+        {
+            if (connection.State != ConnectionState.Open)
+            {
+                connection.Open();
+            }
+            
+            var tables = connection.GetSchema("Tables")
+                .Rows.Cast<DataRow>()
+                .Select(row => row["TABLE_NAME"].ToString())
+                .ToList();
+
+            using var command = connection.CreateCommand();
+            foreach (var table in tables)
+            {
+                command.CommandText = $"DROP TABLE IF EXISTS \"{table}\" CASCADE;";
+                command.ExecuteNonQuery();
+            }
+        }
+        finally
+        {
+            
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+    }
+}
+
 
 string InitLocalEnvironment()
 {
-    Console.OutputEncoding = Encoding.UTF8; // Necesario para mostrar emojis
+    Console.OutputEncoding = Encoding.UTF8; 
     var myEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "";
     Console.WriteLine($"Environment: {myEnvironment}");
     return myEnvironment;
@@ -159,7 +199,7 @@ WebApplicationBuilder InitServices()
 //CUENTAS    
     myBuilder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
     myBuilder.Services.AddScoped<IAccountsService, AccountService>();
-    myBuilder.Services.AddScoped<IbanGenerator>();
+    myBuilder.Services.AddScoped<IIbanGenerator, IbanGenerator>();
 //Product
     myBuilder.Services.AddScoped<IProductRepository, ProductRepository>();
     myBuilder.Services.AddScoped<IProductService, ProductService>();
@@ -233,7 +273,7 @@ WebApplicationBuilder InitServices()
             Description = "An api where you can have all the basic functionality of a bank",
             Contact = new OpenApiContact
             {
-                Name = "Álvaro Herrero, Javier Hernández, Raúl Fernandez, Samuel Cortés, German Fernández, Diego",
+                Name = "Álvaro Herrero, Javier Hernández, Raúl Fernandez, Samuel Cortés, German Fernández, Diego Novillo",
                 Url = new Uri("https://github.com/Javierhvicente/VivesBank.Net")
             },
         });

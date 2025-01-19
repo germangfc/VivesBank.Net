@@ -1,14 +1,18 @@
 ﻿using VivesBankApi.Rest.Users.Dtos;
-using VivesBankApi.Rest.Users.Models;
 
 namespace VivesBankApi.Rest.Users.Service;
 
 public interface IUserService
 {
-    Task<List<User>> GetAllUsersAsync();
-    Task<User?> GetUserByIdAsync(String id);
-    Task<User> AddUserAsync(CreateUserRequest userRequest);
-    Task<User?> GetUserByUsernameAsync(String username);
-    Task<User> UpdateUserAsync(String key, UserUpdateRequest request);
+    Task<PagedList<UserResponse>> GetAllUsersAsync(
+        int pageNumber, 
+        int pageSize,
+        string role,
+        bool? isDeleted,
+        string direction);
+    Task<UserResponse> GetUserByIdAsync(String id);
+    Task<UserResponse> AddUserAsync(CreateUserRequest userRequest);
+    Task<UserResponse> GetUserByUsernameAsync(String username);
+    Task<UserResponse> UpdateUserAsync(String key, UserUpdateRequest request);
     Task DeleteUserAsync(String id, bool logically);
 }

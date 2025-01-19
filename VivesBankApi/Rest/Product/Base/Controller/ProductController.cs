@@ -30,36 +30,24 @@ public class ProductController : ControllerBase
     public async Task<ActionResult<ProductResponse>> GetProductByIdAsync(string productId)
     {
         _logger.LogInformation($"Getting product with id {productId}");
-        try
-        {
             var result = await _productService.GetProductByIdAsync(productId);
-
-            if (result == null) return NotFound();
-
             return Ok(result);
-        }
-        catch (ProductException.ProductNotFoundException)
-        {
-            return NotFound();
-        }
     }
 
     [HttpPost]
     public async Task<ActionResult<ProductResponse>> CreateProductAsync(ProductCreateRequest request)
     {
         _logger.LogInformation("Creating a new product");
-        return await _productService.CreateProductAsync(request);
+        var producto = await _productService.CreateProductAsync(request);
+        return CreatedAtAction(nameof(GetProductByIdAsync) , new { id = producto.Id }, producto);
     }
 
     [HttpPut("{productId}")]
     public async Task<ActionResult<ProductResponse>> UpdateProductAsync(string productId, ProductUpdateRequest request)
     {
         _logger.LogInformation($"Updating product with id {productId}");
-        var result = await _productService.UpdateProductAsync(productId, request);
-
-        if (result == null) return NotFound();
-
-        return Ok(result);
+        var product = await _productService.UpdateProductAsync(productId, request);
+        return CreatedAtAction(nameof(GetProductByIdAsync), new { id = product.Id }, product);
     }
 
     [HttpDelete("{productId}")]
