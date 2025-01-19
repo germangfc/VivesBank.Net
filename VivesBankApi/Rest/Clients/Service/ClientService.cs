@@ -1,8 +1,10 @@
-﻿using VivesBankApi.Rest.Clients.Dto;
+﻿using Newtonsoft.Json;
+using StackExchange.Redis;
+using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Mappers;
+using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
-using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Repository;
 
@@ -13,25 +15,41 @@ public class ClientService : IClientService
     private readonly ILogger _logger;
     private readonly IClientRepository _clientRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IDatabase _cache;
 
-    public ClientService(ILogger<ClientService> logger, IUserRepository userRepository, IClientRepository clientRepository)
+    public ClientService(
+        ILogger<ClientService> logger,
+        IUserRepository userRepository,
+        IClientRepository clientRepository,
+        IConnectionMultiplexer connection)
     {
         _userRepository = userRepository; 
         _logger = logger;
         _clientRepository = clientRepository;
+        _cache = connection.GetDatabase();
     } 
-    public async Task<List<ClientResponse>> GetAllAsync()
+    public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
+        int pageNumber, 
+        int pageSize,
+        string fullName,
+        bool? isDeleted,
+        string direction)
     {
-        _logger.LogInformation("Getting all clients");
-        var result = await _clientRepository.GetAllAsync();
-        return result.Select(c => c.toResponse()).ToList();
+        var clients = await _clientRepository.GetAllClientsPagedAsync(pageNumber, pageSize, fullName, isDeleted, direction);
+        var mappedClients = new PagedList<ClientResponse>(
+            clients.Select(u => u.ToResponse()),
+            clients.TotalCount,
+            clients.PageNumber,
+            clients.PageSize
+        );
+        return mappedClients;
     }
 
     public async Task<ClientResponse> GetClientByIdAsync(string id)
     {
         _logger.LogInformation($"Getting Client by id {id}");
-        var res = await _clientRepository.GetByIdAsync(id)??throw new ClientExceptions.ClientNotFoundException(id);
-        return res.toResponse();
+        var res = await GetByIdAsync(id) ?? throw new ClientExceptions.ClientNotFoundException(id);
+        return res.ToResponse();
     }
 
     public async Task<ClientResponse> CreateClientAsync(ClientRequest request)
@@ -39,20 +57,21 @@ public class ClientService : IClientService
         _logger.LogInformation("Creating client");
         if (await _userRepository.GetByIdAsync(request.UserId) == null)
             throw new UserNotFoundException(request.UserId);
-        var newClient = request.fromDtoRequest();
+        var newClient = request.FromDtoRequest();
         await _clientRepository.AddAsync(newClient);
-        return newClient.toResponse();
+        return newClient.ToResponse();
     }
 
     public async Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request)
     {
         _logger.LogInformation($"Updating client with id {id}");
-        var clientToUpdate = await _clientRepository.GetByIdAsync(id)??  throw new ClientExceptions.ClientNotFoundException(id);
+        var clientToUpdate = await GetByIdAsync(id) ??  throw new ClientExceptions.ClientNotFoundException(id);
         clientToUpdate.Adress = request.Address;
         clientToUpdate.FullName = request.FullName;
-        clientToUpdate.UpdatedAt = DateTime.Now;
+        clientToUpdate.UpdatedAt = DateTime.UtcNow;
         await _clientRepository.UpdateAsync(clientToUpdate);
-        return clientToUpdate.toResponse();
+        await _cache.KeyDeleteAsync(id); // Invalidating the cached client
+        return clientToUpdate.ToResponse();
     }
     
     //TODO UPDATE PHOTO DNI  y Photo Perfil unicamente para el patch
@@ -63,5 +82,24 @@ public class ClientService : IClientService
         var clientToDelete = await _clientRepository.GetByIdAsync(id)?? throw new ClientExceptions.ClientNotFoundException(id);
         clientToDelete.IsDeleted = true;
         await _clientRepository.UpdateAsync(clientToDelete);
+    }
+    
+    private async Task<Client?> GetByIdAsync(string id)
+    {
+        // Try to get from cache first
+        var cachedClient = await _cache.StringGetAsync(id);
+        if (!cachedClient.IsNullOrEmpty)
+        {
+            return JsonConvert.DeserializeObject<Client>(cachedClient);
+        }
+
+        // If not in cache, get from DB and cache it
+        Client? client = await _clientRepository.GetByIdAsync(id);
+        if (client != null)
+        {
+            await _cache.StringSetAsync(id, JsonConvert.SerializeObject(client), TimeSpan.FromMinutes(10));
+            return client;
+        }
+        return null;
     }
 }

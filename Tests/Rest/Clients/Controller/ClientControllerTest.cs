@@ -7,149 +7,176 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Service;
 
-namespace Tests.Rest.Clients.Controller
+namespace Tests.Rest.Clients.Controller;
+
+public class ClientControllerTest
 {
-    public class ClientControllerTest
+    private Mock<IClientService> _service;
+    private Mock<ILogger<ClientController>> _logger;
+    private ClientController _clientController;
+
+    [SetUp]
+    public void Setup()
     {
-        private Mock<IClientService> _service;
-        private Mock<ILogger<ClientController>> _logger;
-        private ClientController _clientController;
+        _service = new Mock<IClientService>();
+        _logger = new Mock<ILogger<ClientController>>();
+        _clientController = new ClientController(_service.Object, _logger.Object);
+    }
+    
+    [Test]
+    public async Task GetAllUsersAsync_ReturnsPaginatedResults()
+    {
+        // Arrange
+        var pageNumber = 1;
+        var pageSize = 2;
+        var fullName = "Test";
+        bool? isDeleted = false;
+        var direction = "asc";
 
-        [SetUp]
-        public void Setup()
-        {
-            _service = new Mock<IClientService>();
-            _logger = new Mock<ILogger<ClientController>>();
-            _clientController = new ClientController(_service.Object, _logger.Object);
-        }
-
-        [Test]
-        public async Task GetAll_ReturnsOkResult()
-        {
-            // Arrange
-            var clients = new List<ClientResponse>
+        var pagedList = new PagedList<ClientResponse>(
+            new List<ClientResponse>
             {
                 new ClientResponse { Id = "1", Fullname = "Test Client 1" },
                 new ClientResponse { Id = "2", Fullname = "Test Client 2" }
-            };
+            },
+            totalCount: 5,
+            pageNumber: pageNumber,
+            pageSize: pageSize
+        );
 
-            _service.Setup(s => s.GetAllAsync()).ReturnsAsync(clients);
+        _service.Setup(s => s.GetAllClientsAsync(pageNumber, pageSize, fullName, isDeleted, direction))
+            .ReturnsAsync(pagedList);
 
-            // Act
-            var result = await _clientController.GetAll() as OkObjectResult;
+        // Act
+        var result = await _clientController.GetAllUsersAsync(pageNumber, pageSize, fullName, isDeleted, direction) as ActionResult<PageResponse<ClientResponse>>;
 
-            // Assert
-            ClassicAssert.NotNull(result);
-            ClassicAssert.AreEqual(200, result.StatusCode);
-            var returnedClients = result.Value as IEnumerable<ClientResponse>;
-            ClassicAssert.AreEqual(clients.Count, returnedClients.Count());
-        }
+        // Assert
+        ClassicAssert.NotNull(result);
+        ClassicAssert.NotNull(result.Value);
 
-        [Test]
-        public async Task GetById_ReturnsOkResult_WhenClientExists()
+        var pageResponse = result.Value;
+        ClassicAssert.AreEqual(pagedList.TotalCount, pageResponse.TotalElements);
+        ClassicAssert.AreEqual(pagedList.PageCount, pageResponse.TotalPages);
+        ClassicAssert.AreEqual(pagedList.PageSize, pageResponse.PageSize);
+        ClassicAssert.AreEqual(pagedList.PageNumber, pageResponse.PageNumber);
+        ClassicAssert.AreEqual(pagedList.Count, pageResponse.TotalPageElements);
+        ClassicAssert.AreEqual(pagedList.ToList(), pageResponse.Content);
+        ClassicAssert.AreEqual(direction, pageResponse.Direction);
+        ClassicAssert.AreEqual("fullName", pageResponse.SortBy);
+        ClassicAssert.AreEqual(pagedList.IsFirstPage, pageResponse.First);
+        ClassicAssert.AreEqual(pagedList.IsLastPage, pageResponse.Last);
+        ClassicAssert.AreEqual(pagedList.Count == 0, pageResponse.Empty);
+    }
+
+    [Test]
+    public async Task GetById_ReturnsOkResult_WhenClientExists()
+    {
+        // Arrange
+        var client = new ClientResponse { Id = "1", Fullname = "Test Client" };
+
+        _service.Setup(s => s.GetClientByIdAsync("1")).ReturnsAsync(client);
+
+        // Act
+        var result = await _clientController.GetById("1");
+
+        // Assert
+        ClassicAssert.NotNull(result);
+        ClassicAssert.AreEqual(client, result.Value);
+    }
+
+    [Test]
+    public async Task GetById_ReturnsNotFound_WhenClientDoesNotExist()
+    {
+        // Arrange
+        _service.Setup(s => s.GetClientByIdAsync("1")).ReturnsAsync((ClientResponse)null);
+
+        // Act
+        var result = await _clientController.GetById("1");
+
+        // Assert
+        ClassicAssert.Null(result.Value);
+    }
+
+    [Test]
+    public async Task CreateClient_ReturnsCreatedResult()
+    {
+        // Arrange
+        var request = new ClientRequest { FullName = "New Client" };
+        var createdClient = new ClientResponse { Id = "1", Fullname = "New Client" };
+
+        _service.Setup(s => s.CreateClientAsync(request)).ReturnsAsync(createdClient);
+
+        // Act
+        var result = await _clientController.CreateClient(request);
+
+        // Assert
+        ClassicAssert.NotNull(result.Result);
+        ClassicAssert.IsInstanceOf<CreatedAtActionResult>(result.Result);
+        var createdClientResult = result.Result as CreatedAtActionResult;
+        ClassicAssert.AreEqual(createdClientResult.Value, createdClient);
+    }
+
+    [Test]
+    public async Task UpdateClient_ReturnsOkResult_WhenClientExists()
+    {
+        // Arrange
+        var request = new ClientUpdateRequest { FullName = "Updated Client" };
+        var updatedClient = new ClientResponse { Id = "1", Fullname = "Updated Client" };
+        
+        _service.Setup(s => s.UpdateClientAsync("1", request)).ReturnsAsync(updatedClient);
+
+        // Act
+        var result = await _clientController.UpdateClient("1", request);
+
+        // Assert
+        ClassicAssert.NotNull(result.Result);
+        ClassicAssert.IsInstanceOf<OkObjectResult>(result.Result);
+        var updatedClientResult = result.Result as OkObjectResult;
+        ClassicAssert.NotNull(updatedClientResult.Value);
+        ClassicAssert.AreEqual(updatedClient, updatedClientResult.Value);
+    }
+
+    [Test]
+    public async Task UpdateClient_ReturnsNotFound_WhenClientDoesNotExist()
+    {
+        // Arrange
+        var request = new ClientUpdateRequest { FullName = "Updated Client" };
+
+        _service.Setup(s => s.UpdateClientAsync("1", request)).ThrowsAsync(new ClientExceptions.ClientNotFoundException("1"));
+
+        // Act
+        IActionResult result = null;
+        try
         {
-            // Arrange
-            var client = new ClientResponse { Id = "1", Fullname = "Test Client" };
-
-            _service.Setup(s => s.GetClientByIdAsync("1")).ReturnsAsync(client);
-
-            // Act
-            var result = await _clientController.GetById("1");
-
-            // Assert
-            ClassicAssert.NotNull(result);
-            ClassicAssert.AreEqual(client, result.Value);
+            await _clientController.UpdateClient("1", request);
         }
-
-        [Test]
-        public async Task GetById_ReturnsNotFound_WhenClientDoesNotExist()
+        catch (ClientExceptions.ClientNotFoundException e)
         {
-            // Arrange
-            _service.Setup(s => s.GetClientByIdAsync("1")).ReturnsAsync((ClientResponse)null);
-
-            // Act
-            var result = await _clientController.GetById("1");
-
-            // Assert
-            ClassicAssert.Null(result.Value);
+            result = new NotFoundObjectResult(new { error = e.Message });
         }
 
-        [Test]
-        public async Task CreateClient_ReturnsCreatedResult()
+        // Assert
+        ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
+    }
+
+    [Test]
+    public async Task DeleteClient_ReturnsNotFound_WhenClientDoesNotExist()
+    {
+        // Arrange
+        _service.Setup(s => s.LogicDeleteClientAsync("1")).ThrowsAsync(new ClientExceptions.ClientNotFoundException("Client not found"));
+
+        // Act
+        IActionResult result = null;
+        try
         {
-            // Arrange
-            var request = new ClientRequest { FullName = "New Client" };
-            var createdClient = new ClientResponse { Id = "1", Fullname = "New Client" };
-
-            _service.Setup(s => s.CreateClientAsync(request)).ReturnsAsync(createdClient);
-
-            // Act
-            var result = await _clientController.CreateClient(request);
-
-            // Assert
-            ClassicAssert.NotNull(result);
-            ClassicAssert.AreEqual(createdClient, result.Value);
+            await _clientController.DeleteClient("1");
         }
-
-        [Test]
-        public async Task UpdateClient_ReturnsOkResult_WhenClientExists()
+        catch (ClientExceptions.ClientNotFoundException e)
         {
-            // Arrange
-            var request = new ClientUpdateRequest { FullName = "Updated Client" };
-            var updatedClient = new ClientResponse { Id = "1", Fullname = "Updated Client" };
-
-            _service.Setup(s => s.UpdateClientAsync("1", request)).ReturnsAsync(updatedClient);
-
-            // Act
-            var result = await _clientController.UpdateClient("1", request);
-
-            // Assert
-            ClassicAssert.NotNull(result);
-            ClassicAssert.AreEqual(updatedClient, result.Value);
+            result = new NotFoundObjectResult(new { error = e.Message });
         }
 
-        [Test]
-        public async Task UpdateClient_ReturnsNotFound_WhenClientDoesNotExist()
-        {
-            // Arrange
-            var request = new ClientUpdateRequest { FullName = "Updated Client" };
-
-            _service.Setup(s => s.UpdateClientAsync("1", request)).ThrowsAsync(new ClientExceptions.ClientNotFoundException("1"));
-
-            // Act
-            IActionResult result = null;
-            try
-            {
-                await _clientController.UpdateClient("1", request);
-            }
-            catch (ClientExceptions.ClientNotFoundException e)
-            {
-                result = new NotFoundObjectResult(new { error = e.Message });
-            }
-
-            // Assert
-            ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
-        }
-
-        [Test]
-        public async Task DeleteClient_ReturnsNotFound_WhenClientDoesNotExist()
-        {
-            // Arrange
-            _service.Setup(s => s.LogicDeleteClientAsync("1")).ThrowsAsync(new ClientExceptions.ClientNotFoundException("Client not found"));
-
-            // Act
-            IActionResult result = null;
-            try
-            {
-                await _clientController.DeleteClient("1");
-            }
-            catch (ClientExceptions.ClientNotFoundException e)
-            {
-                result = new NotFoundObjectResult(new { error = e.Message });
-            }
-
-            // Assert
-            ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
-        }
+        // Assert
+        ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
     }
 }
