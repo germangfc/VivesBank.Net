@@ -12,6 +12,7 @@ using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Validator;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace VivesBankApi.Rest.Users.Service;
 
@@ -59,7 +60,7 @@ public class UserService : IUserService
         {
             throw new  InvalidUsernameException(userRequest.Dni);
         }
-        User newUser = userRequest.ToUser();
+        User newUser = userRequest.toUser();
         User? userWithTheSameUsername = await GetByUsernameAsync(userRequest.Dni);
         if (userWithTheSameUsername != null)
         {
@@ -172,6 +173,26 @@ public class UserService : IUserService
             return user;
         }
         return null;
+    }
+
+    public async Task<User?> LoginUser(LoginRequest request)
+    {
+        var user = await _userRepository.GetByUsernameAsync(request.Dni);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
+            return null;
+        return user;
+    }
+
+    public async Task<User?> RegisterUser(LoginRequest request)
+    {
+        var user = await _userRepository.GetByUsernameAsync(request.Dni);
+        if (user!= null)
+            throw new UserAlreadyExistsException(request.Dni);
+
+        var newUser = request.ToUser();
+        newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        await _userRepository.AddAsync(newUser);
+        return newUser;
     }
 
     public String GenerateJwtToken(User user)

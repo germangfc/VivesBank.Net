@@ -1,6 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Users.Dtos;
+using VivesBankApi.Rest.Users.Exceptions;
+using VivesBankApi.Rest.Users.Mapper;
+using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
+using LoginRequest = VivesBankApi.Rest.Users.Dtos.LoginRequest;
 
 namespace VivesBankApi.Rest.Users.Controller;
 
@@ -15,6 +20,31 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] LoginRequest request)
+    {
+        try
+        {
+            var user = await _userService.RegisterUser(request);
+            var token = _userService.GenerateJwtToken(request.ToUser());
+            return Ok(new { token });
+        }
+        catch (UserAlreadyExistsException e)
+        {
+            return Unauthorized(e.Message);
+        }
+        
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        var user = await _userService.LoginUser(request);
+        if (user == null) return Unauthorized("Invalid username or password");
+        var token = _userService.GenerateJwtToken(user);
+        return Ok(new { token });
+    }
+    
     [HttpGet]
     public async Task<ActionResult<PageResponse<UserResponse>>> GetAllUsersAsync(
         [FromQuery ]int pageNumber = 0, 

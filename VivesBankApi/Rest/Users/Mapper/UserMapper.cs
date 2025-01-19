@@ -49,17 +49,32 @@ public static class UserMapper
         return user;
     }
 
-    public static User ToUser(this CreateUserRequest request)
+    public static User ToUser(this LoginRequest request)
     {
         User newUser = new User();
-        if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
         {
             newUser.Dni = request.Dni;
             newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            newUser.Role = userRole;
             return newUser;
         }
-        throw new InvalidRoleException(request.Role); 
-        
+    }
+
+    public static User toUser(this CreateUserRequest request)
+    {
+        if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
+        {
+            
+            User newUser = new User();
+            {
+                newUser.Dni = request.Dni;
+                newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                newUser.Role = userRole;
+                return newUser;
+            }
+        }
+        else
+        {
+            throw new InvalidRoleException(request.Role);
+        }
     }
 }

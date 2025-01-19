@@ -123,7 +123,7 @@ public class UserMapperTests
     public void ToUser()
     {
         // Arrange
-        var request = new CreateUserRequest
+        var request = new LoginRequest
         {
             Dni = "newuser",
             Password = "securePassword",
@@ -148,7 +148,7 @@ public class UserMapperTests
     public void ToUser_SuperAdmin()
     {
         // Arrange
-        var request = new CreateUserRequest
+        var request = new LoginRequest
         {
             Dni = "newuser",
             Password = "securePassword",
@@ -173,7 +173,7 @@ public class UserMapperTests
     public void ToUser_InvalidRole()
     {
         // Arrange
-        var request = new CreateUserRequest
+        var request = new LoginRequest
         {
             Dni = "newuser",
             Password = "securePassword",
@@ -211,7 +211,7 @@ public class UserMapperTests
     public void ToUser_UserRole()
     {
         // Arrange
-        var request = new CreateUserRequest
+        var request = new LoginRequest
         {
             Dni = "newuser",
             Password = "securePassword",

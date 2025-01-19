@@ -1,7 +1,9 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
+using VivesBankApi.Database;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Mapper;
@@ -18,6 +20,8 @@ public class UserServiceTest
     private Mock<IConnectionMultiplexer> _connection;
     private Mock<IDatabase> _cache;
     private Mock<IUserRepository> userRepositoryMock;
+    private Mock<AuthJwtConfig> _authConfig;
+    private Mock<ILogger<UserService>> _logger;
     private UserService userService;
     private User _user1;
     private User _user2;
@@ -31,7 +35,7 @@ public class UserServiceTest
         
         userRepositoryMock = new Mock<IUserRepository>();
 
-        userService = new UserService(userRepositoryMock.Object, _connection.Object);
+        userService = new UserService(_logger.Object, userRepositoryMock.Object, _authConfig.Object,_connection.Object);
         
         _user1 = new User
         {
@@ -208,7 +212,7 @@ public class UserServiceTest
     public async Task AddUserAsync()
     {
         // Arrange
-        var userRequest = new CreateUserRequest
+        var userRequest = new LoginRequest
         {
             Dni = "43080644B",
             Password = "Password123",
@@ -241,7 +245,7 @@ public class UserServiceTest
     public void AddUserAsync_AlreadyExists()
     {
         // Arrange
-        var userRequest = new CreateUserRequest
+        var userRequest = new LoginRequest
         {
             Dni = "43080644B",
             Password = "Password123",
