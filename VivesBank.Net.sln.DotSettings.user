@@ -19,4 +19,11 @@
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=b1190e0b_002Dbce6_002D4f91_002Dab3a_002D828e722c660f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from Solution" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Solution /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=dd5777c8_002Dfdc2_002D4351_002Db379_002D28be58fff23a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="CurrencyApiServiceTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Test.Currency.CurrencyApiServiceTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Test.Currency.CurrencyControllerTests.GetLatestRates_ShouldReturnBadRequest_WhenAmountIsInvalid&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Test.Currency.CurrencyControllerTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
