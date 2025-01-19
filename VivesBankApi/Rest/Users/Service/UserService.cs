@@ -1,5 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using StackExchange.Redis;
+using VivesBankApi.Database;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Mapper;
@@ -14,9 +19,13 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IDatabase _cache;
+    private readonly AuthJwtConfig _authConfig;
+    private readonly ILogger _logger;
     
-    public UserService(IUserRepository userRepository, IConnectionMultiplexer connectionMultiplexer)
+    public UserService(ILogger<UserService> logger, IUserRepository userRepository, AuthJwtConfig authConfig, IConnectionMultiplexer connectionMultiplexer)
     {
+        _logger = logger;
+        _authConfig = authConfig;
         _userRepository = userRepository;
         _cache = connectionMultiplexer.GetDatabase();
     }
@@ -163,5 +172,23 @@ public class UserService : IUserService
             return user;
         }
         return null;
+    }
+
+    public String GenerateJwtToken(User user)
+    {
+        _logger.LogInformation("Generating JWT token");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authConfig.Key));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var claims = new[]
+        {
+            new Claim("UserId", user.Id)
+        };
+        var token = new JwtSecurityToken(
+            _authConfig.Issuer,
+            _authConfig.Audience,
+            claims,
+            expires: DateTime.Now.AddMinutes(Convert.ToDouble(_authConfig.ExpiresInMinutes)),
+            signingCredentials: credentials);
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
