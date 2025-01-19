@@ -212,14 +212,14 @@ public class UserServiceTest
     public async Task AddUserAsync()
     {
         // Arrange
-        var userRequest = new LoginRequest
+        var userRequest = new CreateUserRequest
         {
             Dni = "43080644B",
             Password = "Password123",
             Role = "Admin"
         };
 
-        var newUser = UserMapper.ToUser(userRequest);
+        var newUser = userRequest.toUser();
         
         userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(userRequest.Dni)).ReturnsAsync(_user2);
         userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(userRequest.Dni)).ReturnsAsync((User)null);
@@ -245,7 +245,7 @@ public class UserServiceTest
     public void AddUserAsync_AlreadyExists()
     {
         // Arrange
-        var userRequest = new LoginRequest
+        var userRequest = new CreateUserRequest
         {
             Dni = "43080644B",
             Password = "Password123",

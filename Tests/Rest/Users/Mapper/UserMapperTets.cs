@@ -123,7 +123,7 @@ public class UserMapperTests
     public void ToUser()
     {
         // Arrange
-        var request = new LoginRequest
+        var request = new CreateUserRequest
         {
             Dni = "newuser",
             Password = "securePassword",
@@ -131,7 +131,7 @@ public class UserMapperTests
         };
 
         // Act
-        var newUser = UserMapper.ToUser(request);
+        var newUser = request.toUser();
 
         // Assert
         Assert.Multiple(() =>
@@ -148,7 +148,7 @@ public class UserMapperTests
     public void ToUser_SuperAdmin()
     {
         // Arrange
-        var request = new LoginRequest
+        var request = new CreateUserRequest
         {
             Dni = "newuser",
             Password = "securePassword",
@@ -156,7 +156,7 @@ public class UserMapperTests
         };
 
         // Act
-        var newUser = UserMapper.ToUser(request);
+        var newUser = request.toUser();
 
         // Assert
         Assert.Multiple(() =>
@@ -173,7 +173,7 @@ public class UserMapperTests
     public void ToUser_InvalidRole()
     {
         // Arrange
-        var request = new LoginRequest
+        var request = new CreateUserRequest
         {
             Dni = "newuser",
             Password = "securePassword",
@@ -181,7 +181,7 @@ public class UserMapperTests
         };
 
         // Act & Assert
-        Assert.Throws<InvalidRoleException>(() => UserMapper.ToUser(request));
+        Assert.Throws<InvalidRoleException>(() => request.toUser());
     }
 
     [Test]
@@ -211,7 +211,7 @@ public class UserMapperTests
     public void ToUser_UserRole()
     {
         // Arrange
-        var request = new LoginRequest
+        var request = new CreateUserRequest
         {
             Dni = "newuser",
             Password = "securePassword",
@@ -219,7 +219,7 @@ public class UserMapperTests
         };
 
         // Act
-        var newUser = UserMapper.ToUser(request);
+        var newUser = request.toUser();
 
         // Assert
         Assert.Multiple(() =>

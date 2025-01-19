@@ -3,7 +3,9 @@ using System.Text;
 using ApiFranfurkt.Properties.Currency.Services;
 using ApiFunkosCS.Utils.DevApplyMigrations;
 using ApiFunkosCS.Utils.ExceptionMiddleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Refit;
 using Serilog;
@@ -151,7 +153,35 @@ WebApplicationBuilder InitServices()
         logging.AddSerilog(logger, true); // Añade Serilog como un proveedor de log
     });
     logger.Debug("Serilog added as default logger");
+
+    var configKey = configuration.GetSection("Jwt").Get<AuthJwtConfig>();
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configKey.Key));
+    myBuilder.Services.Configure<AuthJwtConfig>(
+        myBuilder.Configuration.GetSection("Jwt"));
+    myBuilder.Services.AddAuthentication(x =>
+    {
+        x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    }).AddJwtBearer(x =>
+    {
+        x.RequireHttpsMetadata = false;
+        x.SaveToken = true;
+        x.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = configuration["Jwt:Issuer"],
+            ValidAudience = configuration["Jwt:Audience"],
+            IssuerSigningKey = key
+        };
+    });
     
+    myBuilder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
+    });
 
     myBuilder.Services.AddMemoryCache(
         options => options.ExpirationScanFrequency = TimeSpan.FromSeconds(30)

@@ -132,7 +132,7 @@ namespace Tests.Rest.Users.Controller
         public async Task AddUser_ReturnsCreated()
         {
             // Arrange
-            var userRequest = new LoginRequest
+            var userRequest = new CreateUserRequest
             {
                 Dni = "TestUser",
                 Password = "aPassword",
@@ -162,7 +162,7 @@ namespace Tests.Rest.Users.Controller
         public async Task AddUser_ReturnsConflict_WhenUserAlreadyExists()
         {
             // Arrange
-            var userRequest = new LoginRequest
+            var userRequest = new CreateUserRequest
             {
                 Dni = "TestUser",
                 Password = "aPassword",
@@ -190,7 +190,7 @@ namespace Tests.Rest.Users.Controller
         public async Task AddUser_ReturnsBadRequest_WhenDniIsInvalid()
         {
             // Arrange
-            var userRequest = new LoginRequest
+            var userRequest = new CreateUserRequest
             {
                 Dni = "InvalidDni",
                 Password = "aPassword",
@@ -218,7 +218,7 @@ namespace Tests.Rest.Users.Controller
         public async Task AddUser_ReturnsBadRequest_WhenUserIsInvalid()
         {
             // Arrange
-            LoginRequest request = new LoginRequest
+            CreateUserRequest request = new CreateUserRequest
             {
                 Password = "aPassword",
                 Role = "user"
