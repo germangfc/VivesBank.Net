@@ -13,7 +13,7 @@ using Role = VivesBankApi.Rest.Users.Models.Role;
 namespace Tests.Rest.Users.Service;
 
 [TestFixture]
-public class estUserService
+public class UserServiceTest
 {
     private Mock<IConnectionMultiplexer> _connection;
     private Mock<IDatabase> _cache;
@@ -30,6 +30,7 @@ public class estUserService
         _connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
         
         userRepositoryMock = new Mock<IUserRepository>();
+
         userService = new UserService(userRepositoryMock.Object, _connection.Object);
         
         _user1 = new User
@@ -56,33 +57,97 @@ public class estUserService
     }
 
     [Test]
-    public async Task GetAll()
+    public async Task GetAllUsersAsync()
     {
         // Arrange
-        var mockUsers = new List<User> { _user1, _user2 };
-        
-        userRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(mockUsers);
+        int pageNumber = 1;
+        int pageSize = 10;
+        string role = "Admin";
+        bool? isDeleted = false;
+        string direction = "asc";
+
+        var usersFromRepo = new PagedList<User>(
+            new List<User> { _user1, _user2 },
+            2,
+            pageNumber,
+            pageSize
+        );
+
+        userRepositoryMock
+            .Setup(repo => repo.GetAllUsersPagedAsync(pageNumber, pageSize, role, isDeleted, direction))
+            .ReturnsAsync(usersFromRepo);
 
         // Act
-        var result = await userService.GetAllUsersAsync();
+        var result = await userService.GetAllUsersAsync(pageNumber, pageSize, role, isDeleted, direction);
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            ClassicAssert.IsNotNull(result);
-            ClassicAssert.AreEqual(2, result.Count);
-            
-            ClassicAssert.AreEqual(_user1.Username, result[0].Username);
-            ClassicAssert.AreEqual(_user1.Password, result[0].Password);
-            ClassicAssert.AreEqual(_user1.Role, result[0].Role);
-            
-            ClassicAssert.AreEqual(_user2.Username, result[1].Username);
-            ClassicAssert.AreEqual(_user2.Password, result[1].Password);
-            ClassicAssert.AreEqual(_user2.Role, result[1].Role);
-        });
+        ClassicAssert.NotNull(result);
+        ClassicAssert.AreEqual(2, result.TotalCount);
+        ClassicAssert.AreEqual(pageNumber, result.PageNumber);
+        ClassicAssert.AreEqual(pageSize, result.PageSize);
+        ClassicAssert.AreEqual(2, result.Count);
+        ClassicAssert.AreEqual("43080644B", result.First().Username);
+    }
 
-        // Verify
-        userRepositoryMock.Verify(repo => repo.GetAllAsync(), Times.Once);
+    [Test]
+    public async Task GetAllUsersAsync_ReturnsEmptyList_WhenNoUsersFound()
+    {
+        // Arrange
+        int pageNumber = 1;
+        int pageSize = 10;
+        string role = "Admin";
+        bool? isDeleted = false;
+        string direction = "asc";
+
+        var usersFromRepo = new PagedList<User>(
+            new List<User>(),
+            0, // TotalCount
+            pageNumber, // PageNumber
+            pageSize // PageSize
+        );
+
+        userRepositoryMock
+            .Setup(repo => repo.GetAllUsersPagedAsync(pageNumber, pageSize, role, isDeleted, direction))
+            .ReturnsAsync(usersFromRepo);
+
+        // Act
+        var result = await userService.GetAllUsersAsync(pageNumber, pageSize, role, isDeleted, direction);
+
+        // Assert
+        ClassicAssert.NotNull(result);
+        ClassicAssert.AreEqual(0, result.TotalCount);
+        ClassicAssert.AreEqual(result.TotalCount, 0);
+    }
+
+    [Test]
+    public async Task GetAllUsersAsync_ReturnsMappedUserResponse()
+    {
+        // Arrange
+        int pageNumber = 1;
+        int pageSize = 10;
+        string role = "User";
+        bool? isDeleted = false;
+        string direction = "asc";
+
+        var usersFromRepo = new PagedList<User>(
+            new List<User> { _user1 },
+            1,
+            pageNumber,
+            pageSize
+        );
+        
+        userRepositoryMock
+            .Setup(repo => repo.GetAllUsersPagedAsync(pageNumber, pageSize, role, isDeleted, direction))
+            .ReturnsAsync(usersFromRepo);
+
+        // Act
+        var result = await userService.GetAllUsersAsync(pageNumber, pageSize, role, isDeleted, direction);
+
+        // Assert
+        var userResponse = result.First();
+        ClassicAssert.AreEqual("43080644B", userResponse.Username);
+        ClassicAssert.AreEqual(Role.Admin.ToString(), userResponse.Role);
+        ClassicAssert.False(userResponse.IsDeleted);
     }
     
     [Test]
@@ -100,7 +165,6 @@ public class estUserService
         {
             ClassicAssert.IsNotNull(result);
             ClassicAssert.AreEqual(_user1.Username, result.Username);
-            ClassicAssert.AreEqual(_user1.Password, result.Password);
         });
 
         // Verify
@@ -121,7 +185,6 @@ public class estUserService
         {
             ClassicAssert.IsNotNull(result);
             ClassicAssert.AreEqual(_user1.Username, result.Username);
-            ClassicAssert.AreEqual(_user1.Password, result.Password);
         });
 
         // Verify
@@ -129,16 +192,13 @@ public class estUserService
     }
     
     [Test]
-    public async Task GetUserByIdAsync_NotExist()
+    public void GetUserByIdAsync_NotExist()
     {
         // Arrange
         userRepositoryMock.Setup(repo => repo.GetByIdAsync("3")).ReturnsAsync((User)null);
 
         // Act
-        var result = await userService.GetUserByIdAsync("3");
-
-        // Assert
-        ClassicAssert.IsNull(result);
+        Assert.ThrowsAsync<UserNotFoundException>((() => userService.GetUserByIdAsync("3")));
 
         // Verify
         userRepositoryMock.Verify(repo => repo.GetByIdAsync("3"), Times.Once);
@@ -169,8 +229,7 @@ public class estUserService
         {
             ClassicAssert.IsNotNull(result);
             ClassicAssert.AreEqual(newUser.Username, result.Username);
-            ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(userRequest.Password, result.Password), "Password hash does not match");
-            ClassicAssert.AreEqual(newUser.Role, result.Role);
+            ClassicAssert.AreEqual("Admin", result.Role);
         });
 
         // Verify
@@ -226,8 +285,7 @@ public class estUserService
         {
             ClassicAssert.IsNotNull(result); 
             ClassicAssert.AreEqual(_user1.Username, result.Username); 
-            ClassicAssert.AreEqual(_user1.Password, result.Password); 
-            ClassicAssert.AreEqual(_user1.Role, result.Role);
+            ClassicAssert.AreEqual("Admin", result.Role);
         });
 
         // Verify
@@ -243,10 +301,9 @@ public class estUserService
         userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(username)).ReturnsAsync((User)null);
 
         // Act
-        var result = await userService.GetUserByUsernameAsync(username);
-
-        // Assert
-        ClassicAssert.IsNull(result);
+        Assert.ThrowsAsync<UserNotFoundException>(
+            () => userService.GetUserByUsernameAsync(username)
+        );
 
         // Verify
         userRepositoryMock.Verify(repo => repo.GetByUsernameAsync(username), Times.Once);
@@ -293,8 +350,7 @@ public class estUserService
         {
             ClassicAssert.IsNotNull(result);
             ClassicAssert.AreEqual(updatedUser.Username, result.Username);
-            ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(userUpdateRequest.Password, result.Password), "Password hash does not match");
-            ClassicAssert.AreEqual(updatedUser.Role, result.Role);
+            ClassicAssert.AreEqual("User", result.Role);
         });
 
         // Verify
@@ -315,7 +371,7 @@ public class estUserService
         };
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<InvalidUserException>(async () =>
+        var ex = Assert.ThrowsAsync<InvalidUsernameException>(async () =>
             await userService.UpdateUserAsync(userId, userUpdateRequest)
         );
 
@@ -355,7 +411,6 @@ public class estUserService
         
         _cache.Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
            .ReturnsAsync((RedisValue)JsonSerializer.Serialize(existingUser));
-        userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(userUpdateRequest.Username)).ReturnsAsync((User)null);
         userRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
 
         // Act
@@ -365,14 +420,12 @@ public class estUserService
         Assert.Multiple(() =>
         {
             ClassicAssert.IsNotNull(result);
-            ClassicAssert.AreEqual(updatedUser.Username, result.Username);
-            ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(userUpdateRequest.Password, result.Password), "Password hash does not match");
-            ClassicAssert.AreEqual(updatedUser.Role, result.Role);
+            ClassicAssert.AreEqual("43080644B", result.Username);
+            ClassicAssert.AreEqual("User", result.Role);
         });
 
         // Verify
         userRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Never);
-        userRepositoryMock.Verify(repo => repo.GetByUsernameAsync(userUpdateRequest.Username), Times.Once);
         userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Once);
     }
     

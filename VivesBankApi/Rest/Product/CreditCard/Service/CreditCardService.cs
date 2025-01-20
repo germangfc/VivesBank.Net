@@ -1,4 +1,5 @@
-﻿using VivesBankApi.Rest.Product.CreditCard.Dto;
+﻿using VivesBankApi.Rest.Product.BankAccounts.Repositories;
+using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Generators;
 
@@ -11,14 +12,16 @@ public class CreditCardService : ICreditCardService
     private readonly CvcGenerator _cvcGenerator;
     private readonly ExpirationDateGenerator _expirationDateGenerator;
     private readonly NumberGenerator _numberGenerator;
+    private readonly IAccountsRepository _accountsRepository;
 
-    public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, CvcGenerator cvcGenerator, ExpirationDateGenerator expirationDateGenerator, NumberGenerator numberGenerator)
+    public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, CvcGenerator cvcGenerator, ExpirationDateGenerator expirationDateGenerator, NumberGenerator numberGenerator, IAccountsRepository accountsRepository)
     {
         _logger = logger;
         _creditCardRepository = creditCardRepository;
         _cvcGenerator = cvcGenerator;
         _expirationDateGenerator = expirationDateGenerator;
         _numberGenerator = numberGenerator;
+        _accountsRepository = accountsRepository;
     }
 
     public async Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync()
@@ -54,13 +57,23 @@ public class CreditCardService : ICreditCardService
         creditCardModel.CardNumber = _numberGenerator.GenerateCreditCardNumber();
         creditCardModel.ExpirationDate = _expirationDateGenerator.GenerateRandomDate();
         creditCardModel.Cvc = _cvcGenerator.Generate();
+        
+        var account = await _accountsRepository.getAccountByIbanAsync(createRequest.AccountIban);
+        
+        if (account == null)
+        {
+            _logger.LogError($"Account not found with iban {createRequest.AccountIban}");
+            throw new Exception(createRequest.AccountIban);
+        }
+        
+        creditCardModel.AccountId = account.Id;
 
         await _creditCardRepository.AddAsync(creditCardModel);
             
         return creditCardModel.ToClientResponse();
     }
 
-    public async Task<CreditCardClientResponse> UpdateCreditCardAsync(string cardId, CreditCardRequest updateRequest)
+    public async Task<CreditCardClientResponse> UpdateCreditCardAsync(string cardId, CreditCardUpdateRequest updateRequest)
     {
         _logger.LogInformation($"Updating card: {updateRequest} by Id: {cardId}");
         

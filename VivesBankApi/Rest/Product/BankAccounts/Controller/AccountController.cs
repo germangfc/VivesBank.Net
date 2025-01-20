@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
+using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 
 namespace VivesBankApi.Rest.Product.BankAccounts.Controller;
 [ApiController]
@@ -19,7 +21,6 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> GetAllAccounts([FromQuery] int page = 0, [FromQuery] int size = 10, [FromQuery] string sortBy = "id", [FromQuery] string direction = "asc")
     {
         _logger.LogInformation("Getting all accounts with pagination");
-
         var response = await _accountsService.GetAccountsAsync(page, size, sortBy, direction);
         return Ok(response);
     }
@@ -28,29 +29,32 @@ public class AccountController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<AccountResponse>> GetAccountById(string id)
     {
-        _logger.LogInformation($"Getting account with id {id}");
-        return await _accountsService.GetAccountByIdAsync(id);
+            _logger.LogInformation($"Getting account with id {id}");
+            var account = await _accountsService.GetAccountByIdAsync(id);
+            return Ok(account);
     }
 
-    [HttpGet("iban/{id}")]
+    [HttpGet("iban/{iban}")]
     public async Task<ActionResult<AccountResponse>> GetAccountByIban(String iban)
     {
-        _logger.LogInformation($"Getting account with IBAN {iban}");
-        return await _accountsService.GetAccountByIbanAsync(iban);
+            _logger.LogInformation($"Getting account with IBAN {iban}");
+            var account = await _accountsService.GetAccountByIbanAsync(iban);
+            return Ok(account);
     }
 
     [HttpPost]
     public async Task<ActionResult<AccountResponse>> CreateAccount([FromBody] CreateAccountRequest request)
     {
         _logger.LogInformation("Creating new account");
-        return await _accountsService.CreateAccountAsync(request);
+        var account = await _accountsService.CreateAccountAsync(request);
+        return CreatedAtAction(nameof(GetAccountById), new { id = account.Id }, account);
     }
 
-    [HttpDelete]
+    [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAccount(string id)
     {
-        _logger.LogInformation($"Deleting account with id {id}");
-        await _accountsService.DeleteAccountAsync(id);
-        return NoContent();
+            _logger.LogInformation($"Deleting account with id {id}");
+            await _accountsService.DeleteAccountAsync(id);
+            return NoContent();
     }
 }

@@ -1,17 +1,19 @@
-﻿using Newtonsoft.Json;
-using VivesBankApi.Rest.Users.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace VivesBankApi.Rest.Users.Dtos;
 
 public class UserUpdateRequest
 {
-    [JsonProperty("username")]
-    public String? Username = null;
+    [Length(9, 9, ErrorMessage = "The username must be a DNI")]
+    [JsonProperty("username")] 
+    public string? Username { get; set; } = null;
     
-    [JsonProperty("password")]
-    public String? Password = null;
-    
+    [MinLength(8, ErrorMessage = "The password must be at least 5 characters long")]
+    [MaxLength(50, ErrorMessage = "The password must be at most 50 characters long")]
+    [JsonProperty("password")] 
+    public string? Password { get; set; } = null;
+
     [JsonProperty("role")]
-    public String? Role = null;
-    
+    public string? Role { get; set; } = null;
 }

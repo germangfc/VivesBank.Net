@@ -10,10 +10,10 @@ namespace VivesBankApi.Rest.Product.CreditCard.Controller;
 [Route("api/[controller]")]
 public class CreditCardController : ControllerBase
 {
-    private readonly CreditCardService _creditCardService;
+    private readonly ICreditCardService _creditCardService;
     private readonly ILogger _logger;
 
-    public CreditCardController(CreditCardService creditCardService, ILogger<CreditCardController> logger)
+    public CreditCardController(ICreditCardService creditCardService, ILogger<CreditCardController> logger)
     {
         _creditCardService = creditCardService;
         _logger = logger;
@@ -32,30 +32,24 @@ public class CreditCardController : ControllerBase
     {
         _logger.LogInformation($"Getting card with id {cardId}");
         var card = await _creditCardService.GetCreditCardByIdAdminAsync(cardId);
-
-        if (card == null) return NotFound();
-
         return Ok(card);
-    
     }
 
     [HttpPost]
     public async Task<ActionResult<CreditCardClientResponse>> CreateCardAsync(CreditCardRequest createRequest)
     {
         _logger.LogInformation($"Creating card: {createRequest}");
-        return await _creditCardService.CreateCreditCardAsync(createRequest);
+        var card = await _creditCardService.CreateCreditCardAsync(createRequest);
+        return CreatedAtAction(nameof(GetCardByIdAdminAsync), new { cardId = card.Id }, card);
     }
 
     [HttpPut("{cardId}")]
     public async Task<ActionResult<CreditCardClientResponse>> UpdateCardAsync(string cardId,
-        CreditCardRequest updateRequest)
+        CreditCardUpdateRequest updateRequest)
     {
         _logger.LogInformation($"Updating card with id {cardId}");
-        var result = await _creditCardService.UpdateCreditCardAsync(cardId, updateRequest);
-
-        if (result == null) return NotFound();
-
-        return Ok(result);
+        var card = await _creditCardService.UpdateCreditCardAsync(cardId, updateRequest);
+        return CreatedAtAction(nameof(GetCardByIdAdminAsync), new { cardId = card.Id }, card);
     }
 
     [HttpDelete("{cardId}")]

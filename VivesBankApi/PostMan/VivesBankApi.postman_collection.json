@@ -1,0 +1,632 @@
+{
+	"info": {
+		"_postman_id": "7680a552-2983-446f-92f0-276ee331741f",
+		"name": "VivesBankApi",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40255473"
+	},
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/User",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"User"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/User/fu315EAaydQ",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"User",
+								"fu315EAaydQ"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"50378910D\",\r\n  \"password\": \"qwerty123\",\r\n  \"role\": \"USER\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5174/api/User",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"User"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\r\n    \"role\": \"ADMIN\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5174/api/User/fu315EAaydQ",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"User",
+								"fu315EAaydQ"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logic Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/User/fu315EAaydQ",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"User",
+								"fu315EAaydQ"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Client",
+			"item": [
+				{
+					"name": "Get All Clients",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/Client",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Client"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cliente By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/Client/u3iNc0QMNSo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Client",
+								"u3iNc0QMNSo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Client",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"fullName\": \"ClienteTest\",\r\n  \"photo\": \"URLTEST\",\r\n  \"photoDni\": \"URLTEST\",\r\n  \"address\": \"addressTest\",\r\n  \"userId\": \"bUNt8C8v7cw\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5174/api/Client",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Client"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Client",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fullname\": \"Actualizado\",\r\n    \"Address\" : \"Direccion Actualizado\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5174/api/Client/u3iNc0QMNSo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Client",
+								"u3iNc0QMNSo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logic Delete Client",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/Client/u3iNc0QMNSo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Client",
+								"u3iNc0QMNSo"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Product",
+			"item": [
+				{
+					"name": "Get all Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/Product",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Product"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/Product/WR8HuePg3dQ",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Product",
+								"WR8HuePg3dQ"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"string\",\r\n  \"type\": \"BANKACCOUNT\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5174/api/Product",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Product"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/Product/ID",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Product",
+								"ID"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/Product/ID",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Product",
+								"ID"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Account",
+			"item": [
+				{
+					"name": "Get All Accounts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/Account",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Account By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/Account/ID",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Account",
+								"ID"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Account",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"productName\": \"string\",\r\n  \"clientId\": \"u3iNc0QMNSo\",\r\n  \"accountType\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5174/api/Account",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Account",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5174/api/Account/JP1E4cElx3g",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Account",
+								"JP1E4cElx3g"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Account By IBAN",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/Account/Iban/ES0201280001003984738031",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"Account",
+								"Iban",
+								"ES0201280001003984738031"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Credit Card",
+			"item": [
+				{
+					"name": "Get All Credit Cards",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/CreditCard",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"CreditCard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Credit Card By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/CreditCard/tIKVFDBtLmo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"CreditCard",
+								"tIKVFDBtLmo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Credit Card",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"pin\": \"1111\",\r\n  \"AccountIban\": \"ES0201280001003984738031\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5174/api/CreditCard",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"CreditCard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Credit Card",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"pin\":\"2222\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5174/api/CreditCard/tIKVFDBtLmo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"CreditCard",
+								"tIKVFDBtLmo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Credit Card",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5174/api/CreditCard/tIKVFDBtLmo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5174",
+							"path": [
+								"api",
+								"CreditCard",
+								"tIKVFDBtLmo"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
