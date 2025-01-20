@@ -10,12 +10,11 @@ namespace VivesBankApi.Rest.Users.Models;
 public class User
 {
     [Key] 
-    [JsonProperty("id")]
+    [JsonProperty("id")] 
     public String Id { get; set; } = GuuidGenerator.GenerateHash();
-    
+
     [Required]
-    [MinLength(5)]
-    [MaxLength(50)]
+    [Length(9, 9, ErrorMessage = "The username must be a DNI")]
     [JsonProperty("username")]
     public String Username { get; set; }
     

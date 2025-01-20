@@ -112,6 +112,8 @@ public class UserMapperTests
         // Arrange
         var request = new UserUpdateRequest
         {
+            Username = "updatedUsername",
+            Password = "updatedPassword",
             Role = "InvalidRole"
         };
 

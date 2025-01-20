@@ -22,6 +22,7 @@ public class UserRepository : GenericRepository<BancoDbContext,User>, IUserRepos
         bool? isDeleted,
         string direction)
     {
+        _logger.LogInformation("Fetching all users");
         var query = _dbSet.AsQueryable();
         
         query = query.Where(a => a.Role.ToString().ToUpper().Contains(role.Trim().ToUpper()));

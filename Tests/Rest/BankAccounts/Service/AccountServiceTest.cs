@@ -9,9 +9,9 @@ using VivesBankApi.Rest.Product.BankAccounts.Mappers;
 using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
-using VivesBankApi.Rest.Product.Base.Models;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Utils.IbanGenerator;
+using VivesBankApi.Rest.Product.Base.Models;
 
 namespace Tests.Rest.BankAccounts.Service;
 [TestFixture]
@@ -173,7 +173,7 @@ public class AccountServiceTest
             AccountType = AccountType.STANDARD
         };
         var generatedIban = "ES9121000418450200051332";
-        var product = new Product("ValidProductName", Product.Type.BankAccount);
+        var product = new VivesBankApi.Rest.Product.Base.Models.Product("ValidProductName", VivesBankApi.Rest.Product.Base.Models.Product.Type.BankAccount);
         _clientRepository.Setup(r => r.GetByIdAsync(request.ClientId))
             .ReturnsAsync(new Client { Id = request.ClientId });
 
@@ -226,7 +226,7 @@ public class AccountServiceTest
         _clientRepository.Setup(r => r.GetByIdAsync(request.ClientId))
            .ReturnsAsync(new Client { Id = request.ClientId });
         _productRepository.Setup(r => r.GetByNameAsync(request.ProductName))
-           .ReturnsAsync((Product)null);
+           .ReturnsAsync((VivesBankApi.Rest.Product.Base.Models.Product)null);
         var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotCreatedException>(async () =>
             await _accountService.CreateAccountAsync(request));
         Assert.That(exception.Message, Is.EqualTo("Account couldnt be created, check that te client and the product exists"));

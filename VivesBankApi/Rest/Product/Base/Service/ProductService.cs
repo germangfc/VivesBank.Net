@@ -1,5 +1,6 @@
 ﻿using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
+using VivesBankApi.Rest.Product.Base.Validators;
 
 namespace VivesBankApi.Rest.Product.Service;
 
@@ -7,11 +8,13 @@ public class ProductService : IProductService
 {
     private readonly ILogger<ProductService> _logger;
     private readonly IProductRepository _productRepository;
+    private readonly ProductValidator _productValidator;
     
-    public ProductService(ILogger<ProductService> logger, IProductRepository productRepository)
+    public ProductService(ILogger<ProductService> logger, IProductRepository productRepository, ProductValidator productValidator)
     {
         _logger = logger;
         _productRepository = productRepository;
+        _productValidator = productValidator;
     }
     
     public async Task<List<ProductResponse>> GetAllProductsAsync()
@@ -43,9 +46,15 @@ public class ProductService : IProductService
     {
         _logger.LogInformation($"Creating product: {createRequest}");
 
+        if (!ProductValidator.isValidProduct(createRequest))
+        {
+            _logger.LogError("Invalid product data provided.");
+            throw new ProductException.ProductInvalidTypeException("Invalid product paremeters");
+        }
+
         var productModel = ProductMapper.FromDtoRequest(createRequest);
         await _productRepository.AddAsync(productModel);
-        
+    
         return productModel.ToDtoResponse();
     }
 
@@ -69,17 +78,20 @@ public class ProductService : IProductService
         return product.ToDtoResponse();
     }
 
-    public async Task DeleteProductAsync(string productId)
+    public async Task<bool> DeleteProductAsync(string productId)
     {
         _logger.LogInformation($"Removing product by Id: {productId}");
-    
+
         var product = await _productRepository.GetByIdAsync(productId);
         if (product == null)
         {
             _logger.LogError($"Product not found with id {productId}");
-            throw new ProductException.ProductNotFoundException(productId);
+            throw new ProductException.ProductNotFoundException(productId); 
         }
-    
+
         await _productRepository.DeleteAsync(productId);
+
+        _logger.LogInformation($"Product with Id: {productId} removed successfully.");
+        return true; 
     }
 }

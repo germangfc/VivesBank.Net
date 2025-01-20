@@ -1,21 +1,38 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace VivesBankApi.Rest.Clients.Dto;
 
 public class ClientResponse
 {
-    [Required]
+    [JsonProperty("id")]
     public string Id { get; set; }
-    [Required]
+    
+    [JsonProperty("userId")]
     public string UserId { get; set; }
-    [Required]
+    
+    [JsonProperty("address")]
     public string Address { get; set; } 
-    [Required]
+    
+    [JsonProperty("fullname")]
     public string Fullname { get; set; }
-    [Required]
-    public List<String?> Accounts { get; set; }
+    
+    [JsonProperty("dniPhoto")]
+    public string DniPhoto { get; set; }
+    
+    [JsonProperty("photo")]
+    public string Photo { get; set; }
+    
+    [JsonProperty("accounts")]
+    public List<String> Accounts { get; set; }
+    
+    [JsonProperty("createdAt")]
     public DateTime CreatedAt { get; set; }
+    
+    [JsonProperty("updatedAt")]
     public DateTime UpdatedAt { get; set; }
+    
+    [JsonProperty("isDeleted")]
     public bool IsDeleted { get; set; }
     
 }
