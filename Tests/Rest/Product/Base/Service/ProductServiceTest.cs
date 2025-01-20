@@ -6,6 +6,7 @@ using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
 using VivesBankApi.Rest.Product.Base.Models;
 using VivesBankApi.Rest.Product.Base.Repository;
+using VivesBankApi.Rest.Product.Base.Validators;
 using VivesBankApi.Rest.Product.Service;
 
 [TestFixture]
@@ -16,6 +17,7 @@ public class ProductServiceTest
     private BancoDbContext _dbContext;
     private ProductRepository _repository;
     private ProductService _productService;
+    private ProductValidator _productValidator;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -38,7 +40,7 @@ public class ProductServiceTest
         await _dbContext.Database.EnsureCreatedAsync();
 
         _repository = new ProductRepository(_dbContext, NullLogger<ProductRepository>.Instance);
-        _productService = new ProductService(NullLogger<ProductService>.Instance, _repository);
+        _productService = new ProductService(NullLogger<ProductService>.Instance, _repository, _productValidator);
     }
 
     [OneTimeTearDown]
@@ -101,7 +103,8 @@ public class ProductServiceTest
     [Test]
     public async Task CreateProduct()
     {
-        var createRequest = new ProductCreateRequest {Name = "Producto Nuevo", Type = "BankAccount" };
+        var createRequest = new ProductCreateRequest {Name = "Producto Nuevo", Type = "BANKACCOUNT" };
+        ProductValidator.isValidProduct(createRequest);
         var result = await _productService.CreateProductAsync(createRequest);
 
         Assert.That(result, Is.Not.Null);
