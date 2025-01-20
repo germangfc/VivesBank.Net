@@ -108,4 +108,35 @@ public class CurrencyApiServiceTests
         StringAssert.Contains("Error connecting to API", exception.Message);
         StringAssert.Contains("500", exception.Message);
     }
+    
+    // Contenido nulo.
+    
+    [Test]
+    public async Task GetLatestRatesAsyncContentIsNull()
+    {
+        var nullContentResponse = new ApiResponse<ExchangeRateResponse>(
+            new HttpResponseMessage(HttpStatusCode.OK),
+            null,
+            new RefitSettings()
+        );
+
+        _mockApiClient
+            .Setup(client => client.GetLatestRatesAsync("USD", "EUR"))
+            .ReturnsAsync(nullContentResponse);
+
+        Assert.ThrowsAsync<CurrencyEmptyResponseException>(async () =>
+        {
+            await _service.GetLatestRatesAsync("USD", "EUR");
+        });
+
+        _mockLogger.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((o, t) => o.ToString().Contains("API response content is null.")),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+            Times.Once
+        );
+    }
 }
