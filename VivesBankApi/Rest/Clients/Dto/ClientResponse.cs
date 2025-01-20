@@ -23,6 +23,9 @@ public class ClientResponse
     [JsonProperty("photo")]
     public string Photo { get; set; }
     
+    [JsonProperty("accounts")]
+    public List<String> Accounts { get; set; }
+    
     [JsonProperty("createdAt")]
     public DateTime CreatedAt { get; set; }
     

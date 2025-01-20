@@ -35,6 +35,10 @@ public class Client
     [JsonProperty("idPhoto")]
     public String PhotoDni { get; set; } = "default.png";
     
+    [Required]
+    [JsonProperty("accounts")]
+    public List<String> AccountsIds { get; set; } = new();
+    
     [JsonProperty("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
