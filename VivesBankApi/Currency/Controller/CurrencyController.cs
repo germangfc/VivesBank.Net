@@ -1,4 +1,3 @@
-using ApiFranfurkt.Properties.Currency.Exceptions;
 using ApiFranfurkt.Properties.Currency.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,32 +20,47 @@ public class CurrencyController : ControllerBase
         [FromQuery] string baseCurrency = "EUR",
         [FromQuery] string? symbols = null)
     {
-        try
+        // Validar y convertir el parámetro amount.
+        if (!decimal.TryParse(amount, out var parsedAmount) || parsedAmount <= 0)
         {
-            var targetCurrencies = symbols ?? string.Empty;
+            return BadRequest("Invalid amount. The value must be a positive number.");
+        }
 
-            var apiResponse = await _currencyApiService.GetLatestRatesAsync(baseCurrency, targetCurrencies);
+        // Validar que baseCurrency no sea nulo o vacío.
+        if (string.IsNullOrWhiteSpace(baseCurrency))
+        {
+            return BadRequest("Invalid base currency. Please provide a valid currency code.");
+        }
+        
+        if (!string.IsNullOrWhiteSpace(symbols))
+        {
+            var symbolList = symbols.Split(',')
+                .Select(s => s.Trim())
+                .ToList();
 
-            if (!apiResponse.IsSuccessStatusCode || apiResponse.Content == null)
+            // Verificar si symbols contiene valores vacíos o inválidos.
+            if (symbolList.Any(string.IsNullOrWhiteSpace))
             {
-                return NotFound("Exchange rates not found for the given parameters.");
+                return BadRequest("Invalid symbols parameter. Please provide valid currency codes separated by commas.");
             }
+        }
+        
+        var targetCurrencies = symbols ?? string.Empty;
 
-            var exchangeRateResponse = apiResponse.Content;
+        // Llamar al servicio para obtener las tasas de cambio.
+        var apiResponse = await _currencyApiService.GetLatestRatesAsync(baseCurrency, targetCurrencies);
+        
+        // Multiplicar las tasas de cambio por la cantidad deseada.
+        var exchangeRateResponse = apiResponse.Content;
 
-            return Ok(exchangeRateResponse);
-        }
-        catch (CurrencyEmptyResponseException ex)
+        // Multiplicar las tasas de cambio por la cantidad deseada.
+        if (exchangeRateResponse.Rates != null)
         {
-            return NotFound(ex.Message);
+            foreach (var currency in exchangeRateResponse.Rates.Keys.ToList())
+            {
+                exchangeRateResponse.Rates[currency] *= (double)parsedAmount;
+            }
         }
-        catch (CurrencyUnexpectedException ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
-        }
+        return Ok(exchangeRateResponse);
     }
 }

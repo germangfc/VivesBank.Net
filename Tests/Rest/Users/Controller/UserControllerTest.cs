@@ -22,32 +22,52 @@ namespace Tests.Rest.Users.Controller
         }
 
         [Test]
-        public async Task GetUsers_ReturnsOkResult()
+        public async Task GetAllUsersAsync_ReturnsOk_WhenUsersExist()
         {
             // Arrange
-            var users = new List<User>
+            var users = new List<UserResponse>
             {
-                new User { Id = "1", Username = "TestUser1", Role = Role.User },
-                new User { Id = "2", Username = "TestUser2", Role = Role.Admin }
+                new UserResponse { Id = "1", Username = "TestUser1", Role = Role.User.ToString() },
+                new UserResponse { Id = "2", Username = "TestUser2", Role = Role.Admin.ToString() }
             };
 
-            _service.Setup(s => s.GetAllUsersAsync()).ReturnsAsync(users);
+            var pagedList = new PagedList<UserResponse>(users, 2, 10, 2);
+
+            _service.Setup(s => s.GetAllUsersAsync(0, 10, "", null, "asc")).ReturnsAsync(pagedList);
 
             // Act
-            var result = await _userController.GetUsers() as OkObjectResult;
+            var result = await _userController.GetAllUsersAsync(0, 10, "", null, "asc");
 
             // Assert
             ClassicAssert.NotNull(result);
-            ClassicAssert.AreEqual(200, result.StatusCode);
-            var returnedUsers = result.Value as IEnumerable<UserResponse>;
-            ClassicAssert.AreEqual(users.Count, returnedUsers.Count());
+            var returnedPageResponse = result.Value;
+            ClassicAssert.NotNull(returnedPageResponse);
+            ClassicAssert.AreEqual(2, returnedPageResponse.TotalElements);
         }
 
         [Test]
-        public async Task GetUser_ReturnsOkResult_WhenUserExists()
+        public async Task GetAllUsersAsync_ReturnsEmptyPage_WhenNoUsersExist()
         {
             // Arrange
-            var user = new User { Id = "1", Username = "TestUser", Role = Role.User };
+            var pagedList = new PagedList<UserResponse>(new List<UserResponse>(), 0, 10, 0);
+
+            _service.Setup(s => s.GetAllUsersAsync(0, 10, "", null, "asc")).ReturnsAsync(pagedList);
+
+            // Act
+            var result = await _userController.GetAllUsersAsync(0, 10, "", null, "asc");
+
+            // Assert
+            ClassicAssert.NotNull(result);
+            var returnedPageResponse = result.Value as PageResponse<UserResponse>;
+            ClassicAssert.NotNull(returnedPageResponse);
+            ClassicAssert.AreEqual(0, returnedPageResponse.TotalElements);
+        }
+        
+        [Test]
+        public async Task GetUser_ReturnsOk_WhenUserExists()
+        {
+            // Arrange
+            var user = new UserResponse { Id = "1", Username = "TestUser", Role = Role.User.ToString() };
 
             _service.Setup(s => s.GetUserByIdAsync("1")).ReturnsAsync(user);
 
@@ -62,18 +82,52 @@ namespace Tests.Rest.Users.Controller
         }
 
         [Test]
-        public async Task GetUser_ReturnsNotFound_WhenUserDoesNotExist()
+        public async Task GetUserByUsername_ReturnsOk_WhenUserExists()
         {
             // Arrange
-            _service.Setup(s => s.GetUserByIdAsync("1")).ReturnsAsync((User)null);
+            var username = "testuser";
+            var user = new UserResponse
+            {
+                Id = "1",
+                Username = "testuser",
+                Role = Role.User.ToString()
+            };
+
+            _service.Setup(s => s.GetUserByUsernameAsync(username)).ReturnsAsync(user);
 
             // Act
-            var result = await _userController.GetUser("1");
+            var result = await _userController.GetUserByUsername(username) as OkObjectResult;
 
             // Assert
-            ClassicAssert.IsInstanceOf<NotFoundResult>(result);
+            ClassicAssert.NotNull(result);
+            ClassicAssert.AreEqual(200, result.StatusCode);
+            var returnedUser = result.Value as UserResponse;
+            ClassicAssert.AreEqual(user.Username, returnedUser.Username);
         }
 
+        [Test]
+        public async Task GetUserByUsername_ReturnsNotFound_WhenUserDoesNotExist()
+        {
+            // Arrange
+            var username = "nonexistentuser";
+
+            _service.Setup(s => s.GetUserByUsernameAsync(username)).ThrowsAsync(new UserNotFoundException("User not found"));
+
+            // Act
+            IActionResult result = null;
+            try
+            {
+                result = await _userController.GetUserByUsername(username);
+            }
+            catch (UserNotFoundException e)
+            {
+                result = new NotFoundObjectResult(new { error = e.Message });
+            }
+
+            // Assert
+            ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
+        }
+        
         [Test]
         public async Task AddUser_ReturnsCreated()
         {
@@ -85,12 +139,11 @@ namespace Tests.Rest.Users.Controller
                 Role = "user"
             };
 
-            var createdUser = new User
+            var createdUser = new UserResponse
             {
                 Id = "1",
                 Username = "TestUser",
-                Password = "aPassword",
-                Role = Role.User
+                Role = Role.User.ToString()
             };
 
             _service.Setup(s => s.AddUserAsync(userRequest)).ReturnsAsync(createdUser);
@@ -144,7 +197,7 @@ namespace Tests.Rest.Users.Controller
                 Role = "user"
             };
             
-            _service.Setup(s => s.AddUserAsync(userRequest)).ThrowsAsync(new InvalidUserException("Username is invalid"));
+            _service.Setup(s => s.AddUserAsync(userRequest)).ThrowsAsync(new InvalidUsernameException("Username is invalid"));
 
             // Act
             IActionResult result = null;
@@ -218,7 +271,7 @@ namespace Tests.Rest.Users.Controller
                 Role = "admin"
             };
             _service.Setup(s => s.UpdateUserAsync("1", userUpdateRequest))
-                .ThrowsAsync(new InvalidUserException("Invalid username"));
+                .ThrowsAsync(new InvalidUsernameException("Invalid username"));
 
             // Act
             IActionResult result = null;
@@ -226,7 +279,7 @@ namespace Tests.Rest.Users.Controller
             {
                 result = await _userController.UpdateUser("1", userUpdateRequest);
             }
-            catch (InvalidUserException e)
+            catch (InvalidUsernameException e)
             {
                 result = new BadRequestObjectResult(new { error = e.Message });
             }
@@ -244,11 +297,11 @@ namespace Tests.Rest.Users.Controller
                 Role = "admin"
             };
 
-            var updatedUser = new User
+            var updatedUser = new UserResponse
             {
                 Id = "1",
                 Username = "UpdatedUser",
-                Role = Role.Admin
+                Role = Role.Admin.ToString()
             };
 
             _service.Setup(s => s.UpdateUserAsync("1", userUpdateRequest)).ReturnsAsync(updatedUser);

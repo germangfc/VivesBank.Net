@@ -19,15 +19,28 @@ public static class ProductMapper
     
     public static Product FromDtoRequest(this ProductCreateRequest createRequest)
     {
-        if (Enum.TryParse<Product.Type>(createRequest.Type, true, out var tipoProduct))
+        if (string.IsNullOrWhiteSpace(createRequest.Type))
         {
-            return new Product(
-                createRequest.Name,
-                tipoProduct);
+            throw new ProductException.ProductInvalidTypeException("The Type field is required and cannot be null or empty.");
+        }
+
+        if (Enum.TryParse<Product.Type>(createRequest.Type.Trim(), true, out var productType))
+        {
+            
+            var product = new Product(createRequest.Name, productType)
+            {
+                CreatedAt = DateTime.UtcNow, 
+                UpdatedAt = DateTime.UtcNow, 
+                IsDeleted = false 
+            };
+
+            return product;
         }
         else
         {
-            throw new ProductException.ProductInvalidTypeException("Invalid Type");
+            throw new ProductException.ProductInvalidTypeException(
+                $"Invalid Type: {createRequest.Type}. Valid values are: {string.Join(", ", Enum.GetNames(typeof(Product.Type)))}"
+            );
         }
     }
 

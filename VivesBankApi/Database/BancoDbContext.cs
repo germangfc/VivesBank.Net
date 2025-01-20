@@ -10,9 +10,9 @@ namespace VivesBankApi.Database;
 public class BancoDbContext(DbContextOptions<BancoDbContext> options) : DbContext(options)
 {
     
-    public DbSet<Account> Cuentas { get; set; }
+    public DbSet<Account> Accounts { get; set; }
     public DbSet<User> Users { get; set; }
-    public DbSet<Client> Clientes { get; set; }
+    public DbSet<Client> Clients { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<CreditCard> Cards { get; set; }
     

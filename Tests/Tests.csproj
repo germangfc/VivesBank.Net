@@ -33,4 +33,8 @@
       <ProjectReference Include="..\VivesBankApi\VivesBankApi.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\VivesBankApi\VivesBankApi.csproj" />
+    </ItemGroup>
+
 </Project>

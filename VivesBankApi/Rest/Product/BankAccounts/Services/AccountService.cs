@@ -13,9 +13,9 @@ public class AccountService : IAccountsService
     private readonly IAccountsRepository _accountsRepository;
     private readonly IClientRepository _clientRepository;
     private readonly IProductRepository _productRepository;
-    private readonly IbanGenerator _ibanGenerator;
+    private readonly IIbanGenerator _ibanGenerator;
     
-    public AccountService(ILogger<AccountService> logger, IbanGenerator ibanGenerator,IClientRepository clientRepository,IProductRepository productRepository ,IAccountsRepository accountsRepository)
+    public AccountService(ILogger<AccountService> logger, IIbanGenerator ibanGenerator,IClientRepository clientRepository,IProductRepository productRepository ,IAccountsRepository accountsRepository)
     {
         _logger = logger;
         _ibanGenerator = ibanGenerator;
@@ -75,7 +75,7 @@ public class AccountService : IAccountsService
     {
         _logger.LogInformation($"Getting account by IBAN {iban}");
         var result = await _accountsRepository.GetByIdAsync(iban);
-        if (result == null) throw new AccountsExceptions.AccountNotFoundException(iban);
+        if (result == null) throw new AccountsExceptions.AccountNotFoundByIban(iban);
         return result.toResponse();
     }
 
@@ -97,9 +97,12 @@ public class AccountService : IAccountsService
         return account.toResponse();
     }
 
-    public Task DeleteAccountAsync(string id)
+    public async Task DeleteAccountAsync(string id)
     {
         _logger.LogInformation($"Deleting account with ID {id}");
-        return _accountsRepository.DeleteAsync(id);
+        var result = await _accountsRepository.GetByIdAsync(id);
+        if (result == null) throw new AccountsExceptions.AccountNotFoundException(id);
+        result.IsDeleted = true;
+        await _accountsRepository.UpdateAsync(result);
     }
 }

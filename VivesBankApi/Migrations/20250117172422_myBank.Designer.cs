@@ -13,8 +13,8 @@ using VivesBankApi.Database;
 namespace VivesBankApi.Migrations
 {
     [DbContext(typeof(BancoDbContext))]
-    [Migration("20250117120733_MigracionExpo2")]
-    partial class MigracionExpo2
+    [Migration("20250117172422_myBank")]
+    partial class myBank
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -94,6 +94,7 @@ namespace VivesBankApi.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("TarjetaId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
