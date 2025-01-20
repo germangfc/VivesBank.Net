@@ -42,7 +42,7 @@ public class CreditCardService : ICreditCardService
         if (creditCard == null)
         {
             _logger.LogError($"Card not found with id {id}");
-            throw new CreditCardException.CreditCardNotFoundException(id);
+            throw new CreditCardException.CreditCardNotFoundException($"Credit card with id '{id}' not found.");
         }
         
         return creditCard.ToAdminResponse();
