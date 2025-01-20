@@ -27,6 +27,7 @@
     using VivesBankApi.Rest.Product.BankAccounts.Repositories;
     using VivesBankApi.Rest.Product.BankAccounts.Services;
     using VivesBankApi.Rest.Product.Base.Repository;
+    using VivesBankApi.Rest.Product.Base.Validators;
     using VivesBankApi.Rest.Product.CreditCard.Generators;
     using VivesBankApi.Rest.Product.CreditCard.Service;
     using VivesBankApi.Rest.Product.Service;
@@ -262,6 +263,7 @@
     //Product
         myBuilder.Services.AddScoped<IProductRepository, ProductRepository>();
         myBuilder.Services.AddScoped<IProductService, ProductService>();
+        myBuilder.Services.AddScoped<ProductValidator>();
     //Credit Card
         myBuilder.Services.AddScoped<ICreditCardRepository, CreditCardRepository>();
         myBuilder.Services.AddScoped<ICreditCardService, CreditCardService>();
