@@ -49,8 +49,4 @@
       </Content>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Rest\Product\Base\" />
-    </ItemGroup>
-
 </Project>
