@@ -717,50 +717,10 @@ VivesBankApi.Rest.Product.CreditCard.Exceptions.CreditCardException+CreditCardNo
    at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
    at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\alvaro\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 14
 [2025-01-17 13:38:44.514] [ERR] [VivesBankApi.Rest.Product.CreditCard.Service.CreditCardService] Card not found with id tIKVFDBtLmo
-[2025-01-17 15:39:45.497] [ERR] [Microsoft.EntityFrameworkCore.Database.Connection] An error occurred using the connection to database 'banco' on server 'tcp://localhost:5432'.
-[2025-01-17 15:41:45.404] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (34ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+[2025-01-17 15:48:14.549] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (126ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
-[2025-01-17 16:12:50.600] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (25ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-17 16:14:16.972] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (23ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-17 16:16:47.850] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (24ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-17 16:24:55.487] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (23ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-17 16:27:35.063] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (24ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-17 16:27:35.308] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-ALTER TABLE "Clients" RENAME COLUMN "cuentasIds" TO "AccountsIds";
-[2025-01-17 16:27:52.746] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-ALTER TABLE "Clients" RENAME COLUMN "cuentasIds" TO "AccountsIds";
-[2025-01-17 16:35:48.439] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (27ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-17 16:35:48.665] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-ALTER TABLE "Clients" RENAME COLUMN "cuentasIds" TO "AccountsIds";
-[2025-01-17 16:49:16.084] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (24ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-17 16:56:14.112] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (26ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT u."Id", u."CreatedAt", u."IsDeleted", u."Password", u."Role", u."UpdatedAt", u."Username"
-FROM "Users" AS u
-[2025-01-17 16:56:14.203] [ERR] [Microsoft.EntityFrameworkCore.Query] An exception occurred while iterating over the results of a query for context type 'VivesBankApi.Database.BancoDbContext'.
-Npgsql.PostgresException (0x80004005): 42P01: relation "Users" does not exist
 
 POSITION: 104
    at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
