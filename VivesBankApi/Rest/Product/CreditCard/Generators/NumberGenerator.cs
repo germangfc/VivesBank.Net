@@ -17,7 +17,7 @@ public class NumberGenerator
         return string.Join(string.Empty, cardNumber);
     }
 
-    private int CalculateLuhnCheckDigit(int[] cardNumber)
+    public int CalculateLuhnCheckDigit(int[] cardNumber)
     {
         int sum = 0;
         for (int i = 0; i < 15; i++)
@@ -38,4 +38,5 @@ public class NumberGenerator
 
         return (10 - (sum % 10)) % 10;
     }
+
 }
