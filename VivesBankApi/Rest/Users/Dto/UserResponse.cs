@@ -8,8 +8,8 @@ public class UserResponse
     [JsonProperty("id")]
     public String Id { get; set; }
     
-    [JsonProperty("username")]
-    public String Username { get; set; }
+    [JsonProperty("dni")]
+    public String Dni { get; set; }
     
     [JsonProperty("role")]
     public String Role { get; set; }

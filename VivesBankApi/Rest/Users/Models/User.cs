@@ -10,13 +10,14 @@ namespace VivesBankApi.Rest.Users.Models;
 public class User
 {
     [Key] 
-    [JsonProperty("id")] 
+    [JsonProperty("id")]
     public String Id { get; set; } = GuuidGenerator.GenerateHash();
-
+    
     [Required]
-    [Length(9, 9, ErrorMessage = "The username must be a DNI")]
-    [JsonProperty("username")]
-    public String Username { get; set; }
+    [MinLength(5)]
+    [MaxLength(50)]
+    [JsonProperty("dni")]
+    public String Dni { get; set; }
     
     [Required]
     [JsonProperty("password")]
@@ -39,5 +40,5 @@ public class User
 
 public enum Role
 {
- User, Admin, SuperAdmin,
+ User, Client, Admin,
 } 

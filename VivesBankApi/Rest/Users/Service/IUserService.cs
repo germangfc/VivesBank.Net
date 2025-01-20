@@ -1,4 +1,5 @@
 ﻿using VivesBankApi.Rest.Users.Dtos;
+using VivesBankApi.Rest.Users.Models;
 
 namespace VivesBankApi.Rest.Users.Service;
 
@@ -15,4 +16,7 @@ public interface IUserService
     Task<UserResponse> GetUserByUsernameAsync(String username);
     Task<UserResponse> UpdateUserAsync(String key, UserUpdateRequest request);
     Task DeleteUserAsync(String id, bool logically);
+    String GenerateJwtToken(User user);
+    Task<User?> LoginUser(LoginRequest request);
+    Task<User?> RegisterUser(LoginRequest request);
 }

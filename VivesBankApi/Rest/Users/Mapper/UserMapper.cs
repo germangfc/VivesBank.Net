@@ -11,7 +11,7 @@ public static class UserMapper
         return new UserResponse
         {
             Id = user.Id,
-            Username = user.Username,
+            Dni = user.Dni,
             Role = user.Role.ToString(),
             CreatedAt = user.CreatedAt.ToLocalTime(),
             UpdatedAt = user.UpdatedAt.ToLocalTime(),
@@ -19,38 +19,62 @@ public static class UserMapper
         };
     }
     
-    public static User UpdateUserFromInput(this UserUpdateRequest request, User oldUser)
+    public static User UpdateUserFromInput(this UserUpdateRequest request, User existingUser)
     {
-        User user = oldUser;
+        User user = existingUser;
         
-        user.Username = request.Username;
-    
-        user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        if (request.Dni != null)
+        {
+            user.Dni = request.Dni;
+        }
+
+        if (request.Password != null)
+        {
+            user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        }
+
+        if (request.Role != null)
+        {
+            if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
+            {
+                user.Role = userRole;
+            }
+            else
+            {
+                throw new InvalidRoleException(request.Role);
+            }
+        }
         
+        user.UpdatedAt = DateTime.UtcNow;
+        return user;
+    }
+
+    public static User ToUser(this LoginRequest request)
+    {
+        User newUser = new User();
+        {
+            newUser.Dni = request.Dni;
+            newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            return newUser;
+        }
+    }
+
+    public static User toUser(this CreateUserRequest request)
+    {
         if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
         {
-            user.Role = userRole;
+            
+            User newUser = new User();
+            {
+                newUser.Dni = request.Dni;
+                newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                newUser.Role = userRole;
+                return newUser;
+            }
         }
         else
         {
             throw new InvalidRoleException(request.Role);
         }
-    
-        user.UpdatedAt = DateTime.UtcNow;
-        return user;
-    }
-
-    public static User ToUser(this CreateUserRequest request)
-    {
-        User newUser = new User();
-        if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
-        {
-            newUser.Username = request.Username;
-            newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            newUser.Role = userRole;
-            return newUser;
-        }
-        throw new InvalidRoleException(request.Role); 
-        
     }
 }
