@@ -30,8 +30,16 @@ public class ProductController : ControllerBase
     public async Task<ActionResult<ProductResponse>> GetProductByIdAsync(string productId)
     {
         _logger.LogInformation($"Getting product with id {productId}");
-            var result = await _productService.GetProductByIdAsync(productId);
-            return Ok(result);
+
+        var result = await _productService.GetProductByIdAsync(productId);
+
+        if (result == null)
+        {
+            _logger.LogWarning($"Product with id {productId} was not found.");
+            return NotFound(); 
+        }
+
+        return Ok(result);
     }
 
     [HttpPost]
@@ -46,7 +54,14 @@ public class ProductController : ControllerBase
     public async Task<ActionResult<ProductResponse>> UpdateProductAsync(string productId, ProductUpdateRequest request)
     {
         _logger.LogInformation($"Updating product with id {productId}");
+    
         var product = await _productService.UpdateProductAsync(productId, request);
+        if (product == null)
+        {
+            _logger.LogWarning($"Product with id {productId} not found");
+            return NotFound();
+        }
+
         return CreatedAtAction(nameof(GetProductByIdAsync), new { id = product.Id }, product);
     }
 
@@ -54,8 +69,17 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> DeleteProductAsync(string productId)
     {
         _logger.LogInformation($"Deleting product with id {productId}");
-        await _productService.DeleteProductAsync(productId);
+
+        var wasDeleted = await _productService.DeleteProductAsync(productId); 
+        if (!wasDeleted) 
+        {
+            _logger.LogWarning($"Product with id {productId} not found");
+            return NotFound();
+        }
+
         return NoContent();
     }
+    
+    
 
 }

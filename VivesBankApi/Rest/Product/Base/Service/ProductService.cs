@@ -78,17 +78,20 @@ public class ProductService : IProductService
         return product.ToDtoResponse();
     }
 
-    public async Task DeleteProductAsync(string productId)
+    public async Task<bool> DeleteProductAsync(string productId)
     {
         _logger.LogInformation($"Removing product by Id: {productId}");
-    
+
         var product = await _productRepository.GetByIdAsync(productId);
         if (product == null)
         {
             _logger.LogError($"Product not found with id {productId}");
-            throw new ProductException.ProductNotFoundException(productId);
+            throw new ProductException.ProductNotFoundException(productId); 
         }
-    
+
         await _productRepository.DeleteAsync(productId);
+
+        _logger.LogInformation($"Product with Id: {productId} removed successfully.");
+        return true; 
     }
 }

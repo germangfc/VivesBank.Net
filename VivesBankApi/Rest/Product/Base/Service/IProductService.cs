@@ -8,5 +8,5 @@ public interface IProductService
     Task<ProductResponse?> GetProductByIdAsync(String productId);
     Task<ProductResponse> CreateProductAsync(ProductCreateRequest createRequest);
     Task<ProductResponse?> UpdateProductAsync(String productId, ProductUpdateRequest updateRequest);
-    Task DeleteProductAsync(String productId);
+    Task<bool> DeleteProductAsync(String productId);
 }
