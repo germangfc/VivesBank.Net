@@ -194,6 +194,21 @@
                 };
             });
         
+        myBuilder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+        });
+        
+        myBuilder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
+        });
+        
+        myBuilder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("ClientPolicy", policy => policy.RequireRole("Client"));
+        });
+        
      
 
         myBuilder.Services.AddMemoryCache(

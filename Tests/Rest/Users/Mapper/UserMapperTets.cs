@@ -89,7 +89,7 @@ public class UserMapperTests
         {
             Dni = "updatedUsername",
             Password = "updatedPassword",
-            Role = "SuperAdmin"
+            Role = "Admin"
         };
 
         // Act
@@ -102,7 +102,7 @@ public class UserMapperTests
             ClassicAssert.AreEqual("updatedUsername", updatedUser.Dni);
             ClassicAssert.IsNotNull(updatedUser.Password);
             ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(request.Password, updatedUser.Password), "Password hash does not match");
-            ClassicAssert.AreEqual(Role.SuperAdmin, updatedUser.Role);
+            ClassicAssert.AreEqual(Role.Admin, updatedUser.Role);
         });
     }
 
@@ -127,7 +127,7 @@ public class UserMapperTests
         {
             Dni = "newuser",
             Password = "securePassword",
-            Role = "SuperAdmin"
+            Role = "Admin"
         };
 
         // Act
@@ -140,7 +140,7 @@ public class UserMapperTests
             ClassicAssert.AreEqual(request.Dni, newUser.Dni);
             ClassicAssert.IsNotNull(newUser.Password);
             ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(request.Password, newUser.Password), "Password hash does not match");
-            ClassicAssert.AreEqual(Role.SuperAdmin, newUser.Role);
+            ClassicAssert.AreEqual(Role.Admin, newUser.Role);
         });
     }
 
@@ -152,7 +152,7 @@ public class UserMapperTests
         {
             Dni = "newuser",
             Password = "securePassword",
-            Role = "SuperAdmin"
+            Role = "Admin"
         };
 
         // Act
@@ -165,7 +165,7 @@ public class UserMapperTests
             ClassicAssert.AreEqual(request.Dni, newUser.Dni);
             ClassicAssert.IsNotNull(newUser.Password);
             ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(request.Password, newUser.Password), "Password hash does not match");
-            ClassicAssert.AreEqual(Role.SuperAdmin, newUser.Role);
+            ClassicAssert.AreEqual(Role.Admin, newUser.Role);
         });
     }
 

@@ -40,5 +40,5 @@ public class User
 
 public enum Role
 {
- User, Admin, SuperAdmin,
+ User, Client, Admin,
 } 
