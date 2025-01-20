@@ -26,7 +26,7 @@ public class UserController : ControllerBase
         try
         {
             var user = await _userService.RegisterUser(request);
-            var token = _userService.GenerateJwtToken(request.ToUser());
+            var token = _userService.GenerateJwtToken(user);
             return Ok(new { token });
         }
         catch (UserAlreadyExistsException e)

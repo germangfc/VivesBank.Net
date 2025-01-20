@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VivesBankApi.Migrations
 {
     /// <inheritdoc />
-    public partial class myBank : Migration
+    public partial class VivesBankSecurity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,7 @@ namespace VivesBankApi.Migrations
                     Id = table.Column<string>(type: "text", nullable: false),
                     ProductId = table.Column<string>(type: "text", nullable: false),
                     ClientId = table.Column<string>(type: "text", nullable: false),
-                    TarjetaId = table.Column<string>(type: "text", nullable: false),
+                    TarjetaId = table.Column<string>(type: "text", nullable: true),
                     IBAN = table.Column<string>(type: "text", nullable: false),
                     Balance = table.Column<decimal>(type: "numeric", nullable: false),
                     AccountType = table.Column<int>(type: "integer", nullable: false),
@@ -87,7 +87,7 @@ namespace VivesBankApi.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    Username = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Dni = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Password = table.Column<string>(type: "text", nullable: false),
                     Role = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),

@@ -13,8 +13,8 @@ using VivesBankApi.Database;
 namespace VivesBankApi.Migrations
 {
     [DbContext(typeof(BancoDbContext))]
-    [Migration("20250117172422_myBank")]
-    partial class myBank
+    [Migration("20250120175042_VivesBankSecurity")]
+    partial class VivesBankSecurity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -94,7 +94,6 @@ namespace VivesBankApi.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("TarjetaId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -169,6 +168,11 @@ namespace VivesBankApi.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Dni")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -181,11 +185,6 @@ namespace VivesBankApi.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 

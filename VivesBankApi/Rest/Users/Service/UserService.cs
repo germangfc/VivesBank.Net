@@ -190,6 +190,7 @@ public class UserService : IUserService
             throw new UserAlreadyExistsException(request.Dni);
 
         var newUser = request.ToUser();
+        _logger.LogInformation("RegisterUser new id " + newUser.Id);
         newUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
         await _userRepository.AddAsync(newUser);
         return newUser;
@@ -200,6 +201,7 @@ public class UserService : IUserService
         _logger.LogInformation("Generating JWT token");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authConfig.Key));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        _logger.LogInformation($"Inserting id to Claims: {user.Id}");
         var claims = new[]
         {
             new Claim("UserId", user.Id)

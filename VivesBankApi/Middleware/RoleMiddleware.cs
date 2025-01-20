@@ -8,36 +8,60 @@ public class RoleMiddleware
 {
     private readonly ILogger _logger;
     private readonly RequestDelegate _next;
-    private readonly IUserService _userService;
+    private readonly IServiceProvider _serviceProvider;
 
-    public RoleMiddleware(ILogger<RoleMiddleware> logger, RequestDelegate next, IUserService userService)
+    public RoleMiddleware(ILogger<RoleMiddleware> logger, RequestDelegate next, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _next = next;
-        _userService = userService;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context.User.Identity.IsAuthenticated)
+        using (var scope = _serviceProvider.CreateScope())
         {
-            _logger.LogDebug("User is authenticated");
-            var userId = context.User.FindFirst("UserId")?.Value;
-            var user = await _userService.GetUserByIdAsync(userId);
-            if (user != null)
+            var _userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+
+            if (context.User.Identity?.IsAuthenticated == true)
             {
-                _logger.LogDebug("User found adding roles to claims");
-                var claims = new List<Claim>
+                var userId = context.User.FindFirst("UserId")?.Value;
+
+                if (!string.IsNullOrEmpty(userId))
                 {
-                    new("UserId", userId),
-                    new(ClaimTypes.Role, typeof(Role).GetEnumName(user.Role))
-                };
-                var identity = new ClaimsIdentity(claims, "custom");
-                _logger.LogDebug("Adding identity to user");
-                context.User.AddIdentity(identity);
+                    var user = await _userService.GetUserByIdAsync(userId);
+
+                    if (user != null)
+                    {
+                        _logger.LogDebug("User found. Adding roles to claims.");
+
+                        var claims = new List<Claim>
+                        {
+                            new("UserId", userId),
+                            new(ClaimTypes.Role, typeof(Role).GetEnumName(user.Role) ?? string.Empty)
+                        };
+
+                        _logger.LogDebug("Adding identity to user.");
+                        var identity = new ClaimsIdentity(claims, "custom");
+                        context.User.AddIdentity(identity);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("No user found for UserId: {UserId}", userId);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("UserId claim is missing for authenticated user.");
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Request is not authenticated: {Path}", context.Request.Path);
             }
         }
-        _logger.LogInformation("Invoking next middleware");
+
+        _logger.LogInformation("Invoking next middleware.");
         await _next(context);
     }
     
