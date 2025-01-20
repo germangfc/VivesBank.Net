@@ -6,7 +6,6 @@ using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Validator;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace VivesBankApi.Rest.Users.Service;
 
@@ -26,7 +25,7 @@ public class UserService : IUserService
         int pageSize,
         string role,
         bool? isDeleted,
-        string direction = "asc")
+        string direction)
     {
         var users = await _userRepository.GetAllUsersPagedAsync(pageNumber, pageSize, role, isDeleted, direction);
         var mappedUsers = new PagedList<UserResponse>(
@@ -69,22 +68,19 @@ public class UserService : IUserService
 
     public async Task<UserResponse> UpdateUserAsync(String id, UserUpdateRequest user)
     {
-        if (user.Username != null && !UserValidator.ValidateDni(user.Username))
+        if (!UserValidator.ValidateDni(user.Username))
         {
              throw new InvalidUsernameException(user.Username);
         }
 
         User? userToUpdate = await GetByIdAsync(id) ?? throw new UserNotFoundException(id);
         
-        if (user.Username != null)
+        User? userWithTheSameUsername = await GetByUsernameAsync(userToUpdate.Username);
+        if (userWithTheSameUsername != null && userWithTheSameUsername.Id != id)
         {
-            User? userWithTheSameUsername = await GetByUsernameAsync(userToUpdate.Username);
-            if (userWithTheSameUsername != null && userWithTheSameUsername.Id != id)
-            {
-                throw new UserAlreadyExistsException(user.Username);
-            }
+            throw new UserAlreadyExistsException(user.Username);
         }
-        
+
         User updatedUser = user.UpdateUserFromInput(userToUpdate);
         await _userRepository.UpdateAsync(updatedUser);
         // Removing old cache entry
@@ -124,12 +120,7 @@ public class UserService : IUserService
         var cachedUser = await _cache.StringGetAsync(id);
         if (!cachedUser.IsNullOrEmpty)
         {
-            var json = await _cache.StringGetAsync(id);
-            
-            if (!json.IsNullOrEmpty)
-            {
-                return JsonConvert.DeserializeObject<User>(json);
-            }
+            return JsonConvert.DeserializeObject<User>(cachedUser);
         }
 
         // If not in cache, get from DB and cache it
@@ -148,12 +139,7 @@ public class UserService : IUserService
         var cachedUser = await _cache.StringGetAsync("users:" + username.Trim().ToUpper());
         if (!cachedUser.IsNullOrEmpty)
         {
-            var json = await _cache.StringGetAsync(username);
-            
-            if (!json.IsNullOrEmpty)
-            {
-                return JsonConvert.DeserializeObject<User>(json);
-            }
+            return JsonConvert.DeserializeObject<User>(cachedUser);
         }
         // If not in cache, get from DB and cache it
         User? user = await _userRepository.GetByUsernameAsync(username);

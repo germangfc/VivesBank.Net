@@ -8,7 +8,7 @@ public class ClientMappersTests
 {
     private Client _client;
     private ClientRequest _clientRequest;
-    private ClientUpdateRequest _clientUpdateRequest;
+    private ClientPatchRequest _clientUpdateRequest;
 
     [SetUp]
     public void SetUp()
@@ -19,7 +19,6 @@ public class ClientMappersTests
             FullName = "Manuel García ",
             UserId = "53692294J",
             Adress = "C. de Fuencarral, 144",
-            AccountsIds = new List<string> { "acc1", "acc2" },
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,
             IsDeleted = false
@@ -32,7 +31,7 @@ public class ClientMappersTests
             Address = "C. de Fuencarral, 144"
         };
 
-        _clientUpdateRequest = new ClientUpdateRequest
+        _clientUpdateRequest = new ClientPatchRequest
         {
             FullName = "Gonzalo Fernández",
             Address = "C. de Orense, 9-5"
@@ -43,7 +42,7 @@ public class ClientMappersTests
     public void ToResponse()
     {
         // Act
-        var response = _client.toResponse();
+        var response = _client.ToResponse();
 
         // Assert
         Assert.Multiple(() =>
@@ -52,7 +51,6 @@ public class ClientMappersTests
             ClassicAssert.AreEqual(_client.FullName, response.Fullname);
             ClassicAssert.AreEqual(_client.UserId, response.UserId);
             ClassicAssert.AreEqual(_client.Adress, response.Address);
-            ClassicAssert.AreEqual(_client.AccountsIds, response.Accounts);
             ClassicAssert.AreEqual(_client.CreatedAt, response.CreatedAt);
             ClassicAssert.AreEqual(_client.UpdatedAt, response.UpdatedAt);
             ClassicAssert.AreEqual(_client.IsDeleted, response.IsDeleted);
@@ -63,7 +61,7 @@ public class ClientMappersTests
     public void FromDtoRequest()
     {
         // Act
-        var client = _clientRequest.fromDtoRequest();
+        var client = _clientRequest.FromDtoRequest();
 
         // Assert
         Assert.Multiple(() =>
@@ -79,7 +77,7 @@ public class ClientMappersTests
     public void FromDtoUpdateRequest()
     {
         // Act
-        var client = _clientUpdateRequest.fromDtoUpdateRequest();
+        var client = _clientUpdateRequest.FromDtoUpdateRequest(_client);
 
         // Assert
         Assert.Multiple(() =>
