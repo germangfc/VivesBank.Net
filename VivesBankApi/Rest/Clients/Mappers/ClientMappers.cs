@@ -15,6 +15,7 @@ public static class ClientMappers
             Address = client.Adress,
             Photo = client.Photo,
             DniPhoto = client.PhotoDni,
+            Accounts = client.AccountsIds,
             CreatedAt = client.CreatedAt,
             UpdatedAt = client.UpdatedAt,
             IsDeleted = client.IsDeleted
