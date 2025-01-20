@@ -19,32 +19,23 @@ public static class UserMapper
         };
     }
     
-    public static User UpdateUserFromInput(this UserUpdateRequest request, User existingUser)
+    public static User UpdateUserFromInput(this UserUpdateRequest request, User oldUser)
     {
-        User user = existingUser;
+        User user = oldUser;
         
-        if (request.Username != null)
-        {
-            user.Username = request.Username;
-        }
-
-        if (request.Password != null)
-        {
-            user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
-        }
-
-        if (request.Role != null)
-        {
-            if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
-            {
-                user.Role = userRole;
-            }
-            else
-            {
-                throw new InvalidRoleException(request.Role);
-            }
-        }
+        user.Username = request.Username;
+    
+        user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
         
+        if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
+        {
+            user.Role = userRole;
+        }
+        else
+        {
+            throw new InvalidRoleException(request.Role);
+        }
+    
         user.UpdatedAt = DateTime.UtcNow;
         return user;
     }

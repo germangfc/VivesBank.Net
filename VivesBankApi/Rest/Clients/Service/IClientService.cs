@@ -4,7 +4,12 @@ namespace VivesBankApi.Rest.Clients.Service;
 
 public interface IClientService
 {
-    Task<List<ClientResponse>> GetAllAsync();
+    public Task<PagedList<ClientResponse>> GetAllClientsAsync(
+        int pageNumber,
+        int pageSize,
+        string fullName,
+        bool? isDeleted,
+        string direction);
     Task<ClientResponse> GetClientByIdAsync(string id);
     Task<ClientResponse> CreateClientAsync(ClientRequest request);
     Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request);

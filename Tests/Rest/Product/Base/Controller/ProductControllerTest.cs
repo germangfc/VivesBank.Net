@@ -8,6 +8,7 @@ using VivesBankApi.Rest.Product.Base.Controller;
 using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Models;
 using VivesBankApi.Rest.Product.Base.Repository;
+using VivesBankApi.Rest.Product.Base.Validators;
 using VivesBankApi.Rest.Product.Service;
 
 
@@ -20,6 +21,7 @@ public class ProductControllerTests
     private ProductRepository _repository;
     private ProductService _service;
     private ProductController _controller;
+    private ProductValidator _productValidator;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -42,7 +44,7 @@ public class ProductControllerTests
         await _dbContext.Database.EnsureCreatedAsync();
 
         _repository = new ProductRepository(_dbContext, NullLogger<ProductRepository>.Instance);
-        _service = new ProductService(NullLogger<ProductService>.Instance, _repository);
+        _service = new ProductService(NullLogger<ProductService>.Instance, _repository, _productValidator);
         _controller = new ProductController(_service, NullLogger<ProductController>.Instance);
     }
 

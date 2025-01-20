@@ -38,7 +38,7 @@ public class UserController : ControllerBase
             Empty = pagedList.Count == 0,
             First = pagedList.IsFirstPage,
             Last = pagedList.IsLastPage,
-            SortBy = "id",
+            SortBy = "username",
             Direction = direction
         };
     }
