@@ -35,6 +35,7 @@
     using VivesBankApi.Rest.Users.Service;
     using VivesBankApi.Utils.ApiConfig;
     using VivesBankApi.Utils.IbanGenerator;
+    using VivesBankApi.WebSocket.Service;
 
     Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -73,6 +74,8 @@
     app.UseAuthorization();   // Habilita la autorización para asegurar el acceso a recursos protegidos
 
     app.MapControllers(); // Mapea las rutas de los controladores a los endpoints de la aplicación.
+
+    app.UseWebSockets(); // Habilita el uso de WebSockets para comunicación en tiempo real.
 
     app.UseMiddleware<GlobalExceptionMiddleware>(); // Agrega el middleware de manejo de excepciones globales para loguear y manejar errores.
 
@@ -247,7 +250,7 @@
 
     /**************** INYECCION DE DEPENDENCIAS **************/
     // REPOSITORIO Y SERVICIOS
-
+    myBuilder.Services.AddHttpContextAccessor();
     // MOVIMIENTO
         myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>(); 
         myBuilder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
@@ -275,6 +278,10 @@
     // USUARIO
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
         myBuilder.Services.AddScoped<IUserService, UserService>();
+    // WEBSOCKETS
+        myBuilder.Services.AddScoped<WebSocketHandler>(); 
+    // CONTEXT ACCESOR
+        
         
     // API FRANKFURTER 
         string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
