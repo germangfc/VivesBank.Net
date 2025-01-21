@@ -1,4 +1,5 @@
-﻿using System.Net.WebSockets;
+﻿using System.Collections.Concurrent;
+using System.Net.WebSockets;
 using System.Text;
 using Newtonsoft.Json;
 using VivesBankApi.WebSocket.Model;
@@ -9,7 +10,7 @@ public class WebSocketHandler
 {
     private readonly ILogger _logger;
     private readonly List<System.Net.WebSockets.WebSocket> _sockets = new();
-    private readonly Dictionary<string, System.Net.WebSockets.WebSocket> _userSockets = new();
+    private readonly ConcurrentDictionary<string, System.Net.WebSockets.WebSocket> _userSockets = new();
 
     public WebSocketHandler(ILogger<WebSocketHandler> logger)
     {
@@ -71,7 +72,7 @@ public class WebSocketHandler
         }
         else
         {
-            _logger.LogWarning($"User {username} is not connected.");
+            _logger.LogWarning($"User '{username}' not found.");
         }
     }
     
@@ -80,18 +81,18 @@ public class WebSocketHandler
     public async Task HandleAuthenticatedAsync(System.Net.WebSockets.WebSocket webSocket, string username)
     {
         _logger.LogInformation($"WebSocket connected for user: {username}");
-        _userSockets[username] = webSocket;
-        _logger.LogInformation($"Number of connected users: {_userSockets.First().ToString()}");
-
+        _userSockets.AddOrUpdate(username, webSocket, (key, oldValue) => webSocket);
+        _logger.LogInformation($"Number of connected users: {_userSockets.Count}");
+    
         var buffer = new byte[1024 * 4];
         var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
+    
         while (!result.CloseStatus.HasValue)
         {
             result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
         }
-
-        _userSockets.Remove(username);
+    
+        _userSockets.TryRemove(username, out _);
         await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
     }
 

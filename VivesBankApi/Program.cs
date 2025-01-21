@@ -279,7 +279,7 @@
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
         myBuilder.Services.AddScoped<IUserService, UserService>();
     // WEBSOCKETS
-        myBuilder.Services.AddScoped<WebSocketHandler>(); 
+        myBuilder.Services.AddSingleton<WebSocketHandler>(); 
     // CONTEXT ACCESOR
         
         
