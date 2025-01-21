@@ -11,5 +11,4 @@ public class ExpirationDateGenerator
         int range = (futureDate.ToDateTime(TimeOnly.MinValue) - today.ToDateTime(TimeOnly.MinValue)).Days;
         return today.AddDays(random.Next(range));
     }
-
 }
