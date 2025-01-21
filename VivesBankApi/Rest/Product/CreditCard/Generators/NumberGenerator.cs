@@ -2,7 +2,7 @@
 
 public class NumberGenerator
 {
-    public string GenerateCreditCardNumber()
+    public virtual string GenerateCreditCardNumber()
     {
         var random = new Random();
         int[] cardNumber = new int[16];
