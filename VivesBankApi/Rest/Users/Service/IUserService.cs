@@ -14,6 +14,7 @@ public interface IUserService
     Task<UserResponse> GetUserByIdAsync(String id);
     Task<UserResponse> AddUserAsync(CreateUserRequest userRequest);
     Task<UserResponse> GetUserByUsernameAsync(String username);
+    Task<UserResponse> GettingMyUserData();
     Task<UserResponse> UpdateUserAsync(String key, UserUpdateRequest request);
     Task DeleteUserAsync(String id, bool logically);
     String GenerateJwtToken(User user);

@@ -87,29 +87,8 @@ public class UserController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetMyProfile()
     {
-        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-
-        if (string.IsNullOrEmpty(token))
-        {
-            return Unauthorized("Token JWT no encontrado.");
-        }
-
-        
-        var guuid = (token);
-
-        if (string.IsNullOrEmpty(guuid))
-        {
-            return Unauthorized("Guuid no encontrado en el token.");
-        }
-
-        var user = _userService.GetUserByIdAsync(guuid);
-
-        if (user == null)
-        {
-            return NotFound("Usuario no encontrado.");
-        }
-
-        return Ok(user);
+        var result = await _userService.GettingMyUserData();
+        return Ok(result);
     }
     
     
