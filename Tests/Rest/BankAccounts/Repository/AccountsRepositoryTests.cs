@@ -37,7 +37,12 @@ public class AccountsRepositoryTests
 
         _repository = new AccountsRepository(_context, NullLogger<AccountsRepository>.Instance);
     }
-
+    [TearDown]
+    public async Task TearDown()
+    {
+        await _repository.DeleteAllAsync();
+    }
+    
     [OneTimeTearDown]
     public async Task Teardown()
     {
