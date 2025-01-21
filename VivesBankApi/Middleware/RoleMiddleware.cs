@@ -38,7 +38,8 @@ public class RoleMiddleware
                         var claims = new List<Claim>
                         {
                             new("UserId", userId),
-                            new(ClaimTypes.Role, typeof(Role).GetEnumName(user.Role) ?? string.Empty)
+                            new(ClaimTypes.Role, typeof(Role).GetEnumName(user.Role) ?? string.Empty),
+                            new (ClaimTypes.NameIdentifier, user.Id)
                         };
 
                         _logger.LogDebug("Adding identity to user.");
