@@ -31,6 +31,8 @@ public class UserServiceTest
     {
         _connection = new Mock<IConnectionMultiplexer>();
         _cache = new Mock<IDatabase>();
+        _logger = new Mock<ILogger<UserService>>();
+        _authConfig = new Mock<AuthJwtConfig>();
         _connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
         
         userRepositoryMock = new Mock<IUserRepository>();

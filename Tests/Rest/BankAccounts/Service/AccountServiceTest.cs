@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework.Legacy;
+using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
@@ -21,13 +22,16 @@ public class AccountServiceTest
     [SetUp]
     public void Setup()
     {
+        connectionMultiplexer = new Mock<IConnectionMultiplexer>();
+        _cache = new Mock<IDatabase>();
+        connectionMultiplexer.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
         _accountRepository = new Mock<IAccountsRepository>();
         _clientRepository = new Mock<IClientRepository>();
         _productRepository = new Mock<IProductRepository>();
         _ibanGenerator = new Mock<IIbanGenerator>();
         _logger = new Mock<ILogger<AccountService>>();
         
-        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object);
+        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object, connectionMultiplexer.Object);
 
     }
     private Mock<IAccountsRepository> _accountRepository;
@@ -36,6 +40,8 @@ public class AccountServiceTest
     private Mock<IIbanGenerator> _ibanGenerator;
     private Mock<ILogger<AccountService>> _logger;
     private AccountService _accountService;
+    private Mock<IDatabase> _cache;
+    private Mock<IConnectionMultiplexer> connectionMultiplexer;
     
     private readonly Account account = new Account
     {

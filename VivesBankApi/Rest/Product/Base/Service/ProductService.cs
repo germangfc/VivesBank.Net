@@ -1,4 +1,6 @@
-﻿using VivesBankApi.Rest.Product.Base.Dto;
+﻿using Newtonsoft.Json;
+using StackExchange.Redis;
+using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
 using VivesBankApi.Rest.Product.Base.Validators;
 
@@ -9,12 +11,14 @@ public class ProductService : IProductService
     private readonly ILogger<ProductService> _logger;
     private readonly IProductRepository _productRepository;
     private readonly ProductValidator _productValidator;
+    private readonly IDatabase _cache;
     
-    public ProductService(ILogger<ProductService> logger, IProductRepository productRepository, ProductValidator productValidator)
+    public ProductService(ILogger<ProductService> logger, IProductRepository productRepository, ProductValidator productValidator, IConnectionMultiplexer connection)
     {
         _logger = logger;
         _productRepository = productRepository;
         _productValidator = productValidator;
+        _cache = connection.GetDatabase();
     }
     
     public async Task<List<ProductResponse>> GetAllProductsAsync()
@@ -30,7 +34,7 @@ public class ProductService : IProductService
     {
         _logger.LogInformation($"Getting product with id {productId}");
     
-        var product = await _productRepository.GetByIdAsync(productId);
+        var product = await GetByIdAsync(productId);
 
         if (product == null)
         {
@@ -62,7 +66,7 @@ public class ProductService : IProductService
     {
         _logger.LogInformation($"Updating product: {updateRequest} by Id: {productId}");
         
-        var product = await _productRepository.GetByIdAsync(productId);
+        var product = await GetByIdAsync(productId);
         
         if (product == null)
         {
@@ -72,8 +76,9 @@ public class ProductService : IProductService
 
         product.Name = updateRequest.Name;
         product.UpdatedAt = DateTime.UtcNow;
-
+        
         await _productRepository.UpdateAsync(product);
+        await _cache.KeyDeleteAsync(productId);
 
         return product.ToDtoResponse();
     }
@@ -82,7 +87,7 @@ public class ProductService : IProductService
     {
         _logger.LogInformation($"Removing product by Id: {productId}");
 
-        var product = await _productRepository.GetByIdAsync(productId);
+        var product = await GetByIdAsync(productId);
         if (product == null)
         {
             _logger.LogError($"Product not found with id {productId}");
@@ -90,8 +95,27 @@ public class ProductService : IProductService
         }
 
         await _productRepository.DeleteAsync(productId);
-
+        await _cache.KeyDeleteAsync(productId);
         _logger.LogInformation($"Product with Id: {productId} removed successfully.");
         return true; 
+    }
+    
+    private async Task<Base.Models.Product?> GetByIdAsync(string id)
+    {
+        // Try to get from cache first
+        var cachedProduct = await _cache.StringGetAsync(id);
+        if (!cachedProduct.IsNullOrEmpty)
+        {
+            return JsonConvert.DeserializeObject<Base.Models.Product>(cachedProduct);
+        }
+
+        // If not in cache, get from DB and cache it
+        Base.Models.Product? product = await _productRepository.GetByIdAsync(id);
+        if (product != null)
+        {
+            await _cache.StringSetAsync(id, JsonConvert.SerializeObject(product), TimeSpan.FromMinutes(10));
+            return product;
+        }
+        return null;
     }
 }

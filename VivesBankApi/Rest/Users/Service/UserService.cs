@@ -134,12 +134,7 @@ public class UserService : IUserService
         var cachedUser = await _cache.StringGetAsync(id);
         if (!cachedUser.IsNullOrEmpty)
         {
-            var json = await _cache.StringGetAsync(id);
-            
-            if (!json.IsNullOrEmpty)
-            {
-                return JsonConvert.DeserializeObject<User>(json);
-            }
+            return JsonConvert.DeserializeObject<User>(cachedUser);
         }
 
         // If not in cache, get from DB and cache it
@@ -158,12 +153,7 @@ public class UserService : IUserService
         var cachedUser = await _cache.StringGetAsync("users:" + username.Trim().ToUpper());
         if (!cachedUser.IsNullOrEmpty)
         {
-            var json = await _cache.StringGetAsync(username);
-            
-            if (!json.IsNullOrEmpty)
-            {
-                return JsonConvert.DeserializeObject<User>(json);
-            }
+            return JsonConvert.DeserializeObject<User>(cachedUser);
         }
         // If not in cache, get from DB and cache it
         User? user = await _userRepository.GetByUsernameAsync(username);
