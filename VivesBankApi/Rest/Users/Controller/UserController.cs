@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
@@ -46,6 +47,7 @@ public class UserController : ControllerBase
     }
     
     [HttpGet]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<PageResponse<UserResponse>>> GetAllUsersAsync(
         [FromQuery ]int pageNumber = 0, 
         [FromQuery] int pageSize = 10,
@@ -74,6 +76,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> GetUser(string id)
     {
         var user = await _userService.GetUserByIdAsync(id);
@@ -88,6 +91,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> AddUser([FromBody] CreateUserRequest userRequest)
     {
         if (!ModelState.IsValid)
@@ -103,6 +107,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> UpdateUser(string id, [FromBody] UserUpdateRequest user)
     {
         if (!ModelState.IsValid)
@@ -115,6 +120,7 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> DeleteUser(String id, [FromQuery] bool logically = true)
     {
         await _userService.DeleteUserAsync(id, logically);
