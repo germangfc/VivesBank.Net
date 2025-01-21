@@ -23,6 +23,7 @@ public class UserService : IUserService
     private readonly AuthJwtConfig _authConfig;
     private readonly ILogger _logger;
     
+    
     public UserService(ILogger<UserService> logger, IUserRepository userRepository, AuthJwtConfig authConfig, IConnectionMultiplexer connectionMultiplexer)
     {
         _logger = logger;

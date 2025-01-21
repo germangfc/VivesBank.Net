@@ -265,7 +265,6 @@
     // USUARIO
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
         myBuilder.Services.AddScoped<IUserService, UserService>();
-        
     // API FRANKFURTER 
         string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
         if (string.IsNullOrEmpty(frankfurterBaseUrl))
