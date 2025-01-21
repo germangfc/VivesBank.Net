@@ -2,7 +2,7 @@
 
 public class ExpirationDateGenerator
 {
-    public DateOnly GenerateRandomDate()
+    public virtual DateOnly GenerateRandomDate()
     {
         var random = new Random();
         DateOnly today = DateOnly.FromDateTime(DateTime.Today);

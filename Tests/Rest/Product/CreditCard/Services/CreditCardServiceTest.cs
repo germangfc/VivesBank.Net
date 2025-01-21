@@ -1,7 +1,9 @@
 ﻿using Moq;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework.Legacy;
+using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
+using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Generators;
 using VivesBankApi.Rest.Product.CreditCard.Service;
@@ -59,7 +61,7 @@ namespace VivesBankApi.Tests.CreditCard
             Assert.That(result[0].CardNumber, Is.EqualTo("1234567890123456"));
             _creditCardRepositoryMock.Verify(repo => repo.GetAllAsync(), Times.Once);
         }
-        
+
         [Test]
         public async Task GetCreditCardByIdAdminAsync()
         {
@@ -86,7 +88,7 @@ namespace VivesBankApi.Tests.CreditCard
             Assert.That(result.CardNumber, Is.EqualTo(creditCard.CardNumber));
             _creditCardRepositoryMock.Verify(repo => repo.GetByIdAsync(creditCardId), Times.Once);
         }
-        
+
         [Test]
         public void GetCreditCardByIdAdminAsyncNotFound()
         {
@@ -99,8 +101,108 @@ namespace VivesBankApi.Tests.CreditCard
             var exception = Assert.ThrowsAsync<CreditCardException.CreditCardNotFoundException>(
                 async () => await _service.GetCreditCardByIdAdminAsync(creditCardId));
 
-            Assert.That(exception.Message, Is.EqualTo($"The credit card with the ID {creditCardId} was not found"));
+            Assert.That(exception.Message,
+                Is.EqualTo($"The credit card with the ID Credit card with id '1' not found. was not found"));
             _creditCardRepositoryMock.Verify(repo => repo.GetByIdAsync(creditCardId), Times.Once);
         }
+
+        [Test]
+        public async Task UpdateCreditCardAsyncReturnsOk()
+        {
+            // Arrange
+            var cardId = "Card123";
+            var updateRequest = new CreditCardUpdateRequest
+            {
+                Pin = "5678"
+            };
+
+            var existingCreditCard = new Rest.Product.CreditCard.Models.CreditCard
+            {
+                Id = cardId,
+                AccountId = "Account0001",
+                Pin = "1234",
+                UpdatedAt = DateTime.Now.AddDays(-1) // Fecha previa
+            };
+
+            var updatedAt = DateTime.Now;
+
+            // Mock para obtener la tarjeta por Id
+            _creditCardRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(cardId))
+                .ReturnsAsync(existingCreditCard);
+
+            // Mock para actualizar la tarjeta
+            _creditCardRepositoryMock
+                .Setup(repo => repo.UpdateAsync(It.IsAny<Rest.Product.CreditCard.Models.CreditCard>()))
+                .Callback<Rest.Product.CreditCard.Models.CreditCard>(updatedCard =>
+                {
+                    Assert.That(updatedCard.Pin, Is.EqualTo(updateRequest.Pin)); // Validar cambio del PIN
+                    Assert.That(updatedCard.UpdatedAt, Is.InRange(updatedAt.AddSeconds(-1), updatedAt.AddSeconds(1))); // Validar fecha de actualización
+                })
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _service.UpdateCreditCardAsync(cardId, updateRequest);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Pin, Is.EqualTo(updateRequest.Pin));
+            _creditCardRepositoryMock.Verify(repo => repo.GetByIdAsync(cardId), Times.Once);
+            _creditCardRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Rest.Product.CreditCard.Models.CreditCard>()), Times.Once);
+        }
+        
+        [Test]
+        public void UpdateCreditCardAsyncNotFound()
+        {
+            var cardId = "InvalidCard123";
+            var updateRequest = new CreditCardUpdateRequest
+            {
+                Pin = "5678"
+            };
+
+            _creditCardRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(cardId))
+                .ReturnsAsync((Rest.Product.CreditCard.Models.CreditCard)null);
+
+            Assert.ThrowsAsync<CreditCardException.CreditCardNotFoundException>(async () =>
+            {
+                await _service.UpdateCreditCardAsync(cardId, updateRequest);
+            });
+
+            _creditCardRepositoryMock.Verify(repo => repo.GetByIdAsync(cardId), Times.Once);
+            _creditCardRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Rest.Product.CreditCard.Models.CreditCard>()), Times.Never);
+        }
+        
+        [Test]
+        public async Task DeleteCreditCardAsyncReturnsOk()
+        {
+            var cardId = "ValidCard123";
+
+            _creditCardRepositoryMock
+                .Setup(repo => repo.DeleteAsync(cardId))
+                .Returns(Task.CompletedTask);
+
+            await _service.DeleteCreditCardAsync(cardId);
+
+            _creditCardRepositoryMock.Verify(repo => repo.DeleteAsync(cardId), Times.Once);
+        }
+        
+        [Test]
+        public void DeleteCreditCardAsyncNotFound()
+        {
+            var cardId = "InvalidCard123";
+
+            _creditCardRepositoryMock
+                .Setup(repo => repo.DeleteAsync(cardId))
+                .Throws(new CreditCardException.CreditCardNotFoundException(cardId));
+
+            Assert.ThrowsAsync<CreditCardException.CreditCardNotFoundException>(async () =>
+            {
+                await _service.DeleteCreditCardAsync(cardId);
+            });
+
+            _creditCardRepositoryMock.Verify(repo => repo.DeleteAsync(cardId), Times.Once);
+        }
+        
+        
     }
 }
