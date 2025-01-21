@@ -33,18 +33,33 @@ public class RoleMiddleware
 
                     if (user != null)
                     {
-                        _logger.LogDebug("User found. Adding roles to claims.");
-
-                        var claims = new List<Claim>
+                        if (!Enum.IsDefined(typeof(Role), user.Role))
                         {
-                            new("UserId", userId),
-                            new(ClaimTypes.Role, typeof(Role).GetEnumName(user.Role) ?? string.Empty),
-                            new (ClaimTypes.NameIdentifier, user.Id)
-                        };
+                            _logger.LogError("Invalid role value received: {Role}", user.Role);
+                        }
+                        else
+                        {
+                            if (Enum.TryParse(typeof(Role), user.Role?.ToString(), out var roleEnum) && Enum.IsDefined(typeof(Role), roleEnum))
+                            {
+                                var roleName = Enum.GetName(typeof(Role), roleEnum) ?? string.Empty;
+                                var claims = new List<Claim>
+                                {
+                                    new("UserId", userId),
+                                    new(ClaimTypes.Role, roleName),
+                                    new (ClaimTypes.NameIdentifier, userId),
+                                };
 
-                        _logger.LogDebug("Adding identity to user.");
-                        var identity = new ClaimsIdentity(claims, "custom");
-                        context.User.AddIdentity(identity);
+                                _logger.LogDebug("Adding identity to user.");
+                                var identity = new ClaimsIdentity(claims, "custom");
+                                context.User.AddIdentity(identity);
+                            }
+                            else
+                            {
+                                _logger.LogError("Invalid role value received: {Role}", user.Role);
+                            }
+
+                        }
+
                     }
                     else
                     {
