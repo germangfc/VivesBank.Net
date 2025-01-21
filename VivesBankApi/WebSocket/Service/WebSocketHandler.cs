@@ -81,6 +81,7 @@ public class WebSocketHandler
     {
         _logger.LogInformation($"WebSocket connected for user: {username}");
         _userSockets[username] = webSocket;
+        _logger.LogInformation($"Number of connected users: {_userSockets.First().ToString()}");
 
         var buffer = new byte[1024 * 4];
         var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
