@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
@@ -57,8 +57,8 @@ public class CreditCardService : ICreditCardService
 
         if (creditCard != null)
         {
-            await _cache.StringSetAsync(id, JsonConvert.SerializeObject(creditCard), TimeSpan.FromMinutes(10));
-            return creditCard;
+            _logger.LogError($"Card not found with id {id}");
+            throw new CreditCardException.CreditCardNotFoundException($"Credit card with id '{id}' not found.");
         }
         return null;
     }

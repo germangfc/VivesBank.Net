@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Service;
+using KeyNotFoundException = System.Collections.Generic.KeyNotFoundException;
 
 namespace VivesBankApi.Rest.Product.CreditCard.Controller;
 
@@ -49,6 +50,12 @@ public class CreditCardController : ControllerBase
     {
         _logger.LogInformation($"Updating card with id {cardId}");
         var card = await _creditCardService.UpdateCreditCardAsync(cardId, updateRequest);
+        
+        if (card == null) 
+        {
+            return NotFound(); 
+        }
+        
         return CreatedAtAction(nameof(GetCardByIdAdminAsync), new { cardId = card.Id }, card);
     }
 
@@ -56,8 +63,16 @@ public class CreditCardController : ControllerBase
     public async Task<IActionResult> DeleteCardAsync(string cardId)
     {
         _logger.LogInformation($"Deleting card with id {cardId}");
-        await _creditCardService.DeleteCreditCardAsync(cardId);
-        return NoContent();
+        
+        try
+        {
+            await _creditCardService.DeleteCreditCardAsync(cardId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            _logger.LogWarning($"Card with id {cardId} not found."); 
+            return NotFound();
+        }
     }
-
 }

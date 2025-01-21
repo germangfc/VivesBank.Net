@@ -2,7 +2,7 @@
 
 public class ExpirationDateGenerator
 {
-    public DateOnly GenerateRandomDate()
+    public virtual DateOnly GenerateRandomDate()
     {
         var random = new Random();
         DateOnly today = DateOnly.FromDateTime(DateTime.Today);
@@ -11,5 +11,4 @@ public class ExpirationDateGenerator
         int range = (futureDate.ToDateTime(TimeOnly.MinValue) - today.ToDateTime(TimeOnly.MinValue)).Days;
         return today.AddDays(random.Next(range));
     }
-
 }
