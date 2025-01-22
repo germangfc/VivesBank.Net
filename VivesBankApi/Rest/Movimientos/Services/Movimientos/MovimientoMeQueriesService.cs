@@ -10,4 +10,10 @@ public class MovimientoMeQueriesService(ILogger<MovimientoMeQueriesService> logg
         logger.LogInformation($"Finding movimientos domiciliación for client with GUID: {clienteGuid}");
         return await movimientoRepository.GetMovimientosDomiciliacionByClienteGuidAsync(clienteGuid);
     }
+
+    public async Task<List<Movimiento>> FindMovimientosTransferenciaByClienteGuidAsync(string clienteGuid)
+    {
+        logger.LogInformation($"Finding movimientos transferencia for client with GUID: {clienteGuid}");
+        return await movimientoRepository.GetMovimientosByClientAsync(clienteGuid);
+    }
 }
