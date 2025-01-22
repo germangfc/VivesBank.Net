@@ -35,6 +35,7 @@
     using VivesBankApi.Rest.Users.Service;
     using VivesBankApi.Utils.ApiConfig;
     using VivesBankApi.Utils.IbanGenerator;
+    using VivesBankApi.WebSocket.Service;
 
     Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -61,6 +62,8 @@
     }
     app.ApplyMigrations(); // Aplica las migraciones de la base de datos si es necesario.   
     //StorageInit(); // Inicializa el almacenamiento de archivos
+    var scriptPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Scripts", "data.sql");
+    DatabseInitializer.InitializeDatabase(app.Services, scriptPath); // Ejecuta el script SQL
 
     app.MapGraphQL(); // Habilita GraphQL para permitir la ejecución de consultas y mutaciones GraphQL.
 
@@ -107,6 +110,7 @@
                     command.CommandText = $"DROP TABLE IF EXISTS \"{table}\" CASCADE;";
                     command.ExecuteNonQuery();
                 }
+               
             }
             finally
             {
@@ -118,7 +122,7 @@
             }
         }
     }
-
+    
 
     string InitLocalEnvironment()
     {
@@ -179,19 +183,6 @@
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
-                };
-
-                // Ignorar validación de tokens en ciertos endpoints
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        if (context.HttpContext.Request.Path.StartsWithSegments("/api/register"))
-                        {
-                            context.Token = null; // No validar tokens en el registro
-                        }
-                        return Task.CompletedTask;
-                    }
                 };
             });
         
@@ -275,7 +266,8 @@
     // USUARIO
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
         myBuilder.Services.AddScoped<IUserService, UserService>();
-        
+        myBuilder.Services.AddScoped<WebSocketHandler>();
+        myBuilder.Services.AddHttpContextAccessor();
     // API FRANKFURTER 
         string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
         if (string.IsNullOrEmpty(frankfurterBaseUrl))

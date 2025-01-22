@@ -13,8 +13,8 @@ using VivesBankApi.Database;
 namespace VivesBankApi.Migrations
 {
     [DbContext(typeof(BancoDbContext))]
-    [Migration("20250120175042_VivesBankSecurity")]
-    partial class VivesBankSecurity
+    [Migration("20250121151353_BankWithAuth")]
+    partial class BankWithAuth
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,11 +37,16 @@ namespace VivesBankApi.Migrations
 
                     b.Property<string>("Adress")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -54,11 +59,10 @@ namespace VivesBankApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("role")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
 

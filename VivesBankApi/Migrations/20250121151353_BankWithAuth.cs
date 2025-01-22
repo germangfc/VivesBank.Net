@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VivesBankApi.Migrations
 {
     /// <inheritdoc />
-    public partial class VivesBankSecurity : Migration
+    public partial class BankWithAuth : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -36,12 +36,13 @@ namespace VivesBankApi.Migrations
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
-                    FullName = table.Column<string>(type: "text", nullable: false),
-                    Adress = table.Column<string>(type: "text", nullable: false),
+                    FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Adress = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Photo = table.Column<string>(type: "text", nullable: false),
                     PhotoDni = table.Column<string>(type: "text", nullable: false),
                     AccountsIds = table.Column<List<string>>(type: "text[]", nullable: false),
-                    role = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
