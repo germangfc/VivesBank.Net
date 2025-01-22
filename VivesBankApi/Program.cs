@@ -261,10 +261,16 @@
     // CLIENTE
         myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
         myBuilder.Services.AddScoped<IClientService, ClientService>();
+        myBuilder.Services.AddScoped<FileStorageExceptions>();
         
     // USUARIO
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
         myBuilder.Services.AddScoped<IUserService, UserService>();
+        //
+        myBuilder.Services.AddHttpContextAccessor();
+        
+        //
+        myBuilder.Services.AddSingleton<WebSock>()
     // API FRANKFURTER 
         string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
         if (string.IsNullOrEmpty(frankfurterBaseUrl))
@@ -281,6 +287,7 @@
             });
         
         myBuilder.Services.AddScoped<CurrencyApiService>();
+        
         
         
     // CVCGENERATOR
