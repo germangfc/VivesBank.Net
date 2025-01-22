@@ -87,11 +87,20 @@ public class UserService : IUserService
         await _webSocketHandler.NotifyUserAsync(id,notificacion);
         return newUser.ToUserResponse();
     }
+    
 
     public async Task<UserResponse> GetUserByUsernameAsync(string username)
     {
         var user = await GetByUsernameAsync(username) ?? throw new UserNotFoundException(username);
         return user.ToUserResponse();
+    }
+
+    public async Task<UserResponse> GettingMyUserData()
+    {
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var res = await GetByIdAsync(id);
+        return res.ToUserResponse();
     }
 
 

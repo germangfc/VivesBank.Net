@@ -1,6 +1,8 @@
-﻿using Moq;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using Moq;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework.Legacy;
+using StackExchange.Redis;
 using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
@@ -19,6 +21,7 @@ namespace VivesBankApi.Tests.CreditCard
         private Mock<ExpirationDateGenerator> _expirationDateGeneratorMock;
         private Mock<NumberGenerator> _numberGeneratorMock;
         private Mock<IAccountsRepository> _accountsRepositoryMock;
+        private Mock<IConnectionMultiplexer> _cacheMock;
 
         private CreditCardService _service;
 
@@ -38,7 +41,8 @@ namespace VivesBankApi.Tests.CreditCard
                 _cvcGeneratorMock.Object,
                 _expirationDateGeneratorMock.Object,
                 _numberGeneratorMock.Object,
-                _accountsRepositoryMock.Object
+                _accountsRepositoryMock.Object,
+                _cacheMock.Object
             );
         }
 

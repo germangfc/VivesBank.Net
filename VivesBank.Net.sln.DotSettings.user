@@ -19,6 +19,9 @@
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::VivesBankApi.Tests.CreditCard.CreditCardServiceTests.GetCreditCardByIdAdminAsyncNotFound&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3d8e25e5_002D18fe_002D4edf_002D80e8_002D35b31fa62b6f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="AccountsRepositoryTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5e3f7450_002D5140_002D497c_002D8cb8_002D19fa026f366a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CurrencyApiServiceTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>

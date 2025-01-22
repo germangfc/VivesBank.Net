@@ -17,7 +17,7 @@ public class RoleMiddleware
         _serviceProvider = serviceProvider;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+   public async Task InvokeAsync(HttpContext context)
     {
         using (var scope = _serviceProvider.CreateScope())
         {
