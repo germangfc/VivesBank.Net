@@ -20,7 +20,8 @@ public class ClientService : IClientService
     private readonly IClientRepository _clientRepository;
     private readonly IUserRepository _userRepository;
     private readonly IDatabase _cache;
-
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    
     public ClientService(
         FileStorageConfig fileStorageConfig,
         ILogger<ClientService> logger,
@@ -33,6 +34,7 @@ public class ClientService : IClientService
         _logger = logger;
         _clientRepository = clientRepository;
         _cache = connection.GetDatabase();
+        _httpContextAccessor = httpContextAccessor;
     } 
     public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber, 
