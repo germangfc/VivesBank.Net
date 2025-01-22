@@ -10,4 +10,5 @@ public interface IDomiciliacionRepository
     Task<Domiciliacion> AddDomiciliacionAsync(Domiciliacion domiciliacion);
     Task<Domiciliacion> UpdateDomiciliacionAsync(String id, Domiciliacion domiciliacion);
     Task<Domiciliacion> DeleteDomiciliacionAsync(String id);
+    Task<List<Domiciliacion>> FindByClientGuid (String clientGuid);
 }

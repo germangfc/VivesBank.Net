@@ -74,9 +74,17 @@ public class AccountService : IAccountsService
     public async Task<AccountResponse> GetAccountByIbanAsync(string iban)
     {
         _logger.LogInformation($"Getting account by IBAN {iban}");
-        var result = await _accountsRepository.GetByIdAsync(iban);
+        // mal ??? var result = await _accountsRepository.GetByIdAsync(iban);
+        var result = await _accountsRepository.getAccountByIbanAsync(iban);
         if (result == null) throw new AccountsExceptions.AccountNotFoundByIban(iban);
         return result.toResponse();
+    }
+    public async Task<AccountCompleteResponse> GetCompleteAccountByIbanAsync(string iban)
+    {
+        _logger.LogInformation($"Getting complete account by IBAN {iban}");
+        var result = await _accountsRepository.getAccountByIbanAsync(iban);
+        if (result == null) throw new AccountsExceptions.AccountNotFoundByIban(iban);
+        return result.toCompleteResponse();
     }
 
     public async Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request)

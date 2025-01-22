@@ -48,9 +48,13 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                         
                 /**************** MOVIMIENTOS EXCEPTIONS *****************************************/
                 
-                case DomiciliacionCantidadInvalidaException:
-                case IbanOrigenInvalidoException:
-                case IbanDestinoInvalidoException:
+                case DomiciliacionInvalidCuantityException:
+                case IngresoNominaInvalidCuantityException:
+                case InvalidSourceIbanException:
+                case InvalidDestinationIbanException:
+                case InvalidCifException:
+                case DuplicatedDomiciliacionException:
+                case NegativeAmountException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
@@ -75,6 +79,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     break;
                 /************************** ACCOUNT EXCEPTIONS *****************************************************/
                 case AccountsExceptions.AccountNotCreatedException:
+                case AccountsExceptions.AccountUnknownIban:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);

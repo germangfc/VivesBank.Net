@@ -6,7 +6,7 @@ public class CifValidator
 {
     private static readonly Regex CifRegex = new Regex("^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$", RegexOptions.Compiled);
 
-    public bool ValidateCif(string cif)
+    public static bool ValidateCif(string cif)
     {
         if (string.IsNullOrEmpty(cif) || !CifRegex.IsMatch(cif) || cif.Length != 9)
         {

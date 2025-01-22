@@ -1,6 +1,3 @@
 ﻿namespace VivesBankApi.Rest.Movimientos.Exceptions;
 
-public class NegativeAmountException
-{
-    
-}
+public class NegativeAmountException(decimal amount) : MovimientoException($"Negative amount {amount}");
