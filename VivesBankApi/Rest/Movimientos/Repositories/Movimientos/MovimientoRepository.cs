@@ -68,4 +68,10 @@ public class MovimientoRepository : IMovimientoRepository
         var deletedMovimiento = await _collection.FindOneAndDeleteAsync(m => m.Id == id);
         return deletedMovimiento;
     }
+
+    public async Task<List<Movimiento>> GetMovimientosDomiciliacionByClienteGuidAsync(string clienteGuid)
+    {
+        _logger.LogInformation($"Getting movimientos de domiciliación for client with guid: {clienteGuid} from the database.");
+        return await _collection.Find(m => m.ClienteGuid == clienteGuid && m.Domiciliacion != null ).ToListAsync();
+    }
 }
