@@ -52,6 +52,24 @@ public class ClientController : ControllerBase
         return await _clientService.GetClientByIdAsync(id);
     }
 
+    [HttpGet("me")] 
+    public async Task<ActionResult<ClientResponse>> GetMyClientData()
+    {
+        _logger.LogInformation("Getting my client data");
+        return await _clientService.GettingMyClientData();
+    }
+
+    [HttpPost("toclient")]
+    public async Task<ActionResult<ClientResponse>> CreateClientAsUser([FromBody] ClientRequest request)
+    {
+        _logger.LogInformation("Creating new client");
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var client = await _clientService.CreateClientAsync(request);
+        return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
+    }
     [HttpPost]
     public async Task<ActionResult<ClientResponse>> CreateClient([FromBody] ClientRequest request)
     {

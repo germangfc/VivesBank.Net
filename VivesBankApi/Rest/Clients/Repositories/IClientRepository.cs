@@ -11,4 +11,6 @@ public interface IClientRepository : IGenericRepository<Client>
         string name,
         bool? isDeleted,
         string direction);
+    
+    public Task<Client?> getByUserIdAsync(string userId);
 }
