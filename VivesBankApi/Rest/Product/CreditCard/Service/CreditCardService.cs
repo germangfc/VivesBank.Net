@@ -1,7 +1,10 @@
-﻿using VivesBankApi.Rest.Product.BankAccounts.Repositories;
+using Newtonsoft.Json;
+using StackExchange.Redis;
+using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Generators;
+
 
 namespace VivesBankApi.Rest.Product.CreditCard.Service;
 
@@ -13,8 +16,9 @@ public class CreditCardService : ICreditCardService
     private readonly ExpirationDateGenerator _expirationDateGenerator;
     private readonly NumberGenerator _numberGenerator;
     private readonly IAccountsRepository _accountsRepository;
+    private readonly IDatabase _cache;
 
-    public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, CvcGenerator cvcGenerator, ExpirationDateGenerator expirationDateGenerator, NumberGenerator numberGenerator, IAccountsRepository accountsRepository)
+    public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, CvcGenerator cvcGenerator, ExpirationDateGenerator expirationDateGenerator, NumberGenerator numberGenerator, IAccountsRepository accountsRepository, IConnectionMultiplexer connectionMultiplexer)
     {
         _logger = logger;
         _creditCardRepository = creditCardRepository;
@@ -22,6 +26,7 @@ public class CreditCardService : ICreditCardService
         _expirationDateGenerator = expirationDateGenerator;
         _numberGenerator = numberGenerator;
         _accountsRepository = accountsRepository;
+        _cache = connectionMultiplexer.GetDatabase();
     }
 
     public async Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync()
@@ -36,16 +41,26 @@ public class CreditCardService : ICreditCardService
     public async Task<CreditCardAdminResponse?> GetCreditCardByIdAdminAsync(string id)
     {
         _logger.LogInformation($"Getting card with id {id}");
-        
-        var creditCard = await _creditCardRepository.GetByIdAsync(id);
+        var creditCard = await GetByIdAsync(id) ?? throw new CreditCardException.CreditCardNotFoundException(id);
+        return creditCard.ToAdminResponse();
+    }
+    
+    private async Task<Models.CreditCard?> GetByIdAsync(string id)
+    {
+        var cacheCreditCard = await _cache.StringGetAsync(id);
+        if (!cacheCreditCard.IsNullOrEmpty)
+        {
+            return JsonConvert.DeserializeObject<Models.CreditCard>(cacheCreditCard);
+        }
 
-        if (creditCard == null)
+        Models.CreditCard? creditCard = await _creditCardRepository.GetByIdAsync(id);
+
+        if (creditCard != null)
         {
             _logger.LogError($"Card not found with id {id}");
-            throw new CreditCardException.CreditCardNotFoundException(id);
+            throw new CreditCardException.CreditCardNotFoundException($"Credit card with id '{id}' not found.");
         }
-        
-        return creditCard.ToAdminResponse();
+        return null;
     }
 
     public async Task<CreditCardClientResponse> CreateCreditCardAsync(CreditCardRequest createRequest)
@@ -89,6 +104,8 @@ public class CreditCardService : ICreditCardService
         creditCard.UpdatedAt = DateTime.Now;
         
         await _creditCardRepository.UpdateAsync(creditCard);
+        await _cache.KeyDeleteAsync(cardId);
+        await _cache.StringSetAsync(cardId, JsonConvert.SerializeObject(updateRequest), TimeSpan.FromMinutes(10));
         
         return creditCard.ToClientResponse();
     }
@@ -96,7 +113,7 @@ public class CreditCardService : ICreditCardService
     public Task DeleteCreditCardAsync(string cardId)
     {
         _logger.LogInformation($"Removing card by Id: {cardId} ");
-        
+        _cache.KeyDeleteAsync(cardId);
         return _creditCardRepository.DeleteAsync(cardId);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using HotChocolate.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using StackExchange.Redis;
@@ -11,6 +12,8 @@ using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Validator;
+using VivesBankApi.WebSocket.Model;
+using VivesBankApi.WebSocket.Service;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Role = VivesBankApi.Rest.Users.Models.Role;
 
@@ -22,13 +25,17 @@ public class UserService : IUserService
     private readonly IDatabase _cache;
     private readonly AuthJwtConfig _authConfig;
     private readonly ILogger _logger;
+    private readonly WebSocketHandler _webSocketHandler;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     
-    public UserService(ILogger<UserService> logger, IUserRepository userRepository, AuthJwtConfig authConfig, IConnectionMultiplexer connectionMultiplexer)
+    public UserService(ILogger<UserService> logger, IUserRepository userRepository, AuthJwtConfig authConfig, IConnectionMultiplexer connectionMultiplexer, WebSocketHandler webSocketHandler, IHttpContextAccessor httpContextAccessor)
     {
         _logger = logger;
         _authConfig = authConfig;
         _userRepository = userRepository;
         _cache = connectionMultiplexer.GetDatabase();
+        _webSocketHandler = webSocketHandler;
+        _httpContextAccessor = httpContextAccessor;
     }
     
     public async Task<PagedList<UserResponse>> GetAllUsersAsync(
@@ -54,6 +61,7 @@ public class UserService : IUserService
        return user.ToUserResponse();
     }
 
+     [Authorize]
     public async Task<UserResponse> AddUserAsync(CreateUserRequest userRequest)
     {
         if (!UserValidator.ValidateDni(userRequest.Dni))
@@ -67,13 +75,32 @@ public class UserService : IUserService
             throw new UserAlreadyExistsException(userRequest.Dni);
         }
         await _userRepository.AddAsync(newUser);
+        var notificacion = new Notification<UserResponse>
+        {
+            Type = typeof(Notification<UserResponse>.NotificationType).GetEnumName(Notification<UserResponse>
+                .NotificationType.Create),
+            CreatedAt = DateTime.Now,
+            Data = newUser.ToUserResponse()
+        };
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        await _webSocketHandler.NotifyUserAsync(id,notificacion);
         return newUser.ToUserResponse();
     }
+    
 
     public async Task<UserResponse> GetUserByUsernameAsync(string username)
     {
         var user = await GetByUsernameAsync(username) ?? throw new UserNotFoundException(username);
         return user.ToUserResponse();
+    }
+
+    public async Task<UserResponse> GettingMyUserData()
+    {
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var res = await GetByIdAsync(id);
+        return res.ToUserResponse();
     }
 
 

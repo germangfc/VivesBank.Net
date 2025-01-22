@@ -15,7 +15,7 @@ public class AccountsRepositoryTests
     private BancoDbContext _context;
     private AccountsRepository _repository;
 
-    [OneTimeSetUp]
+    [SetUp]
     public async Task Setup()
     {
         _container = new PostgreSqlBuilder()
@@ -38,7 +38,7 @@ public class AccountsRepositoryTests
         _repository = new AccountsRepository(_context, NullLogger<AccountsRepository>.Instance);
     }
 
-    [OneTimeTearDown]
+    [TearDown]
     public async Task Teardown()
     {
         if (_context!= null)
