@@ -8,4 +8,6 @@ public abstract class ClientExceptions : Exception
     public class ClientNotFoundException(String id) : ClientExceptions($"Client not found by id {id}")
     {
     }
+    
+    
 }

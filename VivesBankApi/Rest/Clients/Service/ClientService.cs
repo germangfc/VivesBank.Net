@@ -5,8 +5,11 @@ using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Mappers;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
+using VivesBankApi.Rest.Clients.storage;
+using VivesBankApi.Rest.Clients.storage.Config;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Repository;
+using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Clients.Service;
 
@@ -16,8 +19,11 @@ public class ClientService : IClientService
     private readonly IClientRepository _clientRepository;
     private readonly IUserRepository _userRepository;
     private readonly IDatabase _cache;
+    private readonly FileStorageConfig _fileStorageConfig;
+    
 
     public ClientService(
+        FileStorageConfig fileStorageConfig,
         ILogger<ClientService> logger,
         IUserRepository userRepository,
         IClientRepository clientRepository,
@@ -27,6 +33,7 @@ public class ClientService : IClientService
         _logger = logger;
         _clientRepository = clientRepository;
         _cache = connection.GetDatabase();
+        _fileStorageConfig = fileStorageConfig;
     } 
     public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber, 
@@ -101,5 +108,156 @@ public class ClientService : IClientService
             return client;
         }
         return null;
+    }
+
+    public async Task<string> SaveFileAsync(IFormFile file)
+    {
+        _logger.LogInformation("Saving file: {file.FileName}");
+        if (file.Length > _fileStorageConfig.MaxFileSize)
+        {
+            throw new FileStorageExceptions("El tamaño del fichero excede del máximo permitido");
+        }
+        var fileExtension = Path.GetExtension(file.FileName);
+        if (!_fileStorageConfig.AllowedFileTypes.Contains(fileExtension))
+        {
+            throw new FileStorageExceptions("Tipo de fichero no permitido");
+        }
+
+        var uploadPath = Path.Combine(_fileStorageConfig.UploadDirectory);
+        if (!Directory.Exists(uploadPath))
+        {
+            Directory.CreateDirectory(uploadPath);
+        }
+
+        var fileName = Guid.NewGuid() + fileExtension;
+        var filePath = Path.Combine(uploadPath, fileName);
+
+        await using (var fileStream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(fileStream);
+        }
+        _logger.LogInformation($"File saved: {fileName}");
+        return fileName;
+    }
+
+    public async Task<string> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
+    {
+        _logger.LogInformation($"Updating DNI photo for client with ID: {clientId}");
+
+        // Validar entrada
+        if (file == null || file.Length == 0)
+        {
+            throw new FileNotFoundException("No file was provided or the file is empty.");
+        }
+
+        // Buscar cliente
+        var client = await _clientRepository.GetByIdAsync(clientId);
+        if (client == null)
+        {
+            throw new ClientExceptions.ClientNotFoundException($"Client with ID {clientId} not found.");
+        }
+
+        // Guardar la nueva imagen
+        var newFileName = await SaveFileAsync(file);
+
+        // Eliminar la foto antigua, si no es la predeterminada
+        if (client.PhotoDni != "default.png")
+        {
+            await DeleteFileAsync(client.PhotoDni);
+        }
+
+        // Actualizar el cliente
+        client.PhotoDni = newFileName;
+        client.UpdatedAt = DateTime.UtcNow;
+
+        // Guardar cambios
+        await _clientRepository.UpdateAsync(client);
+
+        _logger.LogInformation($"DNI photo updated successfully for client with ID: {clientId}");
+        return newFileName;
+    }
+
+    public async Task<string> UpdateClientPhotoAsync(string clientId, IFormFile file)
+    {
+        _logger.LogInformation($"Updating profile photo for client with ID: {clientId}");
+
+        // Validar entrada
+        if (file == null || file.Length == 0)
+        {
+            throw new FileNotFoundException("No file was provided or the file is empty.");
+        }
+
+        // Buscar cliente
+        var client = await _clientRepository.GetByIdAsync(clientId);
+        if (client == null)
+        {
+            throw new ClientExceptions.ClientNotFoundException($"Client with ID {clientId} not found.");
+        }
+
+        // Guardar la nueva imagen
+        var newFileName = await SaveFileAsync(file);
+
+        // Eliminar la foto antigua, si no es la predeterminada
+        if (client.Photo != "defaultId.png")
+        {
+            await DeleteFileAsync(client.Photo);
+        }
+
+        // Actualizar el cliente
+        client.Photo = newFileName;
+        client.UpdatedAt = DateTime.UtcNow;
+
+        // Guardar cambios
+        await _clientRepository.UpdateAsync(client);
+
+        _logger.LogInformation($"Profile photo updated successfully for client with ID: {clientId}");
+        return newFileName;
+    }
+
+    public async Task<bool> DeleteFileAsync(string fileName)
+    {
+        _logger.LogInformation($"Deleting file: {fileName}");
+        try
+        {
+            var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
+            
+            if (!File.Exists(filePath))
+            {
+                _logger.LogWarning($"File not found: {filePath}");
+                return false;
+            }
+            
+            File.Delete(filePath);
+            _logger.LogInformation($"File deleted: {filePath}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting file");
+            throw;
+        }
+    }
+
+    public async Task<FileStream> GetFileAsync(string fileName)
+    {
+        _logger.LogInformation($"Getting file: {fileName}");
+        try
+        {
+            var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
+            
+            if (!File.Exists(filePath))
+            {
+                _logger.LogWarning($"File not found: {filePath}");
+                throw new FileNotFoundException($"File not found: {fileName}");
+            }
+            
+            _logger.LogInformation($"File found: {filePath}");
+            return new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting file");
+            throw;
+        }
     }
 }
