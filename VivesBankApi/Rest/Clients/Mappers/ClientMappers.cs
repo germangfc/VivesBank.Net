@@ -27,7 +27,6 @@ public static class ClientMappers
         return new Client
         {
             FullName = createRequest.FullName,
-            UserId = createRequest.UserId,
             Adress = createRequest.Address
         };
     }

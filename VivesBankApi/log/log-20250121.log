@@ -143,3 +143,7 @@ Object name: 'BancoDbContext'.
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
+[2025-01-21 17:44:18.221] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (13ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";

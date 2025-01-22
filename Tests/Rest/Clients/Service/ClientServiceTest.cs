@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
@@ -25,7 +26,7 @@ public class ClientServiceTests
     private readonly Mock<IClientRepository> _clientRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<ILogger<ClientService>> _loggerMock;
-    private readonly FileStorageConfig _fileStorageConfig;
+    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly ClientService _clientService;
     
     public ClientServiceTests()
@@ -36,13 +37,8 @@ public class ClientServiceTests
         _clientRepositoryMock = new Mock<IClientRepository>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<ClientService>>();
-        _clientService = new ClientService(
-            _fileStorageConfig,
-            _loggerMock.Object,
-            _userRepositoryMock.Object,
-            _clientRepositoryMock.Object,
-            _connection.Object
-        );    }
+        _clientService = new ClientService(_loggerMock.Object, _userRepositoryMock.Object, _clientRepositoryMock.Object, _connection.Object, _httpContextAccessorMock.Object);
+    }
     
     [TearDown]
     public void TearDown()
@@ -182,7 +178,6 @@ public class ClientServiceTests
         {
             FullName = "John Doe",
             Address = "Address 1",
-            UserId = "InvalidUser"
         };
         _userRepositoryMock.Setup(repo => repo.GetByIdAsync(clientRequest.UserId)).ReturnsAsync((User)null);
 
