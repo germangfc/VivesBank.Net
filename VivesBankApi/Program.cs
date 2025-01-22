@@ -35,6 +35,7 @@
     using VivesBankApi.Rest.Users.Service;
     using VivesBankApi.Utils.ApiConfig;
     using VivesBankApi.Utils.IbanGenerator;
+    using VivesBankApi.WebSocket.Service;
 
     Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -268,7 +269,7 @@
     // WEBSOCKETS
         myBuilder.Services.AddSingleton<WebSocketHandler>(); 
     // CONTEXT ACCESOR
-        
+    myBuilder.Services.AddHttpContextAccessor();
         
     // API FRANKFURTER 
         string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
