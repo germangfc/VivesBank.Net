@@ -76,6 +76,9 @@ public class ClientService : IClientService
         var userForFound = await _userRepository.GetByIdAsync(id);
         if (userForFound == null)
             throw new UserNotFoundException(id);
+        var existingClient = await _clientRepository.getByUserIdAsync(id);
+        if (existingClient!= null)
+            throw new ClientExceptions.ClientAlreadyExistsException(id);
         var client = request.FromDtoRequest();
         client.UserId = userForFound.Id;
         await _clientRepository.AddAsync(client);
