@@ -14,6 +14,12 @@ public class MovimientoMeQueriesService(ILogger<MovimientoMeQueriesService> logg
     public async Task<List<Movimiento>> FindMovimientosTransferenciaByClienteGuidAsync(string clienteGuid)
     {
         logger.LogInformation($"Finding movimientos transferencia for client with GUID: {clienteGuid}");
-        return await movimientoRepository.GetMovimientosByClientAsync(clienteGuid);
+        return await movimientoRepository.GetMovimientosTransferenciaByClienteGuidAsync(clienteGuid);
+    }
+
+    public async Task<List<Movimiento>> FindMovimientosPagoConTarjetaByClienteGuidAsync(string clienteGuid)
+    {
+        logger.LogInformation($"Finding movimientos pago con tarjeta for client with GUID: {clienteGuid}");
+        return await movimientoRepository.GetMovimientosPagoConTarjetaByClienteGuidAsync(clienteGuid);
     }
 }
