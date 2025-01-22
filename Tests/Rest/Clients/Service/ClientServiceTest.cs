@@ -219,28 +219,48 @@ public class ClientServiceTests
     [Test]
     public async Task CreateClient_WithAExistingUser_ShouldReturnException()
     {
-        var userId = "existing_user";
-        var request = new ClientRequest
-        {
-            FullName = "John Doe",
-            Address = "Address 1",
-        };
-        var user = new User
-        {
-            Id = userId,
-            Password = "calamarDelNorte123",
-            Role = Role.User
-        };
-        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, userId)
-        }, "mock"));
-        var mockHttpContext = new DefaultHttpContext { User = claims };
-        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(mockHttpContext);
-        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId)).ReturnsAsync(user);
-        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(It.IsAny<String>())).ReturnsAsync((Client?)null);
+        var clientRequest = new ClientRequest();
+        var userId = "user123";
+        
+        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(c => c.FindFirst(ClaimTypes.NameIdentifier)).Returns(new Claim(ClaimTypes.NameIdentifier, userId));
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(claimsPrincipalMock.Object);
+
+       
+        var userForFound = new User { Id = userId };
+        _userRepositoryMock.Setup(u => u.GetByIdAsync(userId)).ReturnsAsync(userForFound);
+
+        
+        var existingClient = new Client { UserId = userId };
+        _clientRepositoryMock.Setup(c => c.getByUserIdAsync(userId)).ReturnsAsync(existingClient);
+        
+        var result = Assert.ThrowsAsync<ClientExceptions.ClientAlreadyExistsException>(
+            () => _clientService.CreateClientAsync(clientRequest)
+        );
+        
+        Assert.That(result.Message, Is.EqualTo($"A client already exists with this user id {userId}"));
         
     }
+
+    [Test]
+    public async Task CreateClient_NonExistingUser()
+    {
+        var clientRequest = new ClientRequest();
+        var userId = "user123";
+        
+        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(c => c.FindFirst(ClaimTypes.NameIdentifier)).Returns(new Claim(ClaimTypes.NameIdentifier, userId));
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(claimsPrincipalMock.Object);
+        
+        _userRepositoryMock.Setup(u => u.GetByIdAsync(userId)).ReturnsAsync((User?)null);
+        
+        var result = Assert.ThrowsAsync<UserNotFoundException>(
+            () => _clientService.CreateClientAsync(clientRequest)
+        );
+
+        Assert.That(result.Message, Is.EqualTo($"The user with id: {userId} was not found"));
+    }
+    
 
     [Test]
     public void UpdateClientAsync_ThrowsClientNotFoundException_WhenClientDoesNotExist()
