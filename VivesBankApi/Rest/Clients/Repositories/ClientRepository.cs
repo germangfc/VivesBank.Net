@@ -1,5 +1,6 @@
 ﻿using ApiFunkosCS.Utils.GenericRepository;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver.Linq;
 using VivesBankApi.Database;
 using VivesBankApi.Rest.Clients.Models;
 
@@ -36,7 +37,15 @@ public class ClientRepository : GenericRepository<BancoDbContext, Client>, IClie
         
         query = query.Skip(pageNumber * pageSize).Take(pageSize);
         
-        List<Client> clients =  await query.ToListAsync();
-        return new PagedList<Client>(clients, await _dbSet.CountAsync(), pageNumber, pageSize);
+        List<Client> clients =  await EntityFrameworkQueryableExtensions.ToListAsync(query);
+        return new PagedList<Client>(clients, await EntityFrameworkQueryableExtensions.CountAsync(_dbSet), pageNumber, pageSize);
+    }
+
+    public async Task<Client?> getByUserIdAsync(string userId)
+    {
+        return await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
+            .FirstOrDefaultAsync(
+                _context.Set<Client>().Where(client => client.UserId == userId && !client.IsDeleted)
+            );
     }
 }

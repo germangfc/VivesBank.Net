@@ -12,6 +12,4 @@ public class ClientRequest
     [MaxLength(200, ErrorMessage = "The address must me at most 100 characters")]
     [MinLength(10, ErrorMessage = "The address must be at least 10 characters")]
     public String Address { get; set; }
-    [Required]
-    public String UserId { get; set; }
 }

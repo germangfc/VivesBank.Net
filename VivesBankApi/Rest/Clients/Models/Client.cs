@@ -12,7 +12,7 @@ public class Client
     
     [Required]
     [JsonProperty("userId")]
-    [Length(9, 9, ErrorMessage = "The userId must be a DNI")]
+    [Length(9, 9, ErrorMessage = "The userId must be a guuid")]
     public String UserId { get; set; }
     
     [Required]

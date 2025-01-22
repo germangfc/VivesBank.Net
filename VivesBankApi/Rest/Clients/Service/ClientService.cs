@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Security.Claims;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
@@ -16,17 +17,20 @@ public class ClientService : IClientService
     private readonly IClientRepository _clientRepository;
     private readonly IUserRepository _userRepository;
     private readonly IDatabase _cache;
-
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    
     public ClientService(
         ILogger<ClientService> logger,
         IUserRepository userRepository,
         IClientRepository clientRepository,
-        IConnectionMultiplexer connection)
+        IConnectionMultiplexer connection,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userRepository = userRepository; 
         _logger = logger;
         _clientRepository = clientRepository;
         _cache = connection.GetDatabase();
+        _httpContextAccessor = httpContextAccessor;
     } 
     public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber, 
@@ -44,6 +48,19 @@ public class ClientService : IClientService
         );
         return mappedClients;
     }
+    
+    public async Task<ClientResponse> GettingMyClientData()
+    {
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userForFound = await _userRepository.GetByIdAsync(id);
+        if (userForFound == null)
+            throw new UserNotFoundException(id);
+        var client = await _clientRepository.getByUserIdAsync(userForFound.Id);
+        if (client == null)
+            throw new ClientExceptions.ClientNotFoundException(userForFound.Id);
+        return client.ToResponse();
+    }
 
     public async Task<ClientResponse> GetClientByIdAsync(string id)
     {
@@ -54,12 +71,15 @@ public class ClientService : IClientService
 
     public async Task<ClientResponse> CreateClientAsync(ClientRequest request)
     {
-        _logger.LogInformation("Creating client");
-        if (await _userRepository.GetByIdAsync(request.UserId) == null)
-            throw new UserNotFoundException(request.UserId);
-        var newClient = request.FromDtoRequest();
-        await _clientRepository.AddAsync(newClient);
-        return newClient.ToResponse();
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userForFound = await _userRepository.GetByIdAsync(id);
+        if (userForFound == null)
+            throw new UserNotFoundException(id);
+        var client = request.FromDtoRequest();
+        client.UserId = userForFound.Id;
+        await _clientRepository.AddAsync(client);
+        return client.ToResponse();
     }
 
     public async Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request)
