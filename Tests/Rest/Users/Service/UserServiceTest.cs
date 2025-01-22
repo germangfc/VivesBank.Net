@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
@@ -37,6 +39,10 @@ public class UserServiceTest
         _cache = new Mock<IDatabase>();
         _logger = new Mock<ILogger<UserService>>();
         _authConfig = new Mock<AuthJwtConfig>();
+        _webSocketHandler = new Mock<WebSocketHandler>(
+            NullLogger<WebSocketHandler>.Instance
+            );
+        _httpContextAccessor = new Mock<IHttpContextAccessor>();
         _connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
         
         userRepositoryMock = new Mock<IUserRepository>();
@@ -225,6 +231,12 @@ public class UserServiceTest
             Role = "Admin"
         };
 
+        var claimsPrincipal = new ClaimsPrincipal(
+            new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, "userId") }, "User")
+        );
+
+        _httpContextAccessor.Setup(accessor => accessor.HttpContext!.User).Returns(claimsPrincipal);
+        
         var newUser = userRequest.toUser();
         
         userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(userRequest.Dni)).ReturnsAsync(_user2);

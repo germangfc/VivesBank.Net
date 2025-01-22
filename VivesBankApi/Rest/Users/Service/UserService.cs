@@ -77,8 +77,7 @@ public class UserService : IUserService
         await _userRepository.AddAsync(newUser);
         var notificacion = new Notification<UserResponse>
         {
-            Type = typeof(Notification<UserResponse>.NotificationType).GetEnumName(Notification<UserResponse>
-                .NotificationType.Create),
+            Type = Notification<UserResponse>.NotificationType.Create.ToString(),
             CreatedAt = DateTime.Now,
             Data = newUser.ToUserResponse()
         };

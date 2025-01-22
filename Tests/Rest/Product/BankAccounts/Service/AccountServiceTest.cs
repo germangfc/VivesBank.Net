@@ -13,7 +13,8 @@ using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Utils.IbanGenerator;
 
-namespace Tests.Rest.BankAccounts.Service;
+namespace Tests.Rest.Product.BankAccounts.Service;
+
 [TestFixture]
 [TestOf(typeof(AccountService))]
 public class AccountServiceTest
