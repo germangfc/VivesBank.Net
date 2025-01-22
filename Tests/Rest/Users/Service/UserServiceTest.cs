@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework.Legacy;
@@ -10,6 +11,7 @@ using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Service;
+using VivesBankApi.WebSocket.Service;
 using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace Tests.Rest.Users.Service;
@@ -25,6 +27,8 @@ public class UserServiceTest
     private UserService userService;
     private User _user1;
     private User _user2;
+    private Mock<WebSocketHandler> _webSocketHandler;
+    private Mock<IHttpContextAccessor> _httpContextAccessor;
 
     [SetUp]
     public void SetUp()
@@ -37,7 +41,7 @@ public class UserServiceTest
         
         userRepositoryMock = new Mock<IUserRepository>();
 
-        userService = new UserService(_logger.Object, userRepositoryMock.Object, _authConfig.Object,_connection.Object);
+        userService = new UserService(_logger.Object, userRepositoryMock.Object, _authConfig.Object,_connection.Object, _webSocketHandler.Object, _httpContextAccessor.Object);
         
         _user1 = new User
         {

@@ -1,5 +1,4 @@
-﻿using ApiFunkosCS.Utils.GenericRepository;
-using VivesBankApi.Database;
+﻿using VivesBankApi.Database;
 using VivesBankApi.Rest.Product.CreditCard.Models;
 
 
@@ -9,5 +8,4 @@ public class CreditCardRepository : GenericRepository<BancoDbContext, CreditCard
         : base(context, logger)
     {
     }
-    
 }
