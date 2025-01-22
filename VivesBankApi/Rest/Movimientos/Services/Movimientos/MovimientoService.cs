@@ -1,14 +1,27 @@
 using Microsoft.Extensions.Options;
-using MongoDB.Bson;
+using VivesBankApi.Rest.Clients.Exceptions;
+using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
+using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
+using VivesBankApi.Rest.Movimientos.Validators;
+using VivesBankApi.Rest.Product.BankAccounts.Services;
+using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Models;
+using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
 
 namespace VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
-public class MovimientoService(IMovimientoRepository movimientoRepository, ILogger<MovimientoService> logger, IOptions<ApiConfig> apiConfig)
+public class MovimientoService(
+    IMovimientoRepository movimientoRepository, 
+    IDomiciliacionRepository domiciliacionRepository,
+    IUserService userService,
+    IClientService clientService,
+    IAccountsService accountsService,
+    ILogger<MovimientoService> logger, 
+    IOptions<ApiConfig> apiConfig)
     : IMovimientoService
 {
     public async Task<List<Movimiento>> FindAllMovimientosAsync()
@@ -58,14 +71,85 @@ public class MovimientoService(IMovimientoRepository movimientoRepository, ILogg
         return deletedMovimiento;
     }
 
-    public Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion)
+    public async Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion)
     {
-        throw new NotImplementedException();
+        logger.LogInformation($"Adding domiciliacion cantidad: {domiciliacion.Cantidad}");
+        
+        // Validar que la cantidad es mayor que cero
+        if (domiciliacion.Cantidad <= 0) throw new DomiciliacionInvalidCuantityException(domiciliacion.Id!, domiciliacion.Cantidad);
+        
+        // validar Iban correcto
+        if (!IbanValidator.ValidateIban(domiciliacion.IbanDestino)) throw new InvalidDestinationIbanException(domiciliacion.IbanDestino);
+        if (!IbanValidator.ValidateIban(domiciliacion.IbanOrigen)) throw new InvalidSourceIbanException(domiciliacion.IbanOrigen);
+
+        // Validar que el cliente existe
+        var client = await clientService.GetClientByIdAsync(user.Id);
+        if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
+        
+        // Validar que la cuenta del cliente existe (origen)
+        var account = await accountsService.GetAccountByIbanAsync(domiciliacion.IbanOrigen);
+        if (account is null) throw new AccountsExceptions.AccountNotFoundByIban(domiciliacion.IbanOrigen);
+
+        // Validar que la cuenta es de ese cliente
+        if (!account.clientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(domiciliacion.IbanOrigen);
+        
+        // Validar si la domiciliación ya existe (mismo cobrador, cuenta destino)
+        var clientDomiciliacion = await domiciliacionRepository.FindByClientGuid(client.Id);
+        if (clientDomiciliacion.Any(d => d.IbanDestino == domiciliacion.IbanDestino)) throw new DuplicatedDomiciliacionException(domiciliacion.IbanDestino);
+    
+        // Guardar la domiciliación
+        domiciliacion.UltimaEjecucion = DateTime.Now;
+        domiciliacion.ClienteGuid = client.Id;
+    
+        // Notificación al cliente
+        
+        // Retornar respuesta
+        return await domiciliacionRepository.AddDomiciliacionAsync(domiciliacion);
+
     }
 
-    public Task<Movimiento> AddIngresoDeNominaAsync(User user, IngresoDeNomina ingresoDeNomina)
+    public async Task<Movimiento> AddIngresoDeNominaAsync(User user, IngresoDeNomina ingresoDeNomina)
     {
-        throw new NotImplementedException();
+        logger.LogInformation("Adding new Ingreso de Nomina");
+        // Validar que el ingreso de nomina es > 0
+        if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidCuantityException(ingresoDeNomina.Cantidad);
+        
+        // Validar Iban correcto
+        if (!IbanValidator.ValidateIban(ingresoDeNomina.IbanDestino)) throw new InvalidDestinationIbanException(ingresoDeNomina.IbanDestino);
+        if (!IbanValidator.ValidateIban(ingresoDeNomina.IbanOrigen)) throw new InvalidSourceIbanException(ingresoDeNomina.IbanOrigen);
+
+        // Validar Cif
+        if (!CifValidator.ValidateCif(ingresoDeNomina.CifEmpresa)) throw new InvalidCifException(ingresoDeNomina.CifEmpresa);
+
+        // Validar que el cliente existe
+        var client = await clientService.GetClientByIdAsync(user.Id);
+        if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
+        
+        // Validar que la cuenta del cliente existe (destino)
+        var clientAccount = await accountsService.GetCompleteAccountByIbanAsync(ingresoDeNomina.IbanDestino);
+        if (clientAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(ingresoDeNomina.IbanDestino);
+
+        // Validar que la cuenta es de ese cliente
+        if (!clientAccount.clientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(ingresoDeNomina.IbanDestino);
+
+        // sumar al cliente la cantidad de la nomina
+        clientAccount.Balance += ingresoDeNomina.Cantidad;
+        //accountsService.UpdateAccountAsync(clientAccount.Id, UpdateAccountRequest);
+        
+        // Crear el movimiento
+        Movimiento newMovimiento = new Movimiento
+        {
+            ClienteGuid = client.Id,
+            IngresoDeNomina = ingresoDeNomina
+        };
+        
+        // Guardar el movimiento
+        var movimientoSaved = await movimientoRepository.AddMovimientoAsync(newMovimiento);
+        
+        // Notificar al cliente
+        
+        // Devolver el movimiento guardado
+        return movimientoSaved;
     }
 
     public Task<Movimiento> AddPagoConTarjetaAsync(User user, PagoConTarjeta pagoConTarjeta)

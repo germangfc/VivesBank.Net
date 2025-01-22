@@ -8,6 +8,7 @@ public interface IAccountsService
     Task<AccountResponse> GetAccountByIdAsync(string id);
     Task<List<AccountResponse>> GetAccountByClientIdAsync(string clientId);
     Task<AccountResponse> GetAccountByIbanAsync(string iban);
+    Task<AccountCompleteResponse> GetCompleteAccountByIbanAsync(string iban);
     Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request);
     Task DeleteAccountAsync(string id);
 }
