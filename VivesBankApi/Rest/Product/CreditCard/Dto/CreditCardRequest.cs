@@ -9,4 +9,6 @@ public class CreditCardRequest
     
     [Required]
     public String AccountIban { get; set; }
+    
+    public string CardNumber { get; set; }
 }

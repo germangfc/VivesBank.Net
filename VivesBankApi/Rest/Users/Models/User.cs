@@ -16,7 +16,7 @@ public class User
     [Required]
     [MinLength(5)]
     [MaxLength(50)]
-    [JsonProperty("dni")]
+    [JsonProperty("Dni")]
     public String Dni { get; set; }
     
     [Required]

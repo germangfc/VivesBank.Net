@@ -35,7 +35,6 @@
     using VivesBankApi.Rest.Users.Service;
     using VivesBankApi.Utils.ApiConfig;
     using VivesBankApi.Utils.IbanGenerator;
-    using VivesBankApi.WebSocket.Service;
 
     Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -62,6 +61,8 @@
     }
     app.ApplyMigrations(); // Aplica las migraciones de la base de datos si es necesario.   
     //StorageInit(); // Inicializa el almacenamiento de archivos
+    var scriptPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Scripts", "data.sql");
+    DatabseInitializer.InitializeDatabase(app.Services, scriptPath); // Ejecuta el script SQL
 
     app.MapGraphQL(); // Habilita GraphQL para permitir la ejecución de consultas y mutaciones GraphQL.
 
@@ -74,8 +75,6 @@
     app.UseAuthorization();   // Habilita la autorización para asegurar el acceso a recursos protegidos
 
     app.MapControllers(); // Mapea las rutas de los controladores a los endpoints de la aplicación.
-
-    app.UseWebSockets(); // Habilita el uso de WebSockets para comunicación en tiempo real.
 
     app.UseMiddleware<GlobalExceptionMiddleware>(); // Agrega el middleware de manejo de excepciones globales para loguear y manejar errores.
 
@@ -110,6 +109,7 @@
                     command.CommandText = $"DROP TABLE IF EXISTS \"{table}\" CASCADE;";
                     command.ExecuteNonQuery();
                 }
+               
             }
             finally
             {
@@ -121,7 +121,7 @@
             }
         }
     }
-
+    
 
     string InitLocalEnvironment()
     {
@@ -183,19 +183,6 @@
                     ValidAudience = configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                 };
-
-                // Ignorar validación de tokens en ciertos endpoints
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        if (context.HttpContext.Request.Path.StartsWithSegments("/api/register"))
-                        {
-                            context.Token = null; // No validar tokens en el registro
-                        }
-                        return Task.CompletedTask;
-                    }
-                };
             });
         
         myBuilder.Services.AddAuthorization(options =>
@@ -250,7 +237,7 @@
 
     /**************** INYECCION DE DEPENDENCIAS **************/
     // REPOSITORIO Y SERVICIOS
-    myBuilder.Services.AddHttpContextAccessor();
+
     // MOVIMIENTO
         myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>(); 
         myBuilder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();

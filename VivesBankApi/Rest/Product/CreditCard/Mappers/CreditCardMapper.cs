@@ -19,7 +19,11 @@ public static class CreditCardMapper
     {
         return new CreditCard
         {
-            Pin = request.Pin
+            Pin = request.Pin,
+            CardNumber = null,
+            ExpirationDate = default, 
+            Cvc = null,
+            AccountId = null
         };
     }
     
