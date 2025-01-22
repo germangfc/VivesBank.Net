@@ -9,7 +9,7 @@ using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
 namespace VivesBankApi.Rest.Movimientos.Resolver;
 
-public class MovimientosQuery(IMovimientoService movimientoService, IDomiciliacionService domiciliacionService, IHttpContextAccessor httpContextAccessor)
+public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMeQueriesService movimientoMeQueriesService, IDomiciliacionService domiciliacionService, IHttpContextAccessor httpContextAccessor)
 {
 
         // [UsePaging]
@@ -109,6 +109,29 @@ public class MovimientosQuery(IMovimientoService movimientoService, IDomiciliaci
                 FechaInicio = domiciliacion.FechaInicio,
                 Periodicidad = domiciliacion.Periodicidad,
                 UltimaEjecucion = domiciliacion.UltimaEjecucion
+            }).AsQueryable();
+        }
+
+        [Authorize]
+        public async Task<IQueryable<Movimiento>> GetMovimientosDomiciliacionByCliente()
+        {
+            var user = httpContextAccessor.HttpContext?.User;
+            if (user == null ||!user.Identity.IsAuthenticated)
+            {
+                throw new GraphQLException("Debe estar autenticado para obtener los movimientos de domiciliación.");
+            }
+            var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var movimientos = await movimientoMeQueriesService.FindMovimientosDomiciliacionByClienteGuidAsync(guid);
+            return movimientos.Select(movimiento => new Movimiento
+            {
+                Guid = movimiento.Guid,
+                ClienteGuid = movimiento.ClienteGuid,
+                Domiciliacion = movimiento.Domiciliacion,
+                IngresoDeNomina = movimiento.IngresoDeNomina,
+                PagoConTarjeta = movimiento.PagoConTarjeta,
+                Transferencia = movimiento.Transferencia,
+                CreatedAt = movimiento.CreatedAt,
+                UpdatedAt = movimiento.UpdatedAt
             }).AsQueryable();
         }
 }
