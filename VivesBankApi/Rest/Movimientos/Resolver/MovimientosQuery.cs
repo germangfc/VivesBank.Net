@@ -1,13 +1,15 @@
-﻿using HotChocolate.Authorization;
+﻿using System.Security.Claims;
+using HotChocolate.Authorization;
 using MongoDB.Bson;
 using VivesBankApi.Rest.Movimientos.Errors;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
+using VivesBankApi.Rest.Movimientos.Services.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
 namespace VivesBankApi.Rest.Movimientos.Resolver;
 
-public class MovimientosQuery(IMovimientoService movimientoService)
+public class MovimientosQuery(IMovimientoService movimientoService, IDomiciliacionService domiciliacionService, IHttpContextAccessor httpContextAccessor)
 {
 
         // [UsePaging]
@@ -69,7 +71,7 @@ public class MovimientosQuery(IMovimientoService movimientoService)
             ).AsQueryable();
         }
         
-        //[Authorize(Policy = "Admin")]
+        [Authorize]
         public async Task<Movimiento> GetMovimientoByGuid(string guid)
         {
             var movimiento =  await movimientoService.FindMovimientoByGuidAsync(guid);
@@ -84,5 +86,29 @@ public class MovimientosQuery(IMovimientoService movimientoService)
                 CreatedAt = movimiento.CreatedAt,
                 UpdatedAt = movimiento.UpdatedAt
             };
+        }
+        
+        [Authorize]
+        public async Task<IQueryable<Domiciliacion>> GetDomciliacionesActivasByCliente()
+        {
+            var user = httpContextAccessor.HttpContext?.User;
+            if (user == null ||!user.Identity.IsAuthenticated)
+            {
+                throw new GraphQLException("Debe estar autenticado para obtener las domiciliaciones activas.");
+            }
+            var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var domiciliaciones = await domiciliacionService.FindDomiciliacionesActivasByClienteGiudAsync(guid);
+            return domiciliaciones.Select(domiciliacion => new Domiciliacion
+            {
+                Guid = domiciliacion.Guid,
+                ClienteGuid = domiciliacion.ClienteGuid,
+                IbanOrigen = domiciliacion.IbanOrigen,
+                IbanDestino = domiciliacion.IbanDestino,
+                Cantidad = domiciliacion.Cantidad,
+                NombreAcreedor = domiciliacion.NombreAcreedor,
+                FechaInicio = domiciliacion.FechaInicio,
+                Periodicidad = domiciliacion.Periodicidad,
+                UltimaEjecucion = domiciliacion.UltimaEjecucion
+            }).AsQueryable();
         }
 }
