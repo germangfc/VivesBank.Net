@@ -46,7 +46,15 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     logger.LogWarning(exception, exception.Message);
                     break;
                         
-                /********************************************************************************/
+                /**************** MOVIMIENTOS EXCEPTIONS *****************************************/
+                
+                case DomiciliacionCantidadInvalidaException:
+                case IbanOrigenInvalidoException:
+                case IbanDestinoInvalidoException:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;  
                 
                 /**************** USER EXCEPTIONS *****************************************/
                 

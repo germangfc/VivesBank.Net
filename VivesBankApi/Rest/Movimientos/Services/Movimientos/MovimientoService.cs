@@ -2,13 +2,15 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
+using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
+using VivesBankApi.Rest.Movimientos.Validators;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Utils.ApiConfig;
 
 namespace VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
-public class MovimientoService(IMovimientoRepository movimientoRepository, ILogger<MovimientoService> logger, IOptions<ApiConfig> apiConfig)
+public class MovimientoService(IMovimientoRepository movimientoRepository, IDomiciliacionRepository domiciliacionRepository, ILogger<MovimientoService> logger, IOptions<ApiConfig> apiConfig)
     : IMovimientoService
 {
     public async Task<List<Movimiento>> FindAllMovimientosAsync()
@@ -58,9 +60,27 @@ public class MovimientoService(IMovimientoRepository movimientoRepository, ILogg
         return deletedMovimiento;
     }
 
-    public Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion)
+    public async Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion)
     {
-        throw new NotImplementedException();
+        logger.LogInformation($"Adding domiciliacion cantidad: {domiciliacion.Cantidad}");
+        // Validar que la cantidad es mayor que cero
+        var cantidad = domiciliacion.Cantidad;
+        if (cantidad <= 0) throw new DomiciliacionCantidadInvalidaException(domiciliacion.Id, domiciliacion.Cantidad);
+        
+        // validar Iban correcto
+        if (!IbanValidator.ValidateIban(domiciliacion.IbanDestino)) throw new IbanDestinoInvalidoException(domiciliacion.IbanDestino);
+        if (!IbanValidator.ValidateIban(domiciliacion.IbanOrigen)) throw new IbanOrigenInvalidoException(domiciliacion.IbanOrigen);
+
+        // Validar que el cliente existe
+        
+        // Validar que la cuenta existe
+        // Validar si la domiciliación ya existe
+        // Guardar la domiciliación
+        // Notificación al cliente
+        // Retornar respuesta
+
+        return await domiciliacionRepository.AddDomiciliacionAsync(domiciliacion);
+
     }
 
     public Task<Movimiento> AddIngresoDeNominaAsync(User user, IngresoDeNomina ingresoDeNomina)
