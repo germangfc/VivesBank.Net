@@ -59,6 +59,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 case NegativeAmountException:
                 case AccountNotFoundByClientId:
                 case PagoTarjetaAccountInsufficientBalance:
+                case DomiciliacionAccountInsufficientBalance:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
