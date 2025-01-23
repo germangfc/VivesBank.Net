@@ -16,6 +16,7 @@
     using VivesBankApi.Middleware;
     using VivesBankApi.Rest.Clients.Repositories;
     using VivesBankApi.Rest.Clients.Service;
+    using VivesBankApi.Rest.Clients.storage.Config;
     using VivesBankApi.Rest.Movimientos.Config;
     using VivesBankApi.Rest.Movimientos.Repositories;
     using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
@@ -262,7 +263,7 @@
     // CLIENTE
         myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
         myBuilder.Services.AddScoped<IClientService, ClientService>();
-        myBuilder.Services.AddScoped<FileStorageExceptions>();
+        myBuilder.Services.AddScoped<FileStorageConfig>();
         
     // USUARIO
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();

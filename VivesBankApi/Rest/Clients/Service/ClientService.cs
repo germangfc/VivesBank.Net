@@ -21,20 +21,23 @@ public class ClientService : IClientService
     private readonly IUserRepository _userRepository;
     private readonly IDatabase _cache;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly FileStorageConfig _fileStorageConfig;
     
     public ClientService(
-        FileStorageConfig fileStorageConfig,
         ILogger<ClientService> logger,
         IUserRepository userRepository,
         IClientRepository clientRepository,
         IConnectionMultiplexer connection,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        FileStorageConfig fileStorageConfig
+        )
     {
         _userRepository = userRepository; 
         _logger = logger;
         _clientRepository = clientRepository;
         _cache = connection.GetDatabase();
         _httpContextAccessor = httpContextAccessor;
+        _fileStorageConfig = fileStorageConfig;
     } 
     public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber, 
@@ -120,7 +123,6 @@ public class ClientService : IClientService
             return JsonConvert.DeserializeObject<Client>(cachedClient);
         }
 
-        // If not in cache, get from DB and cache it
         Client? client = await _clientRepository.GetByIdAsync(id);
         if (client != null)
         {
@@ -130,13 +132,15 @@ public class ClientService : IClientService
         return null;
     }
 
-    public async Task<string> SaveFileAsync(IFormFile file)
+    public async Task<string> SaveFileAsync(IFormFile file, string baseFileName)
     {
-        _logger.LogInformation("Saving file: {file.FileName}");
+        _logger.LogInformation($"Saving file for user with base name: {baseFileName}");
+
         if (file.Length > _fileStorageConfig.MaxFileSize)
         {
             throw new FileStorageExceptions("El tamaño del fichero excede del máximo permitido");
         }
+
         var fileExtension = Path.GetExtension(file.FileName);
         if (!_fileStorageConfig.AllowedFileTypes.Contains(fileExtension))
         {
@@ -149,91 +153,98 @@ public class ClientService : IClientService
             Directory.CreateDirectory(uploadPath);
         }
 
-        var fileName = Guid.NewGuid() + fileExtension;
-        var filePath = Path.Combine(uploadPath, fileName);
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        var fullFileName = $"{baseFileName}-{timestamp}{fileExtension}";
+        var filePath = Path.Combine(uploadPath, fullFileName);
 
         await using (var fileStream = new FileStream(filePath, FileMode.Create))
         {
             await file.CopyToAsync(fileStream);
         }
-        _logger.LogInformation($"File saved: {fileName}");
-        return fileName;
+
+        _logger.LogInformation($"File saved: {fullFileName}");
+        return fullFileName;
     }
+
+
 
     public async Task<string> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
     {
         _logger.LogInformation($"Updating DNI photo for client with ID: {clientId}");
 
-        // Validar entrada
         if (file == null || file.Length == 0)
         {
             throw new FileNotFoundException("No file was provided or the file is empty.");
         }
 
-        // Buscar cliente
         var client = await _clientRepository.GetByIdAsync(clientId);
         if (client == null)
         {
             throw new ClientExceptions.ClientNotFoundException($"Client with ID {clientId} not found.");
         }
 
-        // Guardar la nueva imagen
-        var newFileName = await SaveFileAsync(file);
+        var user = await _userRepository.GetByIdAsync(client.UserId);
+        if (user == null)
+        {
+            throw new UserNotFoundException(client.UserId);
+        }
 
-        // Eliminar la foto antigua, si no es la predeterminada
+        var newFileName = await SaveFileAsync(file, $"DNI-{user.Dni}");
+
         if (client.PhotoDni != "default.png")
         {
             await DeleteFileAsync(client.PhotoDni);
         }
 
-        // Actualizar el cliente
         client.PhotoDni = newFileName;
         client.UpdatedAt = DateTime.UtcNow;
 
-        // Guardar cambios
         await _clientRepository.UpdateAsync(client);
 
         _logger.LogInformation($"DNI photo updated successfully for client with ID: {clientId}");
         return newFileName;
     }
 
+    
     public async Task<string> UpdateClientPhotoAsync(string clientId, IFormFile file)
     {
         _logger.LogInformation($"Updating profile photo for client with ID: {clientId}");
 
-        // Validar entrada
         if (file == null || file.Length == 0)
         {
             throw new FileNotFoundException("No file was provided or the file is empty.");
         }
 
-        // Buscar cliente
         var client = await _clientRepository.GetByIdAsync(clientId);
         if (client == null)
         {
             throw new ClientExceptions.ClientNotFoundException($"Client with ID {clientId} not found.");
         }
 
-        // Guardar la nueva imagen
-        var newFileName = await SaveFileAsync(file);
+        var user = await _userRepository.GetByIdAsync(client.UserId);
+        if (user == null)
+        {
+            throw new UserNotFoundException(client.UserId);
+        }
 
-        // Eliminar la foto antigua, si no es la predeterminada
+        var newFileName = await SaveFileAsync(file, $"PROFILE-{user.Dni}");
+
         if (client.Photo != "defaultId.png")
         {
             await DeleteFileAsync(client.Photo);
         }
 
-        // Actualizar el cliente
         client.Photo = newFileName;
         client.UpdatedAt = DateTime.UtcNow;
 
-        // Guardar cambios
         await _clientRepository.UpdateAsync(client);
 
         _logger.LogInformation($"Profile photo updated successfully for client with ID: {clientId}");
         return newFileName;
     }
 
+
+    
     public async Task<bool> DeleteFileAsync(string fileName)
     {
         _logger.LogInformation($"Deleting file: {fileName}");
