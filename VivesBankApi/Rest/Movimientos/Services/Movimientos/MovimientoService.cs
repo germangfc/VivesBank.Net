@@ -7,6 +7,8 @@ using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Movimientos.Validators;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
+using VivesBankApi.Rest.Product.CreditCard.Exceptions;
+using VivesBankApi.Rest.Product.CreditCard.Service;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
@@ -20,6 +22,7 @@ public class MovimientoService(
     IUserService userService,
     IClientService clientService,
     IAccountsService accountsService,
+    ICreditCardService creditCardService,
     ILogger<MovimientoService> logger, 
     IOptions<ApiConfig> apiConfig)
     : IMovimientoService
@@ -152,9 +155,53 @@ public class MovimientoService(
         return movimientoSaved;
     }
 
-    public Task<Movimiento> AddPagoConTarjetaAsync(User user, PagoConTarjeta pagoConTarjeta)
+    public async Task<Movimiento> AddPagoConTarjetaAsync(User user, PagoConTarjeta pagoConTarjeta)
     {
-        throw new NotImplementedException();
+        
+        // Validar que la cantidad es mayor que cero
+        if (pagoConTarjeta.Cantidad <= 0) throw new PagoTarjetaInvalidCuantityException(pagoConTarjeta.Cantidad);
+
+        // Validar número tarjeta
+        if (!NumTarjetaValidator.ValidateTarjeta(pagoConTarjeta.NumeroTarjeta)) throw new InvalidCardNumberException(pagoConTarjeta.NumeroTarjeta);
+
+        // Validar que el cliente existe
+        var client = await clientService.GetClientByIdAsync(user.Id);
+        if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
+
+        // Validar que la tarjeta existe
+        //var clientCard = creditCardService.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta);
+        
+        // Validar que el cliente tiene esa tarjeta asociada a alguna de sus cuentas
+        var clientAccounts = await accountsService.GetCompleteAccountByClientIdAsync(client.Id);
+        if (clientAccounts is null) throw new AccountNotFoundByClientId(client.Id); // cliente no tiene cuentas asociadas
+
+        // buscamos la cuenta a la que está asociada la tarjeta
+        var cardAccount = clientAccounts.FirstOrDefault(a => a.TarjetaId == pagoConTarjeta.NumeroTarjeta);
+        if (cardAccount is null) throw new CreditCardException.CreditCardNotFoundException(pagoConTarjeta.NumeroTarjeta); // tarjeta no está asociada a ninguna cuenta
+
+        // Validar saldo suficiente en la cuenta
+        var newBalance = cardAccount.Balance - pagoConTarjeta.Cantidad; 
+        if ( newBalance < 0 ) throw new PagoTarjetaAccountInsufficientBalance(pagoConTarjeta.NumeroTarjeta);
+
+        // restar al cliente
+        cardAccount.Balance = newBalance;
+//        await accountsService.UpdateAccountAsync(cardAccount.Id, new UpdateAccountRequest { Balance = cardAccount.Balance });
+
+        // Crear el movimiento
+        Movimiento newMovimiento = new Movimiento
+        {
+            ClienteGuid = client.Id,
+            PagoConTarjeta = pagoConTarjeta
+        };
+
+        // Guardar el movimiento
+        var movimientoSaved = await movimientoRepository.AddMovimientoAsync(newMovimiento);
+
+        // Notificar al cliente
+
+        // Retornar respuesta
+        return movimientoSaved;
+
     }
 
     public Task<Movimiento> AddTransferenciaAsync(User user, Transferencia transferencia)

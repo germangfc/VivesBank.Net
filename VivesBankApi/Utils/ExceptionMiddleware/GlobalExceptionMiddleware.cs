@@ -50,11 +50,15 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 
                 case DomiciliacionInvalidCuantityException:
                 case IngresoNominaInvalidCuantityException:
+                case PagoTarjetaInvalidCuantityException:
                 case InvalidSourceIbanException:
+                case InvalidCardNumberException:
                 case InvalidDestinationIbanException:
                 case InvalidCifException:
                 case DuplicatedDomiciliacionException:
                 case NegativeAmountException:
+                case AccountNotFoundByClientId:
+                case PagoTarjetaAccountInsufficientBalance:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
