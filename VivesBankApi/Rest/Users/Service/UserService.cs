@@ -25,10 +25,10 @@ public class UserService : IUserService
     private readonly IDatabase _cache;
     private readonly AuthJwtConfig _authConfig;
     private readonly ILogger _logger;
-    private readonly WebSocketHandler _webSocketHandler;
+    private readonly IWebsocketHandler _webSocketHandler;
     private readonly IHttpContextAccessor _httpContextAccessor;
     
-    public UserService(ILogger<UserService> logger, IUserRepository userRepository, AuthJwtConfig authConfig, IConnectionMultiplexer connectionMultiplexer, WebSocketHandler webSocketHandler, IHttpContextAccessor httpContextAccessor)
+    public UserService(ILogger<UserService> logger, IUserRepository userRepository, AuthJwtConfig authConfig, IConnectionMultiplexer connectionMultiplexer, IWebsocketHandler webSocketHandler, IHttpContextAccessor httpContextAccessor)
     {
         _logger = logger;
         _authConfig = authConfig;
@@ -66,7 +66,7 @@ public class UserService : IUserService
     {
         if (!UserValidator.ValidateDni(userRequest.Dni))
         {
-            throw new  InvalidUsernameException(userRequest.Dni);
+            throw new  InvalidDniException(userRequest.Dni);
         }
         User newUser = userRequest.toUser();
         User? userWithTheSameUsername = await GetByUsernameAsync(userRequest.Dni);
@@ -108,7 +108,7 @@ public class UserService : IUserService
     {
         if (user.Dni != null && !UserValidator.ValidateDni(user.Dni))
         {
-             throw new InvalidUsernameException(user.Dni);
+             throw new InvalidDniException(user.Dni);
         }
 
         User? userToUpdate = await GetByIdAsync(id) ?? throw new UserNotFoundException(id);

@@ -1,6 +1,12 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
+using ICSharpCode.SharpZipLib.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Moq;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
@@ -11,6 +17,7 @@ using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Service;
+using VivesBankApi.WebSocket.Model;
 using VivesBankApi.WebSocket.Service;
 using Role = VivesBankApi.Rest.Users.Models.Role;
 
@@ -27,20 +34,44 @@ public class UserServiceTest
     private UserService userService;
     private User _user1;
     private User _user2;
-    private Mock<WebSocketHandler> _webSocketHandler;
+    private Mock<IWebsocketHandler> _webSocketHandler;
     private Mock<IHttpContextAccessor> _httpContextAccessor;
+    
+    
 
     [SetUp]
     public void SetUp()
     {
         _connection = new Mock<IConnectionMultiplexer>();
         _cache = new Mock<IDatabase>();
-        _connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
-        
-        userRepositoryMock = new Mock<IUserRepository>();
+        _connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_cache.Object);
+    
+        // Configuración real de AuthJwtConfig
+        var authConfig = new AuthJwtConfig
+        {
+            Key = "UnaClaveDe256BitsQueDebeSerSeguraParaLaFirmaJWT", // Usa una clave de prueba
+            Issuer = "TestIssuer",
+            Audience = "TestAudience",
+            ExpiresInMinutes = "60"
+        };
 
-        userService = new UserService(_logger.Object, userRepositoryMock.Object, _authConfig.Object,_connection.Object, _webSocketHandler.Object, _httpContextAccessor.Object);
-        
+        // Mock de otras dependencias
+        _logger = new Mock<ILogger<UserService>>();
+        userRepositoryMock = new Mock<IUserRepository>();
+        _webSocketHandler = new Mock<IWebsocketHandler>();
+        _httpContextAccessor = new Mock<IHttpContextAccessor>();
+
+        // Creación del servicio con las dependencias
+        userService = new UserService(
+            _logger.Object,
+            userRepositoryMock.Object,
+            authConfig, // Pasar la instancia real aquí
+            _connection.Object,
+            _webSocketHandler.Object,
+            _httpContextAccessor.Object
+        );
+
+        // Datos de prueba
         _user1 = new User
         {
             Id = "1",
@@ -63,6 +94,7 @@ public class UserServiceTest
             IsDeleted = false
         };
     }
+
 
     [Test]
     public async Task GetAllUsersAsync()
@@ -213,42 +245,64 @@ public class UserServiceTest
     }
     
     [Test]
-    public async Task AddUserAsync()
+    public async Task AddUserAsync_ShouldCreateUserAndNotify_WhenValidRequest()
     {
         // Arrange
         var userRequest = new CreateUserRequest
         {
             Dni = "43080644B",
             Password = "Password123",
-            Role = "Admin"
+            Role = "User"
         };
+        var createdUser = userRequest.toUser(); // Simula el mapeo de forma correcta
+        var mockUserResponse = createdUser.ToUserResponse();
 
-        var newUser = userRequest.toUser();
-        
-        userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(userRequest.Dni)).ReturnsAsync(_user2);
         userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(userRequest.Dni)).ReturnsAsync((User)null);
         userRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
+
+        var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "12345") };
+        var identity = new ClaimsIdentity(claims);
+        var principal = new ClaimsPrincipal(identity);
+        var mockHttpContext = new DefaultHttpContext { User = principal };
+
+        _httpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext);
+
+        _webSocketHandler.Setup(ws => ws.NotifyUserAsync(It.IsAny<string>(), It.IsAny<Notification<UserResponse>>()))
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await userService.AddUserAsync(userRequest);
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            ClassicAssert.IsNotNull(result);
-            ClassicAssert.AreEqual(newUser.Dni, result.Dni);
-            ClassicAssert.AreEqual("Admin", result.Role);
-        });
-
-        // Verify
-        userRepositoryMock.Verify(repo => repo.GetByUsernameAsync(userRequest.Dni), Times.Once);
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.AreEqual(createdUser.Dni, result.Dni);
         userRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Once);
+        _webSocketHandler.Verify(ws => ws.NotifyUserAsync("12345", It.IsAny<Notification<UserResponse>>()), Times.Once);
     }
+
+    [Test]
+    public void AddUserAsync_ShouldThrowInvalidNameException()
+    {
+        var userRequest = new CreateUserRequest
+        {
+            Dni = "",
+            Password = "Password123",
+            Role = Role.User.ToString()
+        };
+        
+        var ex = Assert.ThrowsAsync<InvalidDniException>(async () =>
+            await userService.AddUserAsync(userRequest)
+        );
+        Assert.That(ex.Message, Is.EqualTo($"The dni {userRequest.Dni} is not a valid DNI"));
+        
+        userRepositoryMock.Verify(repo => repo.GetByUsernameAsync(userRequest.Dni), Times.Never);
+        userRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Never);
+    }
+
     
     [Test]
-    public void AddUserAsync_AlreadyExists()
+    public void AddUserAsync_ShouldThrowAlreadyExistsException()
     {
-        // Arrange
         var userRequest = new CreateUserRequest
         {
             Dni = "43080644B",
@@ -265,14 +319,12 @@ public class UserServiceTest
         };
 
         userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(userRequest.Dni)).ReturnsAsync(existingUser);
-
-        // Act & Assert
+        
         var ex = Assert.ThrowsAsync<UserAlreadyExistsException>(async () =>
             await userService.AddUserAsync(userRequest)
         );
         Assert.That(ex.Message, Is.EqualTo($"A user with the username '{userRequest.Dni}' already exists."));
-
-        // Verify
+        
         userRepositoryMock.Verify(repo => repo.GetByUsernameAsync(userRequest.Dni), Times.Once);
         userRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Never);
     }
@@ -379,7 +431,7 @@ public class UserServiceTest
         };
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<InvalidUsernameException>(async () =>
+        var ex = Assert.ThrowsAsync<InvalidDniException>(async () =>
             await userService.UpdateUserAsync(userId, userUpdateRequest)
         );
 
@@ -563,5 +615,199 @@ public class UserServiceTest
     
         // Assert
         userRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<string>()), Times.Once);
+    }
+
+    [Test]
+    public async Task GettingMyUserDataAsync_ShouldReturnResponse()
+    {
+        var userId = "12345";
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        };
+        var identity = new ClaimsIdentity(claims);
+        var principal = new ClaimsPrincipal(identity);
+
+        var mockHttpContext = new DefaultHttpContext
+        {
+            User = principal
+        };
+
+        _httpContextAccessor
+            .Setup(x => x.HttpContext)
+            .Returns(mockHttpContext);
+
+        var user = new User
+        {
+            Id = userId,
+            Dni = "43080644B",
+            Password = "HashedPassword123",
+            Role = Role.User
+        };
+
+        userRepositoryMock
+            .Setup(repo => repo.GetByIdAsync(userId))
+            .ReturnsAsync(user);
+        
+        var result = await userService.GettingMyUserData();
+        
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.AreEqual(user.Id, result.Id);
+        ClassicAssert.AreEqual(user.Dni, result.Dni);
+    }
+    
+    [Test]
+    public void GettingMyUserData_ShouldThrowExceptionHttpContextIsNull()
+    {
+        _httpContextAccessor
+            .Setup(x => x.HttpContext)
+            .Returns((HttpContext)null);
+        
+        Assert.ThrowsAsync<NullReferenceException>(async () => 
+            await userService.GettingMyUserData());
+    }
+    
+    [Test]
+    public void GettingMyUserData_ShouldThrowException_IdentifierIsMissing()
+    {
+        var claims = new List<Claim>();
+        var identity = new ClaimsIdentity(claims);
+        var principal = new ClaimsPrincipal(identity);
+
+        var mockHttpContext = new DefaultHttpContext
+        {
+            User = principal
+        };
+
+        _httpContextAccessor
+            .Setup(x => x.HttpContext)
+            .Returns(mockHttpContext);
+        
+        Assert.ThrowsAsync<NullReferenceException>(async () =>
+            await userService.GettingMyUserData());
+    }
+
+    [Test]
+    public async Task LoginUser_ShouldReturnUser()
+    {
+        var request = new LoginRequest
+        {
+            Dni = "43080644B",
+            Password = "Password123"
+        };
+
+        var user = new User
+        {
+            Id = "1",
+            Dni = "43080644B",
+            Password = BCrypt.Net.BCrypt.HashPassword("Password123")
+        };
+
+        userRepositoryMock
+            .Setup(repo => repo.GetByUsernameAsync(request.Dni))
+            .ReturnsAsync(user);
+        
+        var result = await userService.LoginUser(request);
+        
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.AreEqual(user.Id, result.Id);
+        ClassicAssert.AreEqual(user.Dni, result.Dni);
+    }
+    
+    [Test]
+    public async Task LoginUser_ShouldReturnNull_WhenUserNotFound()
+    {
+        var request = new LoginRequest
+        {
+            Dni = "43080644B",
+            Password = "Password123"
+        };
+
+        userRepositoryMock
+            .Setup(repo => repo.GetByUsernameAsync(request.Dni))
+            .ReturnsAsync((User?)null);
+        
+        var result = await userService.LoginUser(request);
+        
+        ClassicAssert.IsNull(result);
+    }
+
+
+    [Test]
+    public async Task RegisterUser_Should_ReturnUser()
+    {
+        // Arrange
+        var loginRequest = new LoginRequest
+        {
+            Dni = "70919049K",
+            Password = "CalamarSureño123",
+        };
+        userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(It.IsAny<string>())).ReturnsAsync((User)null);
+        userRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<User>())).Returns(Task.FromResult(new User { Id = "1" }));
+
+        // Act
+        var result = await userService.RegisterUser(loginRequest);
+
+        // Assert
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.AreEqual("70919049K", result.Dni);
+        ClassicAssert.AreEqual("User", result.Role.ToString());
+    }
+
+    [Test]
+    public async Task RegisterUser_ShouldReturn_ExistingUser()
+    {
+        var loginRequest = new LoginRequest
+        {
+            Dni = "43080644B", // DNI ya existente
+            Password = "Password123"
+        };
+
+        var existingUser = new User
+        {
+            Id = "1",
+            Dni = "43080644B",
+            Password = "HashedPassword123",
+            Role = Role.Admin
+        };
+
+        // Configurar el mock para devolver un usuario existente
+        userRepositoryMock
+            .Setup(repo => repo.GetByUsernameAsync(loginRequest.Dni))
+            .ReturnsAsync(existingUser);
+        // Act
+        var result = Assert.ThrowsAsync<UserAlreadyExistsException>(async () =>
+            await userService.RegisterUser(loginRequest)
+        );
+
+        Assert.That(result.Message, Is.EqualTo($"A user with the username '{loginRequest.Dni}' already exists."));
+        
+    }
+
+    [Test]
+    public async Task GenerateJwtToken()
+    {
+        var token = userService.GenerateJwtToken(_user1);
+        
+        ClassicAssert.IsNotNull(token);
+        ClassicAssert.IsInstanceOf<string>(token); 
+        
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = "TestIssuer",
+            ValidAudience = "TestAudience",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("UnaClaveDe256BitsQueDebeSerSeguraParaLaFirmaJWT"))
+        };
+
+        SecurityToken validatedToken;
+        var principal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
+
+        ClassicAssert.IsNotNull(validatedToken);
+        ClassicAssert.AreEqual("1", principal.FindFirst("UserId")?.Value);
     }
 }

@@ -51,7 +51,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 
                 /**************** USER EXCEPTIONS *****************************************/
                 
-                case InvalidUsernameException:
+                case InvalidDniException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);

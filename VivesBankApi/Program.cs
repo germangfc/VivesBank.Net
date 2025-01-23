@@ -266,7 +266,7 @@
     // USUARIO
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
         myBuilder.Services.AddScoped<IUserService, UserService>();
-        myBuilder.Services.AddScoped<WebSocketHandler>();
+        myBuilder.Services.AddScoped<IWebsocketHandler, WebSocketHandler>();
         myBuilder.Services.AddHttpContextAccessor();
     // API FRANKFURTER 
         string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
