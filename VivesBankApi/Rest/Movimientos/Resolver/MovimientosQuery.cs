@@ -227,4 +227,28 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
                 UpdatedAt = movimiento.UpdatedAt
             }).AsQueryable();
         }
+        
+        [Authorize]
+        public async Task<IQueryable<Movimiento>> GetMovimientosTransferenciaRevocadaByClienteGuidAsync()
+        {
+            var user = httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity.IsAuthenticated)
+            {
+                throw new GraphQLException("Debe estar autenticado para obtener los movimientos de transferencia revocada.");
+            }
+
+            var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var movimientos = await movimientoMeQueriesService.FindMovimientosTransferenciaRevocadaClienteGuidAsync(guid);
+            return movimientos.Select(movimiento => new Movimiento
+            {
+                Guid = movimiento.Guid,
+                ClienteGuid = movimiento.ClienteGuid,
+                Domiciliacion = movimiento.Domiciliacion,
+                IngresoDeNomina = movimiento.IngresoDeNomina,
+                PagoConTarjeta = movimiento.PagoConTarjeta,
+                Transferencia = movimiento.Transferencia,
+                CreatedAt = movimiento.CreatedAt,
+                UpdatedAt = movimiento.UpdatedAt
+            }).AsQueryable();
+        }
 }
