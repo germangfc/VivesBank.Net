@@ -94,7 +94,7 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             var user = httpContextAccessor.HttpContext?.User;
             if (user == null ||!user.Identity.IsAuthenticated)
             {
-                throw new GraphQLException("Debe estar autenticado para obtener las domiciliaciones activas.");
+                throw new GraphQLException(new UserNotAuthenticatedError());
             }
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var domiciliaciones = await domiciliacionService.FindDomiciliacionesActivasByClienteGiudAsync(guid);
@@ -118,7 +118,7 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             var user = httpContextAccessor.HttpContext?.User;
             if (user == null ||!user.Identity.IsAuthenticated)
             {
-                throw new GraphQLException("Debe estar autenticado para obtener los movimientos de domiciliación.");
+                throw new GraphQLException(new UserNotAuthenticatedError());
             }
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var movimientos = await movimientoMeQueriesService.FindMovimientosDomiciliacionByClienteGuidAsync(guid);
@@ -141,7 +141,7 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             var user = httpContextAccessor.HttpContext?.User;
             if (user == null ||!user.Identity.IsAuthenticated)
             {
-                throw new GraphQLException("Debe estar autenticado para obtener los movimientos de transferencia.");
+                throw new GraphQLException(new UserNotAuthenticatedError());
             }
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var movimientos = await movimientoMeQueriesService.FindMovimientosTransferenciaByClienteGuidAsync(guid);
@@ -164,7 +164,7 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             var user = httpContextAccessor.HttpContext?.User;
             if (user == null ||!user.Identity.IsAuthenticated)
             {
-                throw new GraphQLException("Debe estar autenticado para obtener los movimientos de pago con tarjeta.");
+                throw new GraphQLException(new UserNotAuthenticatedError());
             }
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var movimientos = await movimientoMeQueriesService.FindMovimientosPagoConTarjetaByClienteGuidAsync(guid);
@@ -187,7 +187,7 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             var user = httpContextAccessor.HttpContext?.User;
             if (user == null ||!user.Identity.IsAuthenticated)
             {
-                throw new GraphQLException("Debe estar autenticado para obtener los movimientos de ingreso de nómina.");
+                throw new GraphQLException(new UserNotAuthenticatedError());
             }
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var movimientos = await movimientoMeQueriesService.FindMovimientosReciboDeNominaByClienteGuidAsync(guid);
@@ -210,7 +210,7 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             var user = httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity.IsAuthenticated)
             {
-                throw new GraphQLException("Debe estar autenticado para obtener los movimientos.");
+                throw new GraphQLException(new UserNotAuthenticatedError());
             }
 
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -234,7 +234,7 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             var user = httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity.IsAuthenticated)
             {
-                throw new GraphQLException("Debe estar autenticado para obtener los movimientos de transferencia revocada.");
+                throw new GraphQLException(new UserNotAuthenticatedError());
             }
 
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
