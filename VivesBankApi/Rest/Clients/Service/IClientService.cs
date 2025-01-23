@@ -16,7 +16,7 @@ public interface IClientService
     Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request);
     Task LogicDeleteClientAsync(string id);
     
-    Task<String> SaveFileAsync(IFormFile file);
+    Task<String> SaveFileAsync(IFormFile file, string baseFileName);
 
     Task<string> UpdateClientDniPhotoAsync(string clientId, IFormFile file);
 
