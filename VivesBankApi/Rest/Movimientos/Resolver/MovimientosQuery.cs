@@ -181,4 +181,27 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             }).AsQueryable();
         }
         
+        [Authorize]
+        public async Task<IQueryable<Movimiento>> GetMovimientosIngresoDeNominaByClienteGuidAsync()
+        {
+            var user = httpContextAccessor.HttpContext?.User;
+            if (user == null ||!user.Identity.IsAuthenticated)
+            {
+                throw new GraphQLException("Debe estar autenticado para obtener los movimientos de ingreso de nómina.");
+            }
+            var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var movimientos = await movimientoMeQueriesService.FindMovimientosReciboDeNominaByClienteGuidAsync(guid);
+            return movimientos.Select(movimiento => new Movimiento
+            {
+                Guid = movimiento.Guid,
+                ClienteGuid = movimiento.ClienteGuid,
+                Domiciliacion = movimiento.Domiciliacion,
+                IngresoDeNomina = movimiento.IngresoDeNomina,
+                PagoConTarjeta = movimiento.PagoConTarjeta,
+                Transferencia = movimiento.Transferencia,
+                CreatedAt = movimiento.CreatedAt,
+                UpdatedAt = movimiento.UpdatedAt
+            }).AsQueryable();
+        }
+        
 }
