@@ -16,4 +16,5 @@ public interface IMovimientoRepository
     Task<List<Movimiento>> GetMovimientosTransferenciaByClienteGuidAsync(string clienteGuid);
     Task<List<Movimiento>> GetMovimientosPagoConTarjetaByClienteGuidAsync(string clienteGuid);
     Task<List<Movimiento>> GetMovimientosReciboDeNominaByClienteGuidAsync(string clienteGuid);
+    Task<List<Movimiento>> GetMovimientosTransferenciaRevocadaByClienteGuidAsync(string clienteGuid);
 }

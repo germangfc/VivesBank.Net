@@ -92,4 +92,10 @@ public class MovimientoRepository : IMovimientoRepository
         _logger.LogInformation($"Getting movimientos de recibo de nómina for client with guid: {clienteGuid} from the database.");
         return _collection.Find(m => m.ClienteGuid == clienteGuid && m.IngresoDeNomina != null ).ToListAsync();
     }
+
+    public Task<List<Movimiento>> GetMovimientosTransferenciaRevocadaByClienteGuidAsync(string clienteGuid)
+    {
+        _logger.LogInformation($"Getting movimientos de transferencia revocada for client with guid: {clienteGuid} from the database.");
+        return _collection.Find(m => m.ClienteGuid == clienteGuid && m.IsDeleted ).ToListAsync();
+    }
 }
