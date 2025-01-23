@@ -8,6 +8,7 @@ public interface IMovimientoMeQueriesService
     Task<List<Movimiento>> FindMovimientosTransferenciaByClienteGuidAsync(string clienteGuid);
     Task<List<Movimiento>> FindMovimientosPagoConTarjetaByClienteGuidAsync(string clienteGuid);
     Task<List<Movimiento>> FindMovimientosReciboDeNominaByClienteGuidAsync(string clienteGuid);
+    Task<List<Movimiento>> FindMovimientosTransferenciaRevocadaClienteGuidAsync(string clienteGuid);
 
 
 }

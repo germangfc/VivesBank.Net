@@ -28,4 +28,10 @@ public class MovimientoMeQueriesService(ILogger<MovimientoMeQueriesService> logg
         logger.LogInformation($"Finding movimientos recibo de nomina for client with GUID: {clienteGuid}");
         return movimientoRepository.GetMovimientosReciboDeNominaByClienteGuidAsync(clienteGuid);
     }
+
+    public Task<List<Movimiento>> FindMovimientosTransferenciaRevocadaClienteGuidAsync(string clienteGuid)
+    {
+        logger.LogInformation($"Finding movimientos transferencia revocada for client with GUID: {clienteGuid}");
+        return movimientoRepository.GetMovimientosTransferenciaRevocadaByClienteGuidAsync(clienteGuid);
+    }
 }
