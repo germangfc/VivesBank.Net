@@ -79,4 +79,10 @@ public class DomiciliacionService : IDomiciliacionService
         
         return deletedDomiciliacion;
     }
+
+    public async Task<List<Domiciliacion>> FindDomiciliacionesActivasByClienteGiudAsync(string clienteGuid)
+    {
+        _logger.LogInformation($"Finding domiciliaciones activas by cliente guid: {clienteGuid}");
+        return await _domiciliacionRepository.GetDomiciliacionesActivasByClienteGiudAsync(clienteGuid);
+    }
 }

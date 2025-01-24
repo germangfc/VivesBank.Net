@@ -10,4 +10,6 @@ public interface IDomiciliacionService
     Task<String> AddDomiciliacionAsync(Domiciliacion domiciliacion);
     Task<String> UpdateDomiciliacionAsync(String id, Domiciliacion domiciliacion);
     Task<Domiciliacion> DeleteDomiciliacionAsync(String id);
+    
+    Task<List<Domiciliacion>> FindDomiciliacionesActivasByClienteGiudAsync(String clienteGuid);
 }
