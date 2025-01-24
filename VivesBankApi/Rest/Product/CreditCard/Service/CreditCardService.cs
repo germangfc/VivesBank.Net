@@ -41,13 +41,7 @@ public class CreditCardService : ICreditCardService
     public async Task<CreditCardAdminResponse?> GetCreditCardByIdAdminAsync(string id)
     {
         _logger.LogInformation($"Getting card with id {id}");
-        var creditCard = await _creditCardRepository.GetByIdAsync(id);
-
-        if (creditCard == null)
-        {
-            throw new CreditCardException.CreditCardNotFoundException(id);
-        }
-        
+        var creditCard = await GetByIdAsync(id) ?? throw new CreditCardException.CreditCardNotFoundException(id);
         return creditCard.ToAdminResponse();
     }
     
@@ -61,7 +55,7 @@ public class CreditCardService : ICreditCardService
 
         Models.CreditCard? creditCard = await _creditCardRepository.GetByIdAsync(id);
 
-        if (creditCard != null)
+        if (creditCard == null)
         {
             _logger.LogError($"Card not found with id {id}");
             throw new CreditCardException.CreditCardNotFoundException($"Credit card with id '{id}' not found.");
