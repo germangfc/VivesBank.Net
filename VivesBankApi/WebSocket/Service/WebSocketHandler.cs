@@ -6,7 +6,7 @@ using VivesBankApi.WebSocket.Model;
 
 namespace VivesBankApi.WebSocket.Service;
 
-public class WebSocketHandler
+public class WebSocketHandler : IWebsocketHandler
 {
     private readonly ILogger _logger;
     private readonly List<System.Net.WebSockets.WebSocket> _sockets = new();

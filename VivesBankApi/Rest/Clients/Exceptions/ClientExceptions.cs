@@ -1,4 +1,4 @@
-﻿namespace VivesBankApi.Rest.Clients.Exceptions;
+namespace VivesBankApi.Rest.Clients.Exceptions;
 
 public abstract class ClientExceptions : Exception
 {

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 using VivesBankApi.Database;
 using VivesBankApi.Rest.Product.Base.Controller;
@@ -16,6 +17,8 @@ using VivesBankApi.Rest.Product.Service;
 [TestOf(typeof(ProductController))]
 public class ProductControllerTests
 {
+    private Mock<IDatabase> _cache;
+    private Mock<IConnectionMultiplexer> connection;
     private PostgreSqlContainer _postgreSqlContainer;
     private BancoDbContext _dbContext;
     private ProductRepository _repository;
@@ -26,6 +29,9 @@ public class ProductControllerTests
     [OneTimeSetUp]
     public async Task Setup()
     {
+        _cache = new Mock<IDatabase>();
+        connection = new Mock<IConnectionMultiplexer>();
+        connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
         _postgreSqlContainer = new PostgreSqlBuilder()
             .WithImage("postgres:15-alpine")
             .WithDatabase("testdb")
@@ -44,7 +50,7 @@ public class ProductControllerTests
         await _dbContext.Database.EnsureCreatedAsync();
 
         _repository = new ProductRepository(_dbContext, NullLogger<ProductRepository>.Instance);
-        _service = new ProductService(NullLogger<ProductService>.Instance, _repository, _productValidator);
+        _service = new ProductService(NullLogger<ProductService>.Instance, _repository, _productValidator, connection.Object);
         _controller = new ProductController(_service, NullLogger<ProductController>.Instance);
     }
 

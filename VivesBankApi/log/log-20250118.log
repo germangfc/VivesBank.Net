@@ -1,8 +1,0 @@
-[2025-01-18 22:47:22.043] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (21ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-18 22:53:23.714] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";

@@ -1,4 +1,4 @@
-﻿using MongoDB.Bson;
+using MongoDB.Bson;
 using VivesBankApi.Rest.Movimientos.Models;
 
 namespace VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
@@ -11,4 +11,5 @@ public interface IDomiciliacionRepository
     Task<Domiciliacion> UpdateDomiciliacionAsync(String id, Domiciliacion domiciliacion);
     Task<Domiciliacion> DeleteDomiciliacionAsync(String id);
     Task<List<Domiciliacion>> GetDomiciliacionesActivasByClienteGiudAsync(String clienteGuid);
+    Task<List<Domiciliacion>> FindByClientGuid (String clientGuid);
 }
