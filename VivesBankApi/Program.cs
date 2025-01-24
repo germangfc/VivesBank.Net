@@ -16,6 +16,7 @@
     using VivesBankApi.Middleware;
     using VivesBankApi.Rest.Clients.Repositories;
     using VivesBankApi.Rest.Clients.Service;
+    using VivesBankApi.Rest.Clients.storage.Config;
     using VivesBankApi.Rest.Movimientos.Config;
     using VivesBankApi.Rest.Movimientos.Repositories;
     using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
@@ -265,15 +266,13 @@
     // CLIENTE
         myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
         myBuilder.Services.AddScoped<IClientService, ClientService>();
+        myBuilder.Services.AddScoped<FileStorageConfig>();
         
     // USUARIO
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
         myBuilder.Services.AddScoped<IUserService, UserService>();
-    // WEBSOCKETS
-        myBuilder.Services.AddSingleton<WebSocketHandler>(); 
-    // CONTEXT ACCESOR
-    myBuilder.Services.AddHttpContextAccessor();
-        
+        myBuilder.Services.AddScoped<IWebsocketHandler, WebSocketHandler>();
+        myBuilder.Services.AddHttpContextAccessor();
     // API FRANKFURTER 
         string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
         if (string.IsNullOrEmpty(frankfurterBaseUrl))
@@ -290,6 +289,7 @@
             });
         
         myBuilder.Services.AddScoped<CurrencyApiService>();
+        
         
         
     // CVCGENERATOR

@@ -25,10 +25,10 @@ public class UserService : IUserService
     private readonly IDatabase _cache;
     private readonly AuthJwtConfig _authConfig;
     private readonly ILogger _logger;
-    private readonly WebSocketHandler _webSocketHandler;
+    private readonly IWebsocketHandler _webSocketHandler;
     private readonly IHttpContextAccessor _httpContextAccessor;
     
-    public UserService(ILogger<UserService> logger, IUserRepository userRepository, AuthJwtConfig authConfig, IConnectionMultiplexer connectionMultiplexer, WebSocketHandler webSocketHandler, IHttpContextAccessor httpContextAccessor)
+    public UserService(ILogger<UserService> logger, IUserRepository userRepository, AuthJwtConfig authConfig, IConnectionMultiplexer connectionMultiplexer, IWebsocketHandler webSocketHandler, IHttpContextAccessor httpContextAccessor)
     {
         _logger = logger;
         _authConfig = authConfig;
@@ -66,7 +66,7 @@ public class UserService : IUserService
     {
         if (!UserValidator.ValidateDni(userRequest.Dni))
         {
-            throw new  InvalidUsernameException(userRequest.Dni);
+            throw new  InvalidDniException(userRequest.Dni);
         }
         User newUser = userRequest.toUser();
         User? userWithTheSameUsername = await GetByUsernameAsync(userRequest.Dni);
@@ -77,8 +77,7 @@ public class UserService : IUserService
         await _userRepository.AddAsync(newUser);
         var notificacion = new Notification<UserResponse>
         {
-            Type = typeof(Notification<UserResponse>.NotificationType).GetEnumName(Notification<UserResponse>
-                .NotificationType.Create),
+            Type = Notification<UserResponse>.NotificationType.Create.ToString(),
             CreatedAt = DateTime.Now,
             Data = newUser.ToUserResponse()
         };
@@ -108,7 +107,7 @@ public class UserService : IUserService
     {
         if (user.Dni != null && !UserValidator.ValidateDni(user.Dni))
         {
-             throw new InvalidUsernameException(user.Dni);
+             throw new InvalidDniException(user.Dni);
         }
 
         User? userToUpdate = await GetByIdAsync(id) ?? throw new UserNotFoundException(id);
@@ -161,12 +160,7 @@ public class UserService : IUserService
         var cachedUser = await _cache.StringGetAsync(id);
         if (!cachedUser.IsNullOrEmpty)
         {
-            var json = await _cache.StringGetAsync(id);
-            
-            if (!json.IsNullOrEmpty)
-            {
-                return JsonConvert.DeserializeObject<User>(json);
-            }
+            return JsonConvert.DeserializeObject<User>(cachedUser);
         }
 
         // If not in cache, get from DB and cache it
@@ -185,12 +179,7 @@ public class UserService : IUserService
         var cachedUser = await _cache.StringGetAsync("users:" + username.Trim().ToUpper());
         if (!cachedUser.IsNullOrEmpty)
         {
-            var json = await _cache.StringGetAsync(username);
-            
-            if (!json.IsNullOrEmpty)
-            {
-                return JsonConvert.DeserializeObject<User>(json);
-            }
+            return JsonConvert.DeserializeObject<User>(cachedUser);
         }
         // If not in cache, get from DB and cache it
         User? user = await _userRepository.GetByUsernameAsync(username);
@@ -210,6 +199,25 @@ public class UserService : IUserService
         return user;
     }
 
+    public async Task<User?> UpdateMyPassword(UpdatePasswordRequest request)
+    {
+        _logger.LogInformation("Updating my user profile");
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        User? userToUpdate = await GetByIdAsync(id) ?? throw new UserNotFoundException(id);
+        userToUpdate.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        await _userRepository.UpdateAsync(userToUpdate);
+        await _cache.KeyDeleteAsync(id);
+        await _cache.KeyDeleteAsync("users:" + userToUpdate.Dni.Trim().ToUpper());
+        await _cache.StringSetAsync(id, JsonConvert.SerializeObject(userToUpdate), TimeSpan.FromMinutes(10));
+        return userToUpdate;
+    }
+
+    public Task<User?> DeleteMeAsync()
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<User?> RegisterUser(LoginRequest request)
     {
         var user = await _userRepository.GetByUsernameAsync(request.Dni);
@@ -222,6 +230,8 @@ public class UserService : IUserService
         await _userRepository.AddAsync(newUser);
         return newUser;
     }
+    
+    
 
     public String GenerateJwtToken(User user)
     {

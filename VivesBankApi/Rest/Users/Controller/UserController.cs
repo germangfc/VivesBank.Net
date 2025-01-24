@@ -82,9 +82,10 @@ public class UserController : ControllerBase
         var user = await _userService.GetUserByIdAsync(id);
         return Ok(user);
     }
-
+    
     [HttpGet("me")]
-    [Authorize]
+    [Authorize(Policy = "UserPolicy")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> GetMyProfile()
     {
         var result = await _userService.GettingMyUserData();
@@ -94,6 +95,7 @@ public class UserController : ControllerBase
     
     
     [HttpGet("username/{username}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult> GetUserByUsername(string username)
     {
         var user = await _userService.GetUserByUsernameAsync(username);

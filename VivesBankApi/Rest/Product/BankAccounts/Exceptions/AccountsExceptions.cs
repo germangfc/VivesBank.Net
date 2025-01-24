@@ -10,4 +10,7 @@ public class AccountsExceptions(String message) : Exception(message)
         : AccountsExceptions($"Account couldnt be created, check that te client and the product exists");
 
     public class AccountIbanNotGeneratedException() : AccountsExceptions($"Iban Couldnt be created after 1000 tries");
+    
+    public class AccountUnknownIban(String Iban) : AccountsExceptions($"Unknown Iban {Iban}");
+    
 }
