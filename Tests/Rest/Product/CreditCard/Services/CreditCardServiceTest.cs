@@ -213,8 +213,6 @@ namespace VivesBankApi.Tests.CreditCard
             dbMock.Verify(db => db.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan?>(), It.IsAny<When>(), It.IsAny<CommandFlags>()), Times.Once);
         }
 
-
-        
         
         [Test]
         public void UpdateCreditCardAsyncNotFound()
