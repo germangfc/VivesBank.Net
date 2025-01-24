@@ -13,6 +13,7 @@
         <PackageReference Include="CSharpFunctionalExtensions" Version="3.4.3" />
         <PackageReference Include="CsvHelper" Version="33.0.1" />
         <PackageReference Include="HotChocolate.AspNetCore" Version="15.0.0-p.21" />
+        <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="14.3.0" />
         <PackageReference Include="HotChocolate.Authorization" Version="15.0.0-p.21" />
         <PackageReference Include="HotChocolate.Data.EntityFramework" Version="15.0.0-p.21" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />

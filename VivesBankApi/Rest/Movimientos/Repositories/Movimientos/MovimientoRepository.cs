@@ -68,4 +68,34 @@ public class MovimientoRepository : IMovimientoRepository
         var deletedMovimiento = await _collection.FindOneAndDeleteAsync(m => m.Id == id);
         return deletedMovimiento;
     }
+
+    public async Task<List<Movimiento>> GetMovimientosDomiciliacionByClienteGuidAsync(string clienteGuid)
+    {
+        _logger.LogInformation($"Getting movimientos de domiciliación for client with guid: {clienteGuid} from the database.");
+        return await _collection.Find(m => m.ClienteGuid == clienteGuid && m.Domiciliacion != null ).ToListAsync();
+    }
+
+    public async Task<List<Movimiento>> GetMovimientosTransferenciaByClienteGuidAsync(string clienteGuid)
+    {
+        _logger.LogInformation($"Getting movimientos de transferencia for client with guid: {clienteGuid} from the database.");
+        return await _collection.Find(m => m.ClienteGuid == clienteGuid && m.Transferencia!= null ).ToListAsync();
+    }
+
+    public async Task<List<Movimiento>> GetMovimientosPagoConTarjetaByClienteGuidAsync(string clienteGuid)
+    {
+        _logger.LogInformation($"Getting movimientos de pago con tarjeta for client with guid: {clienteGuid} from the database.");
+        return await _collection.Find(m => m.ClienteGuid == clienteGuid && m.PagoConTarjeta!= null ).ToListAsync();
+    }
+
+    public Task<List<Movimiento>> GetMovimientosReciboDeNominaByClienteGuidAsync(string clienteGuid)
+    {
+        _logger.LogInformation($"Getting movimientos de recibo de nómina for client with guid: {clienteGuid} from the database.");
+        return _collection.Find(m => m.ClienteGuid == clienteGuid && m.IngresoDeNomina != null ).ToListAsync();
+    }
+
+    public Task<List<Movimiento>> GetMovimientosTransferenciaRevocadaByClienteGuidAsync(string clienteGuid)
+    {
+        _logger.LogInformation($"Getting movimientos de transferencia revocada for client with guid: {clienteGuid} from the database.");
+        return _collection.Find(m => m.ClienteGuid == clienteGuid && m.IsDeleted ).ToListAsync();
+    }
 }
