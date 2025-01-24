@@ -77,6 +77,7 @@
 
     app.MapControllers(); // Mapea las rutas de los controladores a los endpoints de la aplicación.
 
+    app.UseWebSockets();
     app.UseMiddleware<GlobalExceptionMiddleware>(); // Agrega el middleware de manejo de excepciones globales para loguear y manejar errores.
 
     logger.Information("🚀 Banco API started 🟢"); // Registra un mensaje informativo indicando que la API ha iniciado.
