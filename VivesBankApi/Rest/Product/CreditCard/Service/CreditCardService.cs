@@ -41,7 +41,13 @@ public class CreditCardService : ICreditCardService
     public async Task<CreditCardAdminResponse?> GetCreditCardByIdAdminAsync(string id)
     {
         _logger.LogInformation($"Getting card with id {id}");
-        var creditCard = await GetByIdAsync(id) ?? throw new CreditCardException.CreditCardNotFoundException(id);
+        var creditCard = await _creditCardRepository.GetByIdAsync(id);
+
+        if (creditCard == null)
+        {
+            throw new CreditCardException.CreditCardNotFoundException(id);
+        }
+        
         return creditCard.ToAdminResponse();
     }
     
@@ -107,7 +113,6 @@ public class CreditCardService : ICreditCardService
 
         await _cache.KeyDeleteAsync(cardId);
         _logger.LogInformation("Attempting to delete card from cache: " + cardId);
-        await _cache.KeyDeleteAsync(cardId);
     
         await _cache.StringSetAsync(cardId, JsonConvert.SerializeObject(updateRequest), TimeSpan.FromMinutes(10));
     

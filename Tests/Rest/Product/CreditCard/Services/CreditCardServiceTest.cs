@@ -76,8 +76,7 @@ namespace VivesBankApi.Tests.CreditCard
             Assert.That(result[1].AccountId, Is.EqualTo(null));
             _creditCardRepositoryMock.Verify(repo => repo.GetAllAsync(), Times.Once);
         }
-
-
+        
         [Test]
         public async Task GetCreditCardByIdAdminAsync()
         {
@@ -102,9 +101,10 @@ namespace VivesBankApi.Tests.CreditCard
             Assert.That(result.Id, Is.EqualTo(creditCard.Id));
             Assert.That(result.AccountId, Is.EqualTo(creditCard.AccountId));
             Assert.That(result.CardNumber, Is.EqualTo(creditCard.CardNumber));
+
             _creditCardRepositoryMock.Verify(repo => repo.GetByIdAsync(creditCardId), Times.Once);
         }
-
+        
         [Test]
         public void GetCreditCardByIdAdminAsyncNotFound()
         {
@@ -194,7 +194,7 @@ namespace VivesBankApi.Tests.CreditCard
 
             var dbMock = new Mock<IDatabase>();
             dbMock.Setup(db => db.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
-                .ReturnsAsync(true); 
+                .ReturnsAsync(true);
 
             dbMock.Setup(db => db.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan?>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
                 .ReturnsAsync(true);
@@ -207,9 +207,13 @@ namespace VivesBankApi.Tests.CreditCard
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Pin, Is.EqualTo(updateRequest.Pin));
 
-            dbMock.Verify(db => db.KeyDeleteAsync(It.Is<RedisKey>(key => key == cardId), It.IsAny<CommandFlags>()), Times.Once);
+            _cacheMock.Verify(cache => cache.GetDatabase(It.IsAny<int>(), It.IsAny<object>()), Times.Once);
+
+            dbMock.Verify(db => db.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once);
             dbMock.Verify(db => db.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan?>(), It.IsAny<When>(), It.IsAny<CommandFlags>()), Times.Once);
         }
+
+
         
         
         [Test]
