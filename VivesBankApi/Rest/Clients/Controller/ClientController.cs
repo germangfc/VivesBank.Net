@@ -55,6 +55,7 @@ public class ClientController : ControllerBase
     }
 
     [HttpGet("me")] 
+    
     public async Task<ActionResult<ClientResponse>> GetMyClientData()
     {
         _logger.LogInformation("Getting my client data");
