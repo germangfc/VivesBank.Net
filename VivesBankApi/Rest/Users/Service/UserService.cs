@@ -142,6 +142,7 @@ public class UserService : IUserService
         if (logically)
         {
             userToUpdate.IsDeleted = true;
+            userToUpdate.Role = Role.Revoked;
             await _userRepository.UpdateAsync(userToUpdate);
             await _cache.KeyDeleteAsync(id);
             await _cache.KeyDeleteAsync("users:" + userToUpdate.Dni.Trim().ToUpper());
@@ -219,11 +220,7 @@ public class UserService : IUserService
         var user = _httpContextAccessor.HttpContext!.User;
         var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         User? userToDelete = await GetByIdAsync(id)?? throw new UserNotFoundException(id);
-        await _cache.KeyDeleteAsync(id);
-        await _cache.KeyDeleteAsync("users:" + userToDelete.Dni.Trim().ToUpper());
-        userToDelete.IsDeleted = true;
-        userToDelete.Role = Role.Revoked;
-        await _userRepository.UpdateAsync(userToDelete);
+        await DeleteUserAsync(id, logically: true);
     }
 
     public async Task<User?> RegisterUser(LoginRequest request)

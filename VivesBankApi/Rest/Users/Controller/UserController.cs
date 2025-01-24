@@ -137,7 +137,15 @@ public class UserController : ControllerBase
         await _userService.UpdateMyPassword(request);
         return NoContent();
     }
-
+    
+    [HttpDelete("baja")]
+    [Authorize(Policy = "AdminOrUserPolicy")]
+    public async Task<IActionResult> DeleteMyAccount()
+    {
+        await _userService.DeleteMeAsync();
+        return NoContent();
+    }
+    
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> DeleteUser(String id, [FromQuery] bool logically = true)
