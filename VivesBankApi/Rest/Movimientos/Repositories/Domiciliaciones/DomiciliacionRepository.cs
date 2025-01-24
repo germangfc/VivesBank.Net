@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using VivesBankApi.Rest.Movimientos.Config;
@@ -56,6 +56,12 @@ public class DomiciliacionRepository: IDomiciliacionRepository
         _logger.LogInformation($"Deleting domiciliacion with id {id} from the database.");
         var deletedDomiciliacion = await _collection.FindOneAndDeleteAsync(d => d.Id == id);
         return deletedDomiciliacion;
+    }
+
+    public async Task<List<Domiciliacion>> GetDomiciliacionesActivasByClienteGiudAsync(string clienteGuid)
+    {
+        _logger.LogInformation($"Getting active domiciliaciones for client with guid {clienteGuid} from the database.");
+        return await _collection.Find(d => d.ClienteGuid == clienteGuid && d.Activa).ToListAsync();
     }
 
     public async Task<List<Domiciliacion>> FindByClientGuid(string clientGuid)
