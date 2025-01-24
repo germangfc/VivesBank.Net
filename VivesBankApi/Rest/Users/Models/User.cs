@@ -40,5 +40,5 @@ public class User
 
 public enum Role
 {
- User, Client, Admin,
+ User, Client, Admin, Revoked
 } 

@@ -213,9 +213,17 @@ public class UserService : IUserService
         return userToUpdate;
     }
 
-    public Task<User?> DeleteMeAsync()
+    public async Task DeleteMeAsync()
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Deleting my account");
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        User? userToDelete = await GetByIdAsync(id)?? throw new UserNotFoundException(id);
+        await _cache.KeyDeleteAsync(id);
+        await _cache.KeyDeleteAsync("users:" + userToDelete.Dni.Trim().ToUpper());
+        userToDelete.IsDeleted = true;
+        userToDelete.Role = Role.Revoked;
+        await _userRepository.UpdateAsync(userToDelete);
     }
 
     public async Task<User?> RegisterUser(LoginRequest request)

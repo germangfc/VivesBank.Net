@@ -194,6 +194,14 @@
         
         myBuilder.Services.AddAuthorization(options =>
         {
+            options.AddPolicy("AdminOrUserPolicy", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.HasClaim(c => c.Type == "Role" && (c.Value == "Admin" || c.Value == "User"))
+                ));
+        });
+        
+        myBuilder.Services.AddAuthorization(options =>
+        {
             options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
         });
         
