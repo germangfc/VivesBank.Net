@@ -2,6 +2,9 @@
 using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Service;
+using VivesBankApi.Rest.Clients.storage;
+using VivesBankApi.Rest.Clients.storage.Config;
+using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Clients.Controller;
 [ApiController]
@@ -98,6 +101,56 @@ public class ClientController : ControllerBase
     {
         _logger.LogInformation($"Deleting client with id {id}");
         await _clientService.LogicDeleteClientAsync(id);
+    }
+    
+    [HttpPatch("{clientId}/dni")]
+    public async Task<IActionResult> UpdateClientDniPhotoAsync(string clientId, [FromForm] IFormFile file)
+    {
+        _logger.LogInformation($"Request to update DNI photo for client with ID: {clientId}");
+        
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file was provided or the file is empty.");
+        }
+
+        var fileName = await _clientService.UpdateClientDniPhotoAsync(clientId, file);
+        return Ok(new { message = "DNI photo updated successfully", fileName });
+    }
+    
+    [HttpPatch("{clientId}/profile")]
+    public async Task<IActionResult> UpdateClientPhotoAsync(string clientId, [FromForm] IFormFile file)
+    {
+        _logger.LogInformation($"Request to update profile photo for client with ID: {clientId}");
+
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file was provided or the file is empty.");
+        }
+
+        var fileName = await _clientService.UpdateClientPhotoAsync(clientId, file);
+        return Ok(new { message = "Profile photo updated successfully", fileName });
+    }
+
+    [HttpGet("photo/{fileName}")]
+    public async Task<IActionResult> GetPhotoByFileNameAsync(string fileName)
+    {
+        _logger.LogInformation($"Request to get photo with file name: {fileName}");
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return BadRequest(new { message = "File name must be provided." });
+        }
+
+        var fileStream = await _clientService.GetFileAsync(fileName);
+        if (fileStream == null)
+        {
+            return NotFound(new { message = $"File with name {fileName} not found." });
+        }
+
+        var fileExtension = Path.GetExtension(fileName);
+        var mimeType = MimeTypes.GetMimeType(fileExtension);
+
+        return File(fileStream, mimeType, fileName);
     }
     
 }

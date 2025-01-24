@@ -15,4 +15,14 @@ public interface IClientService
     Task<ClientResponse> CreateClientAsync(ClientRequest request);
     Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request);
     Task LogicDeleteClientAsync(string id);
+    
+    Task<String> SaveFileAsync(IFormFile file, string baseFileName);
+
+    Task<string> UpdateClientDniPhotoAsync(string clientId, IFormFile file);
+
+    Task<string> UpdateClientPhotoAsync(string clientId, IFormFile file);
+    
+    Task<FileStream> GetFileAsync(string fileName);
+    
+    Task<bool> DeleteFileAsync(string fileName);
 }

@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Models;
+using VivesBankApi.Rest.Clients.storage.Config;
 using VivesBankApi.Rest.Users.Models;
 using Role = VivesBankApi.Rest.Users.Models.Role;
 
@@ -29,6 +30,7 @@ public class ClientServiceTests
     private readonly Mock<ILogger<ClientService>> _loggerMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly ClientService _clientService;
+    private readonly FileStorageConfig _fileStorageConfig;
     
     public ClientServiceTests()
     {
@@ -39,7 +41,7 @@ public class ClientServiceTests
         _userRepositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<ClientService>>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _clientService = new ClientService(_loggerMock.Object, _userRepositoryMock.Object, _clientRepositoryMock.Object, _connection.Object, _httpContextAccessorMock.Object);
+        _clientService = new ClientService(_loggerMock.Object, _userRepositoryMock.Object, _clientRepositoryMock.Object, _connection.Object, _httpContextAccessorMock.Object, _fileStorageConfig);
     }
     
     [TearDown]

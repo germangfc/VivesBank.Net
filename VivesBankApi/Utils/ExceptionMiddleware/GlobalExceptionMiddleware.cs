@@ -98,6 +98,10 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 default:
                     logger.LogError(exception, "An unhandled exception occurred.");
                     break;
+                
+                /************************** STORAGE EXCEPTIONS *****************************************************/
+                
+
             }
 
             // Configurar la respuesta HTTP
