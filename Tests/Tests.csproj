@@ -12,6 +12,7 @@
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="6.0.0" />
         <PackageReference Include="HotChocolate.AspNetCore" Version="15.0.0-p.21" />
+        <PackageReference Include="HttpClient.Caching" Version="1.5.12-pre" />
         <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
