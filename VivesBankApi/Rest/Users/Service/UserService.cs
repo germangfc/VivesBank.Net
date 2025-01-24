@@ -210,6 +210,25 @@ public class UserService : IUserService
         return user;
     }
 
+    public async Task<User?> UpdateMyPassword(UpdatePasswordRequest request)
+    {
+        _logger.LogInformation("Updating my user profile");
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        User? userToUpdate = await GetByIdAsync(id) ?? throw new UserNotFoundException(id);
+        userToUpdate.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        await _userRepository.UpdateAsync(userToUpdate);
+        await _cache.KeyDeleteAsync(id);
+        await _cache.KeyDeleteAsync("users:" + userToUpdate.Dni.Trim().ToUpper());
+        await _cache.StringSetAsync(id, JsonConvert.SerializeObject(userToUpdate), TimeSpan.FromMinutes(10));
+        return userToUpdate;
+    }
+
+    public Task<User?> DeleteMeAsync()
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<User?> RegisterUser(LoginRequest request)
     {
         var user = await _userRepository.GetByUsernameAsync(request.Dni);
@@ -222,6 +241,8 @@ public class UserService : IUserService
         await _userRepository.AddAsync(newUser);
         return newUser;
     }
+    
+    
 
     public String GenerateJwtToken(User user)
     {
