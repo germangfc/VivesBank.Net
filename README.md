@@ -116,9 +116,9 @@ El proyecto implementa diversas prácticas y herramientas para asegurar la calid
       </td>
     <td align="center">
       <a href="https://github.com/TomasVaquerin">
-        <img src="https://github.com/TomasVaquerin.png" width="70" height="70" style="border-radius: 50%;" alt="Diego Novillo"/>
+        <img src="https://github.com/TomasVaquerin.png" width="70" height="70" style="border-radius: 50%;" alt="Tomas Vaquerin"/>
         <br/>
-        <sub><b>Diego</b></sub>
+        <sub><b>Tomás</b></sub>
       </a>
       </td>
   </tr>
