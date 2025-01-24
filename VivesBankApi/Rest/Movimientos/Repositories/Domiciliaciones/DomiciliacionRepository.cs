@@ -57,4 +57,10 @@ public class DomiciliacionRepository: IDomiciliacionRepository
         var deletedDomiciliacion = await _collection.FindOneAndDeleteAsync(d => d.Id == id);
         return deletedDomiciliacion;
     }
+
+    public async Task<List<Domiciliacion>> FindByClientGuid(string clientGuid)
+    {
+        _logger.LogInformation($"Finding domiciliaciones for client with guid {clientGuid}.");
+        return await _collection.Find(d => d.ClienteGuid == clientGuid).ToListAsync();
+    }
 }

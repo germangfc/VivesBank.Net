@@ -46,7 +46,24 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     logger.LogWarning(exception, exception.Message);
                     break;
                         
-                /********************************************************************************/
+                /**************** MOVIMIENTOS EXCEPTIONS *****************************************/
+                
+                case DomiciliacionInvalidCuantityException:
+                case IngresoNominaInvalidCuantityException:
+                case PagoTarjetaInvalidCuantityException:
+                case InvalidSourceIbanException:
+                case InvalidCardNumberException:
+                case InvalidDestinationIbanException:
+                case InvalidCifException:
+                case DuplicatedDomiciliacionException:
+                case NegativeAmountException:
+                case AccountNotFoundByClientId:
+                case PagoTarjetaAccountInsufficientBalance:
+                case DomiciliacionAccountInsufficientBalance:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;  
                 
                 /**************** USER EXCEPTIONS *****************************************/
                 
@@ -67,6 +84,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     break;
                 /************************** ACCOUNT EXCEPTIONS *****************************************************/
                 case AccountsExceptions.AccountNotCreatedException:
+                case AccountsExceptions.AccountUnknownIban:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);

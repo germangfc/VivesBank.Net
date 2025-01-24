@@ -75,6 +75,13 @@ public class AccountService : IAccountsService
         if (res == null) throw new AccountsExceptions.AccountNotFoundException(clientId);
         return res.Select(a => a.toResponse()).ToList();
     }
+    public async Task<List<AccountCompleteResponse>> GetCompleteAccountByClientIdAsync(string clientId)
+    {
+        _logger.LogInformation($"Getting complete accounts by client id: {clientId}");
+        var res = await _accountsRepository.getAccountByClientIdAsync(clientId);
+        if (res == null) throw new AccountsExceptions.AccountNotFoundException(clientId);
+        return res.Select(a => a.toCompleteResponse()).ToList();
+    }
 
     public async Task<AccountResponse> GetAccountByIbanAsync(string iban)
     {
@@ -82,6 +89,13 @@ public class AccountService : IAccountsService
         var result = await GetByIbanAsync(iban);
         if (result == null) throw new AccountsExceptions.AccountNotFoundByIban(iban);
         return result.toResponse();
+    }
+    public async Task<AccountCompleteResponse> GetCompleteAccountByIbanAsync(string iban)
+    {
+        _logger.LogInformation($"Getting complete account by IBAN {iban}");
+        var result = await _accountsRepository.getAccountByIbanAsync(iban);
+        if (result == null) throw new AccountsExceptions.AccountNotFoundByIban(iban);
+        return result.toCompleteResponse();
     }
 
     public async Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request)

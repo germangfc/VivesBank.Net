@@ -27,4 +27,22 @@ public static class AccountMappers
             AccountType = createRequest.AccountType,
         };
     }
+    
+    public static AccountCompleteResponse toCompleteResponse(this Account account)
+    {
+        return new AccountCompleteResponse
+        {
+            Id = account.Id,
+            IBAN = account.IBAN,
+            clientID = account.ClientId,
+            productID = account.ProductId,
+            AccountType = account.AccountType,
+            InterestRate = account.InterestRate,
+            Balance = account.Balance,
+            TarjetaId = account.TarjetaId,
+            CreatedAt = account.CreatedAt,
+            UpdatedAt = account.UpdatedAt,
+            IsDeleted = account.IsDeleted
+        };
+    }
 }
