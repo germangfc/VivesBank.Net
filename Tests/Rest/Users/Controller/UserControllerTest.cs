@@ -197,7 +197,7 @@ namespace Tests.Rest.Users.Controller
                 Role = "user"
             };
             
-            _service.Setup(s => s.AddUserAsync(userRequest)).ThrowsAsync(new InvalidUsernameException("Username is invalid"));
+            _service.Setup(s => s.AddUserAsync(userRequest)).ThrowsAsync(new InvalidDniException("Username is invalid"));
 
             // Act
             IActionResult result = null;
@@ -271,7 +271,7 @@ namespace Tests.Rest.Users.Controller
                 Role = "admin"
             };
             _service.Setup(s => s.UpdateUserAsync("1", userUpdateRequest))
-                .ThrowsAsync(new InvalidUsernameException("Invalid username"));
+                .ThrowsAsync(new InvalidDniException("Invalid username"));
 
             // Act
             IActionResult result = null;
@@ -279,7 +279,7 @@ namespace Tests.Rest.Users.Controller
             {
                 result = await _userController.UpdateUser("1", userUpdateRequest);
             }
-            catch (InvalidUsernameException e)
+            catch (InvalidDniException e)
             {
                 result = new BadRequestObjectResult(new { error = e.Message });
             }

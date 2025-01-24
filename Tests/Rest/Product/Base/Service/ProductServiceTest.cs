@@ -1,5 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 using VivesBankApi.Database;
 using VivesBankApi.Rest.Product.Base.Dto;
@@ -18,10 +21,15 @@ public class ProductServiceTest
     private ProductRepository _repository;
     private ProductService _productService;
     private ProductValidator _productValidator;
-
+    private Mock<IDatabase> _cache;
+    private Mock<IConnectionMultiplexer> connection;
+    
     [OneTimeSetUp]
     public async Task Setup()
     {
+        connection = new Mock<IConnectionMultiplexer>();
+        _cache = new Mock<IDatabase>();
+        connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
         _postgreSqlContainer = new PostgreSqlBuilder()
             .WithImage("postgres:15-alpine")
             .WithDatabase("testdb")
@@ -40,9 +48,15 @@ public class ProductServiceTest
         await _dbContext.Database.EnsureCreatedAsync();
 
         _repository = new ProductRepository(_dbContext, NullLogger<ProductRepository>.Instance);
-        _productService = new ProductService(NullLogger<ProductService>.Instance, _repository, _productValidator);
+        _productService = new ProductService(NullLogger<ProductService>.Instance, _repository, _productValidator, connection.Object);
     }
-
+    
+    [TearDown]
+    public void TearDown()
+    {
+        _cache.Reset();
+    }
+    
     [OneTimeTearDown]
     public async Task Teardown()
     {
@@ -88,6 +102,22 @@ public class ProductServiceTest
     }
     
     [Test]
+    public async Task GetProductById_WhenFoundInCache()
+    {
+        var product = new Product("Producto Test", Product.Type.BankAccount);
+        _dbContext.Products.Add(product);
+        await _dbContext.SaveChangesAsync();
+        
+        _cache.Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+            .ReturnsAsync((RedisValue)JsonSerializer.Serialize(product));
+        var result = await _productService.GetProductByIdAsync(product.Id);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Name, Is.EqualTo("Producto Test")); 
+        _cache.Verify(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Exactly(1));
+    }
+    
+    [Test]
     public void GetProductByIdProductNotFound()
     {
         var nonExistingProductId = "ProductoNoExiste";
@@ -98,6 +128,7 @@ public class ProductServiceTest
 
         Assert.That(ex, Is.Not.Null);
         Assert.That(ex.Message, Is.EqualTo($"The product with the ID {nonExistingProductId} was not found"));
+        _cache.Verify(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once());
     }
 
     [Test]
@@ -124,6 +155,8 @@ public class ProductServiceTest
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Name, Is.EqualTo("Producto Actualizado"));
+        _cache.Verify(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once());
+        _cache.Verify(x => x.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once());
     }
 
     [Test]
@@ -138,8 +171,10 @@ public class ProductServiceTest
 
         Assert.That(ex, Is.Not.Null);
         Assert.That(ex.Message, Is.EqualTo($"The product with the ID {nonExistingProductId} was not found"));
+        _cache.Verify(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once());
     }
 
+    
     [Test]
     public async Task DeleteProduct()
     {
@@ -151,6 +186,7 @@ public class ProductServiceTest
 
         var deletedProduct = await _dbContext.Products.FindAsync(product.Id);
         Assert.That(deletedProduct, Is.Null);
+        _cache.Verify(x => x.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once());
     }
 
 
@@ -165,6 +201,7 @@ public class ProductServiceTest
 
         Assert.That(ex, Is.Not.Null);
         Assert.That(ex.Message, Is.EqualTo($"The product with the ID {nonExistentProductId} was not found"));
+        _cache.Verify(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once());
     }
 
 }

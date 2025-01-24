@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Exceptions;
@@ -67,7 +68,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 
                 /**************** USER EXCEPTIONS *****************************************/
                 
-                case InvalidUsernameException:
+                case InvalidDniException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
@@ -94,10 +95,26 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;
+                /************************** CLIENT EXCEPTIONS *****************************************************/
+                case ClientExceptions.ClientAlreadyExistsException:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                
+                case ClientExceptions.ClientNotFoundException:
+                    statusCode = HttpStatusCode.NotFound;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
                 
                 default:
                     logger.LogError(exception, "An unhandled exception occurred.");
                     break;
+                
+                /************************** STORAGE EXCEPTIONS *****************************************************/
+                
+
             }
 
             // Configurar la respuesta HTTP
