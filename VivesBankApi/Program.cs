@@ -242,6 +242,8 @@
     // MOVIMIENTO
         myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>(); 
         myBuilder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
+    // MOVIMIENTO QUERIES
+        myBuilder.Services.AddScoped<IMovimientoMeQueriesService, MovimientoMeQueriesService>();
 
         // DOMICILIACION    
         myBuilder.Services.AddScoped<IDomiciliacionService, DomiciliacionService>();
@@ -343,7 +345,8 @@
             .AddQueryType<MovimientosQuery>()
             .AddFiltering()
             .AddSorting()
-            .AddErrorFilter(error => error.WithMessage($"{error.Exception.Message}"));
+            .AddErrorFilter(error => error.WithMessage($"{error.Exception.Message}"))
+            .AddAuthorization();
            // .AddAuthorizationCore();
     /*********************************************************/
     return myBuilder;
