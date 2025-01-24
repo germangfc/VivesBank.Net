@@ -1,19 +1,20 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework.Legacy;
+using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
-using VivesBankApi.Rest.Product.BankAccounts.Mappers;
 using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Utils.IbanGenerator;
-using VivesBankApi.Rest.Product.Base.Models;
 
-namespace Tests.Rest.BankAccounts.Service;
+namespace Tests.Rest.Product.BankAccounts.Service;
+
 [TestFixture]
 [TestOf(typeof(AccountService))]
 public class AccountServiceTest
@@ -21,13 +22,16 @@ public class AccountServiceTest
     [SetUp]
     public void Setup()
     {
+        connectionMultiplexer = new Mock<IConnectionMultiplexer>();
+        _cache = new Mock<IDatabase>();
+        connectionMultiplexer.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
         _accountRepository = new Mock<IAccountsRepository>();
         _clientRepository = new Mock<IClientRepository>();
         _productRepository = new Mock<IProductRepository>();
         _ibanGenerator = new Mock<IIbanGenerator>();
         _logger = new Mock<ILogger<AccountService>>();
         
-        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object);
+        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object, connectionMultiplexer.Object);
 
     }
     private Mock<IAccountsRepository> _accountRepository;
@@ -36,6 +40,8 @@ public class AccountServiceTest
     private Mock<IIbanGenerator> _ibanGenerator;
     private Mock<ILogger<AccountService>> _logger;
     private AccountService _accountService;
+    private Mock<IDatabase> _cache;
+    private Mock<IConnectionMultiplexer> connectionMultiplexer;
     
     private readonly Account account = new Account
     {
@@ -98,6 +104,19 @@ public class AccountServiceTest
     }
 
     [Test]
+    public async Task GetAccountByIdAsync_ShouldReturnAccount_WhenFoundInCache()
+    {
+        _cache.Setup(r => r.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>() ))
+            .ReturnsAsync((RedisValue)JsonSerializer.Serialize(account));
+        var result = await _accountService.GetAccountByIdAsync(account.Id);
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.IBAN, Is.EqualTo(_response.IBAN));
+        
+        _accountRepository.Verify(repo => repo.GetByIdAsync(account.Id),Times.Never);
+        _cache.Verify(r => r.StringGetAsync(account.Id, CommandFlags.None), Times.Once);
+    }
+
+    [Test]
     public async Task GetAccountByIdAsync_ShouldReturnNotFound()
     {
         var id = "notFound";
@@ -109,11 +128,27 @@ public class AccountServiceTest
         
         _accountRepository.Verify(repo => repo.GetByIdAsync(id), Times.Once);
     }
+    
+    [Test]
+    public async Task GetAccountByIdAsync_ShouldReturnNotFound_WhenNotFoundOnDBorCache()
+    {
+        var id = "notFound";
+        _cache.Setup(r => r.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>() ))
+            .ReturnsAsync(String.Empty);
+        _accountRepository.Setup(r => r.GetByIdAsync(It.Is<string>(id => id == account.Id)))
+            .ReturnsAsync((Account)null);
+        var result =Assert.ThrowsAsync<AccountsExceptions.AccountNotFoundException>(async () =>
+            await _accountService.GetAccountByIdAsync(id));
+        Assert.That(result.Message, Is.EqualTo($"Account not found by id {id}"));
+        
+        _cache.Verify(r => r.StringGetAsync(id, CommandFlags.None), Times.Once);
+        _accountRepository.Verify(repo => repo.GetByIdAsync(id), Times.Once);
+    }
 
     [Test]
     public async Task getAccountByClientIdAsync_ShouldReturnAccount()
     {
-        _accountRepository.Setup(r => r.getAccountByClientIdAsync(It.Is<string>(id => id == account.ClientId)))
+        _accountRepository.Setup(r => r.getAccountByClientIdAsync(It.IsAny<String>()))
            .ReturnsAsync(new List<Account> { account });
         var result = await _accountService.GetAccountByClientIdAsync(account.ClientId);
         Assert.That(result, Is.Not.Null);
@@ -139,20 +174,32 @@ public class AccountServiceTest
     [Test]
     public async Task GetAccountByIbanAsync_ShouldReturnAccount()
     {
-        _accountRepository.Setup(r => r.GetByIdAsync(It.Is<string>(id => id == account.IBAN)))
+        _accountRepository.Setup(r => r.getAccountByIbanAsync(It.IsAny<string>()))
            .ReturnsAsync(account);
         var result = await _accountService.GetAccountByIbanAsync(account.IBAN);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.IBAN, Is.EqualTo(_response.IBAN));
         
-        _accountRepository.Verify(repo => repo.GetByIdAsync(account.IBAN), Times.Once);
+        _accountRepository.Verify(repo => repo.getAccountByIbanAsync(account.IBAN), Times.Once);
+    }
+    
+    [Test]
+    public async Task GetAccountByIbanAsync_ShouldReturnAccount_WhenFoundInCache()
+    {
+        _cache.Setup(r => r.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>() ))
+            .ReturnsAsync((RedisValue)JsonSerializer.Serialize(account));
+        var result = await _accountService.GetAccountByIbanAsync(account.IBAN);
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.IBAN, Is.EqualTo(_response.IBAN));
+        
+        _accountRepository.Verify(repo => repo.GetByIdAsync(account.IBAN), Times.Never);
     }
 
     [Test]
     public void GetAccountByIbanAsync_ShouldThrowAccountNotFoundException_WhenNoAccountsFound()
     {
         var iban = "notFound";
-        _accountRepository.Setup(r => r.GetByIdAsync(It.Is<string>(id => id == iban)))
+        _accountRepository.Setup(r => r.getAccountByIbanAsync(It.Is<string>(id => id == iban)))
            .ReturnsAsync((Account)null);
 
         var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotFoundByIban>(async () =>
@@ -160,7 +207,7 @@ public class AccountServiceTest
 
         Assert.That(exception.Message, Is.EqualTo($"Account not found by IBAN {iban}"));
         
-        _accountRepository.Verify(repo => repo.GetByIdAsync(iban), Times.Once);
+        _accountRepository.Verify(repo => repo.getAccountByIbanAsync(iban), Times.Once);
     }
 
     [Test]
