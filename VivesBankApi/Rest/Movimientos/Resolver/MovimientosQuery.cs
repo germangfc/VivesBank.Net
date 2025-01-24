@@ -71,7 +71,7 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             ).AsQueryable();
         }
         
-        [Authorize]
+        
         public async Task<Movimiento> GetMovimientoByGuid(string guid)
         {
             var movimiento =  await movimientoService.FindMovimientoByGuidAsync(guid);
