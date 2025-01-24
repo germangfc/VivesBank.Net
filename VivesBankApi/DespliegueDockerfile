@@ -1,0 +1,51 @@
+﻿FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+WORKDIR /src
+COPY . . 
+COPY ./VivesBankApi/Scripts /src/Scripts
+
+# Coverage
+ARG DOCKER_HOST_ARG=tcp://host.docker.internal:2375
+ENV DOCKER_HOST=$DOCKER_HOST_ARG
+
+RUN dotnet restore "VivesBankApi/VivesBankApi.csproj"
+
+RUN dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.4.3
+
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+RUN dotnet test "Tests/Tests.csproj" \
+    --collect:"XPlat Code Coverage" \
+    --results-directory:/src/TestResults
+
+RUN XML_FILE=$(find /src/TestResults -name "coverage.cobertura.xml" -print -quit) && \
+    echo "Using XML file: $XML_FILE" && \
+    ls -la "$XML_FILE" && \
+    reportgenerator \
+        -reports:"$XML_FILE" \
+        -targetdir:/src/TestResults/coveragereport
+
+RUN dotnet build "VivesBankApi/VivesBankApi.csproj" -c Release -o /app/build
+
+RUN dotnet publish "VivesBankApi/VivesBankApi.csproj" -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+
+# App
+WORKDIR /app
+
+COPY --from=build /app/publish . 
+COPY --from=build /src/TestResults/coveragereport /app/docs/coverage
+
+COPY --from=build /src/Scripts /app/Scripts
+
+ENV DOCKERIZE_VERSION v0.9.2
+
+RUN apt-get update \
+    && apt-get install -y wget \
+    && wget -O - https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz | tar xzf - -C /usr/local/bin \
+    && apt-get autoremove -yqq --purge wget && rm -rf /var/lib/apt/lists/*
+
+ENV REDIS_HOST=redis
+
+ENTRYPOINT ["sh", "-c", "dockerize -wait tcp://$REDIS_HOST:6379 -timeout 60s && sleep 10 && dotnet VivesBankApi.dll"]
