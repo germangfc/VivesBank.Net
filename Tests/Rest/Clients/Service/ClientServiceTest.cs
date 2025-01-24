@@ -336,4 +336,8 @@ public class ClientServiceTests
         // Assert
         _clientRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<Client>(c => c.IsDeleted == true)), Times.Once);
     }
+    
+    
+    
+    
 }

@@ -3,12 +3,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework.Legacy;
+using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Config;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
+using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
+using VivesBankApi.Rest.Product.BankAccounts.Services;
+using VivesBankApi.Rest.Product.CreditCard.Service;
 using VivesBankApi.Rest.Users.Models;
+using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
 using VivesBankApi.utils.GuuidGenerator;
 
@@ -20,6 +25,11 @@ public class MovimientoServiceTest
 {
     private readonly IOptions<MongoDatabaseConfig> _mongoDatabaseSettings;
     private Mock<IMovimientoRepository> _repositoryMock;
+    private Mock<IDomiciliacionRepository> _domiciliacionRepositoryMock;
+    private Mock<IUserService> _userServiceMock;
+    private Mock<IClientService> _clientServiceMock;
+    private Mock<IAccountsService> _accountsServiceMock;
+    private Mock<ICreditCardService> _creditCardServiceMock;
     private Mock<ILogger<MovimientoService>> _loggerMock;
     private IOptions<ApiConfig> _apiConfig;
     private MovimientoService _movimientoService;
@@ -36,7 +46,22 @@ public class MovimientoServiceTest
         _apiConfig = Options.Create(configuration.GetSection("ApiBasicConfig").Get<ApiConfig>());
         _loggerMock = new Mock<ILogger<MovimientoService>>();
         _repositoryMock = new Mock<IMovimientoRepository>();
-        _movimientoService = new MovimientoService(_repositoryMock.Object, _loggerMock.Object, _apiConfig);
+        _domiciliacionRepositoryMock = new Mock<IDomiciliacionRepository>();
+        _userServiceMock = new Mock<IUserService>();
+        _clientServiceMock = new Mock<IClientService>();
+        _accountsServiceMock = new Mock<IAccountsService>();
+        _creditCardServiceMock = new Mock<ICreditCardService>();
+
+        _movimientoService = new MovimientoService(
+            _repositoryMock.Object,
+            _domiciliacionRepositoryMock.Object,
+            _userServiceMock.Object,
+            _clientServiceMock.Object,
+            _accountsServiceMock.Object,
+            _creditCardServiceMock.Object,
+            _loggerMock.Object,
+            _apiConfig
+        );
         _expectedMovimientoList = new List<Movimiento>
         {
             new Movimiento { 
