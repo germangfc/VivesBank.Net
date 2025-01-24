@@ -49,13 +49,14 @@
 
     var logger = InitLogConfig(); // Inicializa y configura el logger de Serilog para registrar eventos y mensajes.
 
+    await InitDomiciliacionSchedulerAsync(); // Configura e inicia el planificador de domiciliaciones
+
     var builder = InitServices(); // Configura y obtiene un WebApplicationBuilder con servicios necesarios.
 
     builder.Services.AddControllers(); // Agrega soporte para controladores, permitiendo manejar solicitudes HTTP.
 
     builder.Services.AddEndpointsApiExplorer(); // Agrega servicios para explorar los endpoints de la API, necesario para Swagger.
 
-    await InitDomiciliacionScheduler(); // Configura e inicia el planificador de domiciliaciones
     
     var app = builder.Build(); // Construye la aplicación web a partir del WebApplicationBuilder.
 
@@ -91,7 +92,7 @@
 
     app.Run(); // Inicia la aplicación y comienza a escuchar las solicitudes HTTP entrantes.
 
-    static async Task InitDomiciliacionScheduler()
+    static async Task InitDomiciliacionSchedulerAsync()
     {
         // Crear el planificador de Quartz
         var schedulerFactory = new StdSchedulerFactory();
@@ -105,6 +106,7 @@
         // Crear un disparador (trigger)
         var trigger = TriggerBuilder.Create()
             .WithIdentity("DirectDebitTrigger", "MovimientosGroup")
+//            .WithCronSchedule("0 0 0 * * ?")  // todos los días a las 0:00 horas
             .WithCronSchedule("0 * * * * ?")  // Una vez por minuto
             .Build();
 
