@@ -1,6 +1,9 @@
-﻿using VivesBankApi.Rest.Clients.Repositories;
+﻿using Newtonsoft.Json;
+using StackExchange.Redis;
+using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
 using VivesBankApi.Rest.Product.BankAccounts.Mappers;
+using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Utils.IbanGenerator;
@@ -14,14 +17,16 @@ public class AccountService : IAccountsService
     private readonly IClientRepository _clientRepository;
     private readonly IProductRepository _productRepository;
     private readonly IIbanGenerator _ibanGenerator;
+    private readonly IDatabase _cache;
     
-    public AccountService(ILogger<AccountService> logger, IIbanGenerator ibanGenerator,IClientRepository clientRepository,IProductRepository productRepository ,IAccountsRepository accountsRepository)
+    public AccountService(ILogger<AccountService> logger, IIbanGenerator ibanGenerator,IClientRepository clientRepository,IProductRepository productRepository ,IAccountsRepository accountsRepository, IConnectionMultiplexer connection)
     {
         _logger = logger;
         _ibanGenerator = ibanGenerator;
         _accountsRepository = accountsRepository;
         _clientRepository = clientRepository;
         _productRepository = productRepository;
+        _cache = connection.GetDatabase();
     }
     public async Task<PageResponse<AccountResponse>> GetAccountsAsync(int pageNumber = 0, int pageSize = 10, string sortBy = "id", string direction = "asc")
     {
@@ -58,7 +63,7 @@ public class AccountService : IAccountsService
     public async Task<AccountResponse> GetAccountByIdAsync(string id)
     {
         _logger.LogInformation($"Getting account by id: {id}");
-        var result = await _accountsRepository.GetByIdAsync(id);
+        var result = await GetByIdAsync(id);
         if (result == null) throw new AccountsExceptions.AccountNotFoundException(id);
         return result.toResponse();
     }
@@ -81,8 +86,7 @@ public class AccountService : IAccountsService
     public async Task<AccountResponse> GetAccountByIbanAsync(string iban)
     {
         _logger.LogInformation($"Getting account by IBAN {iban}");
-        // mal ??? var result = await _accountsRepository.GetByIdAsync(iban);
-        var result = await _accountsRepository.getAccountByIbanAsync(iban);
+        var result = await GetByIbanAsync(iban);
         if (result == null) throw new AccountsExceptions.AccountNotFoundByIban(iban);
         return result.toResponse();
     }
@@ -115,9 +119,49 @@ public class AccountService : IAccountsService
     public async Task DeleteAccountAsync(string id)
     {
         _logger.LogInformation($"Deleting account with ID {id}");
-        var result = await _accountsRepository.GetByIdAsync(id);
+        var result = await GetByIdAsync(id);
         if (result == null) throw new AccountsExceptions.AccountNotFoundException(id);
         result.IsDeleted = true;
         await _accountsRepository.UpdateAsync(result);
+        await _cache.KeyDeleteAsync(id);
+        await _cache.KeyDeleteAsync("account:" + result.IBAN);
+    }
+    
+    private async Task<Account?> GetByIdAsync(string id)
+    {
+        // Try to get from cache first
+        var cachedAccount = await _cache.StringGetAsync(id);
+        if (!cachedAccount.IsNullOrEmpty)
+        {
+            return JsonConvert.DeserializeObject<Account>(cachedAccount);
+        }
+
+        // If not in cache, get from DB and cache it
+        Account? account = await _accountsRepository.GetByIdAsync(id);
+        if (account != null)
+        {
+            await _cache.StringSetAsync(id, JsonConvert.SerializeObject(account), TimeSpan.FromMinutes(10));
+            return account;
+        }
+        return null;
+    }
+    
+    private async Task<Account?> GetByIbanAsync(string iban)
+    {
+        // Try to get from cache first
+        var cachedAccount = await _cache.StringGetAsync("account:" + iban);
+        if (!cachedAccount.IsNullOrEmpty)
+        {
+            return JsonConvert.DeserializeObject<Account>(cachedAccount);
+        }
+
+        // If not in cache, get from DB and cache it
+        Account? account = await _accountsRepository.getAccountByIbanAsync(iban);
+        if (account != null)
+        {
+            await _cache.StringSetAsync("account:" + iban, JsonConvert.SerializeObject(account), TimeSpan.FromMinutes(10));
+            return account;
+        }
+        return null;
     }
 }

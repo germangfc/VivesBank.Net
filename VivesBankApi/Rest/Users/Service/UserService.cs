@@ -77,8 +77,7 @@ public class UserService : IUserService
         await _userRepository.AddAsync(newUser);
         var notificacion = new Notification<UserResponse>
         {
-            Type = typeof(Notification<UserResponse>.NotificationType).GetEnumName(Notification<UserResponse>
-                .NotificationType.Create),
+            Type = Notification<UserResponse>.NotificationType.Create.ToString(),
             CreatedAt = DateTime.Now,
             Data = newUser.ToUserResponse()
         };
@@ -161,12 +160,7 @@ public class UserService : IUserService
         var cachedUser = await _cache.StringGetAsync(id);
         if (!cachedUser.IsNullOrEmpty)
         {
-            var json = await _cache.StringGetAsync(id);
-            
-            if (!json.IsNullOrEmpty)
-            {
-                return JsonConvert.DeserializeObject<User>(json);
-            }
+            return JsonConvert.DeserializeObject<User>(cachedUser);
         }
 
         // If not in cache, get from DB and cache it
@@ -185,12 +179,7 @@ public class UserService : IUserService
         var cachedUser = await _cache.StringGetAsync("users:" + username.Trim().ToUpper());
         if (!cachedUser.IsNullOrEmpty)
         {
-            var json = await _cache.StringGetAsync(username);
-            
-            if (!json.IsNullOrEmpty)
-            {
-                return JsonConvert.DeserializeObject<User>(json);
-            }
+            return JsonConvert.DeserializeObject<User>(cachedUser);
         }
         // If not in cache, get from DB and cache it
         User? user = await _userRepository.GetByUsernameAsync(username);
