@@ -10,10 +10,10 @@ namespace VivesBankApi.WebSocket.Controller;
 [ApiController]
 public class WebSocketController : ControllerBase
 {
-    private readonly WebSocketHandler _webSocketHandler;
+    private readonly IWebsocketHandler _webSocketHandler;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public WebSocketController(WebSocketHandler webSocketHandler, IHttpContextAccessor httpContextAccessor)
+    public WebSocketController(IWebsocketHandler webSocketHandler, IHttpContextAccessor httpContextAccessor)
     {
         _webSocketHandler = webSocketHandler;
         _httpContextAccessor = httpContextAccessor;
