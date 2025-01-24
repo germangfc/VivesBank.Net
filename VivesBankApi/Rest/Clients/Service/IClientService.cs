@@ -11,6 +11,7 @@ public interface IClientService
         bool? isDeleted,
         string direction);
     Task<ClientResponse> GetClientByIdAsync(string id);
+    Task<ClientResponse> GettingMyClientData();
     Task<ClientResponse> CreateClientAsync(ClientRequest request);
     Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request);
     Task LogicDeleteClientAsync(string id);

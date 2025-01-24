@@ -27,7 +27,6 @@ public class ClientMappersTests
         _clientRequest = new ClientRequest
         {
             FullName = "Manuel García ",
-            UserId = "53692294J",
             Address = "C. de Fuencarral, 144"
         };
 
@@ -67,7 +66,6 @@ public class ClientMappersTests
         Assert.Multiple(() =>
         {
             ClassicAssert.AreEqual(_clientRequest.FullName, client.FullName);
-            ClassicAssert.AreEqual(_clientRequest.UserId, client.UserId);
             ClassicAssert.AreEqual(_clientRequest.Address, client.Adress);
             ClassicAssert.IsFalse(client.IsDeleted);
         });

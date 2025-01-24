@@ -1,9 +1,12 @@
-﻿using System.Text.Json;
+﻿using System.Security.Claims;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Users.Models;
+using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace Tests.Rest.Clients.Service;
 
@@ -24,6 +27,7 @@ public class ClientServiceTests
     private readonly Mock<IClientRepository> _clientRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<ILogger<ClientService>> _loggerMock;
+    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly ClientService _clientService;
     
     public ClientServiceTests()
@@ -34,7 +38,8 @@ public class ClientServiceTests
         _clientRepositoryMock = new Mock<IClientRepository>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<ClientService>>();
-        _clientService = new ClientService(_loggerMock.Object, _userRepositoryMock.Object, _clientRepositoryMock.Object, _connection.Object);
+        _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        _clientService = new ClientService(_loggerMock.Object, _userRepositoryMock.Object, _clientRepositoryMock.Object, _connection.Object, _httpContextAccessorMock.Object);
     }
     
     [TearDown]
@@ -168,39 +173,73 @@ public class ClientServiceTests
     }
 
     [Test]
-    public void CreateClientAsync_ThrowsUserNotFoundException_WhenUserDoesNotExist()
+    public async Task CreateClientAsync_ShouldReturn()
     {
         // Arrange
-        var clientRequest = new ClientRequest
+        var userId = "validId";
+        var request = new ClientRequest
         {
             FullName = "John Doe",
             Address = "Address 1",
-            UserId = "InvalidUser"
         };
-        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(clientRequest.UserId)).ReturnsAsync((User)null);
+        var user = new User
+        {
+            Id = userId,
+            Password = "calamarDelNorte123",
+            Role = Role.User
+        };
+        var client = new Client { Id = "client-id", UserId = userId };
 
-        // Act & Assert
-        Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.CreateClientAsync(clientRequest));
+        // Simula el contexto HTTP con el usuario autenticado
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }, "mock"));
+        var mockHttpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(mockHttpContext);
+
+        // Configura los mocks del repositorio
+        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId)).ReturnsAsync(user);
+        _clientRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<Client>())).Callback<Client>(c =>
+        {
+            c.Id = client.Id;
+            c.UserId = client.UserId;
+        });
+
+        // Act
+        var result = await _clientService.CreateClientAsync(request);
+
+        // Assert
+        _clientRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Client>()), Times.Once);
+        ClassicAssert.NotNull(result);
+        ClassicAssert.AreEqual(client.Id, result.Id);
+        ClassicAssert.AreEqual(client.UserId, result.UserId);
     }
 
     [Test]
-    public async Task CreateClientAsync_AddsClient()
+    public async Task CreateClient_WithAExistingUser_ShouldReturnException()
     {
-        // Arrange
-        var clientRequest = new ClientRequest
+        var userId = "existing_user";
+        var request = new ClientRequest
         {
             FullName = "John Doe",
             Address = "Address 1",
-            UserId = "ValidUser"
         };
-        var user = new User { Id = "ValidUser" };
-        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(clientRequest.UserId)).ReturnsAsync(user);
-
-        // Act
-        await _clientService.CreateClientAsync(clientRequest);
-
-        // Assert
-        _clientRepositoryMock.Verify(repo => repo.AddAsync(It.Is<Client>(c => c.FullName == "John Doe")), Times.Once);
+        var user = new User
+        {
+            Id = userId,
+            Password = "calamarDelNorte123",
+            Role = Role.User
+        };
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }, "mock"));
+        var mockHttpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(mockHttpContext);
+        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId)).ReturnsAsync(user);
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(It.IsAny<String>())).ReturnsAsync((Client?)null);
+        
     }
 
     [Test]
