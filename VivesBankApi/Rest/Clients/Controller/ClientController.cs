@@ -104,7 +104,7 @@ public class ClientController : ControllerBase
     }
     
     [HttpPatch("{clientId}/dni")]
-    public async Task<IActionResult> UpdateClientDniPhotoAsync(string clientId, [FromForm] IFormFile file)
+    public async Task<IActionResult> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
     {
         _logger.LogInformation($"Request to update DNI photo for client with ID: {clientId}");
         
@@ -118,7 +118,7 @@ public class ClientController : ControllerBase
     }
     
     [HttpPatch("{clientId}/profile")]
-    public async Task<IActionResult> UpdateClientPhotoAsync(string clientId, [FromForm] IFormFile file)
+    public async Task<IActionResult> UpdateClientPhotoAsync(string clientId, IFormFile file)
     {
         _logger.LogInformation($"Request to update profile photo for client with ID: {clientId}");
 
