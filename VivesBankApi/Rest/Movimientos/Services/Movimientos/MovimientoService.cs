@@ -76,7 +76,7 @@ public class MovimientoService(
 
     public async Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion)
     {
-        logger.LogInformation($"Adding domiciliacion cantidad: {domiciliacion.Cantidad}");
+        logger.LogInformation($"Adding domiciliacion {domiciliacion}");
         
         // Validar que la cantidad es mayor que cero
         if (domiciliacion.Cantidad <= 0) throw new DomiciliacionInvalidCuantityException(domiciliacion.Id!, domiciliacion.Cantidad);
@@ -113,7 +113,7 @@ public class MovimientoService(
 
     public async Task<Movimiento> AddIngresoDeNominaAsync(User user, IngresoDeNomina ingresoDeNomina)
     {
-        logger.LogInformation("Adding new Ingreso de Nomina");
+        logger.LogInformation($"Adding new Ingreso de Nomina {ingresoDeNomina}");
         // Validar que el ingreso de nomina es > 0
         if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidCuantityException(ingresoDeNomina.Cantidad);
         
@@ -157,6 +157,7 @@ public class MovimientoService(
 
     public async Task<Movimiento> AddPagoConTarjetaAsync(User user, PagoConTarjeta pagoConTarjeta)
     {
+        logger.LogInformation($"Adding new Pago con Tarjeta {pagoConTarjeta}");
         
         // Validar que la cantidad es mayor que cero
         if (pagoConTarjeta.Cantidad <= 0) throw new PagoTarjetaInvalidCuantityException(pagoConTarjeta.Cantidad);
@@ -204,9 +205,42 @@ public class MovimientoService(
 
     }
 
-    public Task<Movimiento> AddTransferenciaAsync(User user, Transferencia transferencia)
+    public async Task<Movimiento> AddTransferenciaAsync(User user, Transferencia transferencia)
     {
-        throw new NotImplementedException();
+        logger.LogInformation("Adding new transfer");
+        // Validar que la cantidad es mayor que cero
+        if (transferencia.Cantidad <= 0) throw new TransferInvalidCuantityException(transferencia.Cantidad);
+
+        // Validar que la cuenta origen y destino existen y tienen el mismo cliente
+        var clientOriginAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanOrigen);
+        var clientDestinoAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanDestino);
+
+        if (clientOriginAccount is null || clientDestinoAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanOrigen);
+        if (!clientOriginAccount.clientID.Equals(clientDestinoAccount.clientID)) throw new TransferenciaDifferentClientException(transferencia.IbanOrigen, transferencia.IbanDestino);
+        // Validar Iban correcto
+        if (!IbanValidator.ValidateIban(transferencia.IbanDestino)) throw new InvalidDestinationIbanException(transferencia.IbanDestino);
+        if (!IbanValidator.ValidateIban(transferencia.IbanOrigen)) throw new InvalidSourceIbanException(transferencia.IbanOrigen);
+
+        // Validar que el cliente existe
+        var client = await clientService.GetClientByIdAsync(user.Id);
+        if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
+        
+        // Validar que la cuenta origen existe
+        var clientOriginAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanOrigen);
+        if (clientOriginAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanOrigen);
+
+        // HACER MOVIMIENTO INVERSO
+        // Validar saldo suficiente
+        // restar al cliente
+        // sumar al cliente de la cuenta destino
+        // crear el movimiento al cliente destino
+        // Guardar el movimiento destino
+        // crear el movimiento al cliente origen
+        // Guardar el movimiento origen
+        // Notificar al cliente origen y destino
+        // Retornar respuesta
+
+
     }
 
     public Task<Movimiento> RevocarTransferencia(User user, string movimientoTransferenciaGuid)
