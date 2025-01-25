@@ -1,4 +1,4 @@
 ﻿namespace VivesBankApi.Rest.Movimientos.Exceptions;
 
-public class TransferInvalidCuantityException(decimal amount)
+public class TransferInvalidAmountException(decimal amount)
     : MovimientoException($"Invalid Transfer amount ({amount})");

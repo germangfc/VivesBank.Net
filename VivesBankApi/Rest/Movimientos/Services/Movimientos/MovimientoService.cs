@@ -79,7 +79,7 @@ public class MovimientoService(
         logger.LogInformation($"Adding domiciliacion {domiciliacion}");
         
         // Validar que la cantidad es mayor que cero
-        if (domiciliacion.Cantidad <= 0) throw new DomiciliacionInvalidCuantityException(domiciliacion.Id!, domiciliacion.Cantidad);
+        if (domiciliacion.Cantidad <= 0) throw new DomiciliacionInvalidAmountException(domiciliacion.Id!, domiciliacion.Cantidad);
         
         // validar Iban correcto
         if (!IbanValidator.ValidateIban(domiciliacion.IbanDestino)) throw new InvalidDestinationIbanException(domiciliacion.IbanDestino);
@@ -115,7 +115,7 @@ public class MovimientoService(
     {
         logger.LogInformation($"Adding new Ingreso de Nomina {ingresoDeNomina}");
         // Validar que el ingreso de nomina es > 0
-        if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidCuantityException(ingresoDeNomina.Cantidad);
+        if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidAmountException(ingresoDeNomina.Cantidad);
         
         // Validar Iban correcto
         if (!IbanValidator.ValidateIban(ingresoDeNomina.IbanDestino)) throw new InvalidDestinationIbanException(ingresoDeNomina.IbanDestino);
@@ -160,7 +160,7 @@ public class MovimientoService(
         logger.LogInformation($"Adding new Pago con Tarjeta {pagoConTarjeta}");
         
         // Validar que la cantidad es mayor que cero
-        if (pagoConTarjeta.Cantidad <= 0) throw new PagoTarjetaInvalidCuantityException(pagoConTarjeta.Cantidad);
+        if (pagoConTarjeta.Cantidad <= 0) throw new PagoTarjetaInvalidAmountException(pagoConTarjeta.Cantidad);
 
         // Validar número tarjeta
         if (!NumTarjetaValidator.ValidateTarjeta(pagoConTarjeta.NumeroTarjeta)) throw new InvalidCardNumberException(pagoConTarjeta.NumeroTarjeta);
@@ -209,14 +209,7 @@ public class MovimientoService(
     {
         logger.LogInformation("Adding new transfer");
         // Validar que la cantidad es mayor que cero
-        if (transferencia.Cantidad <= 0) throw new TransferInvalidCuantityException(transferencia.Cantidad);
-
-        // Validar que la cuenta origen y destino existen y tienen el mismo cliente
-        var clientOriginAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanOrigen);
-        var clientDestinoAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanDestino);
-
-        if (clientOriginAccount is null || clientDestinoAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanOrigen);
-        if (!clientOriginAccount.clientID.Equals(clientDestinoAccount.clientID)) throw new TransferenciaDifferentClientException(transferencia.IbanOrigen, transferencia.IbanDestino);
+        if (transferencia.Cantidad <= 0) throw new TransferInvalidAmountException()
         // Validar Iban correcto
         if (!IbanValidator.ValidateIban(transferencia.IbanDestino)) throw new InvalidDestinationIbanException(transferencia.IbanDestino);
         if (!IbanValidator.ValidateIban(transferencia.IbanOrigen)) throw new InvalidSourceIbanException(transferencia.IbanOrigen);
