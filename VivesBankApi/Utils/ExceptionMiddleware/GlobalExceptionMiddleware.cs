@@ -49,9 +49,10 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                         
                 /**************** MOVIMIENTOS EXCEPTIONS *****************************************/
                 
-                case DomiciliacionInvalidCuantityException:
-                case IngresoNominaInvalidCuantityException:
-                case PagoTarjetaInvalidCuantityException:
+                case DomiciliacionInvalidAmountException:
+                case IngresoNominaInvalidAmountException:
+                case PagoTarjetaInvalidAmountException:
+                case TransferInvalidAmountException:
                 case InvalidSourceIbanException:
                 case InvalidCardNumberException:
                 case InvalidDestinationIbanException:
