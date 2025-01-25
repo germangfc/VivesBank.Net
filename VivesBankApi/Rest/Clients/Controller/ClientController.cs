@@ -104,19 +104,19 @@ public class ClientController : ControllerBase
         await _clientService.LogicDeleteClientAsync(id);
     }
     
-    [HttpPatch("{clientId}/dni")]
-    public async Task<IActionResult> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
-    {
-        _logger.LogInformation($"Request to update DNI photo for client with ID: {clientId}");
-        
-        if (file == null || file.Length == 0)
-        {
-            return BadRequest("No file was provided or the file is empty.");
-        }
-
-        var fileName = await _clientService.UpdateClientDniPhotoAsync(clientId, file);
-        return Ok(new { message = "DNI photo updated successfully", fileName });
-    }
+    // [HttpPatch("{clientId}/dni")]
+    // public async Task<IActionResult> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
+    // {
+    //     _logger.LogInformation($"Request to update DNI photo for client with ID: {clientId}");
+    //     
+    //     if (file == null || file.Length == 0)
+    //     {
+    //         return BadRequest("No file was provided or the file is empty.");
+    //     }
+    //
+    //     var fileName = await _clientService.UpdateClientDniPhotoAsync(clientId, file);
+    //     return Ok(new { message = "DNI photo updated successfully", fileName });
+    // }
     
     [HttpPatch("{clientId}/profile")]
     public async Task<IActionResult> UpdateClientPhotoAsync(string clientId, IFormFile file)

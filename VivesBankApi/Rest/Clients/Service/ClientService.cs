@@ -167,44 +167,6 @@ public class ClientService : IClientService
     }
 
 
-
-    public async Task<string> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
-    {
-        _logger.LogInformation($"Updating DNI photo for client with ID: {clientId}");
-
-        if (file == null || file.Length == 0)
-        {
-            throw new FileNotFoundException("No file was provided or the file is empty.");
-        }
-
-        var client = await _clientRepository.GetByIdAsync(clientId);
-        if (client == null)
-        {
-            throw new ClientExceptions.ClientNotFoundException($"Client with ID {clientId} not found.");
-        }
-
-        var user = await _userRepository.GetByIdAsync(client.UserId);
-        if (user == null)
-        {
-            throw new UserNotFoundException(client.UserId);
-        }
-
-        var newFileName = await SaveFileAsync(file, $"DNI-{user.Dni}");
-
-        if (client.PhotoDni != "default.png")
-        {
-            await DeleteFileAsync(client.PhotoDni);
-        }
-
-        client.PhotoDni = newFileName;
-        client.UpdatedAt = DateTime.UtcNow;
-
-        await _clientRepository.UpdateAsync(client);
-
-        _logger.LogInformation($"DNI photo updated successfully for client with ID: {clientId}");
-        return newFileName;
-    }
-
     
     public async Task<string> UpdateClientPhotoAsync(string clientId, IFormFile file)
     {
@@ -269,6 +231,8 @@ public class ClientService : IClientService
         }
     }
 
+    
+
     public async Task<FileStream> GetFileAsync(string fileName)
     {
         _logger.LogInformation($"Getting file: {fileName}");
@@ -290,5 +254,20 @@ public class ClientService : IClientService
             _logger.LogError(ex, "Error getting file");
             throw;
         }
+    }
+    
+    public Task<string> SaveFileToFtpAsync(IFormFile file)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<FileStream> GetFileFromFtpAsync(string fileName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteFileFromFtpAsync(string fileName)
+    {
+        throw new NotImplementedException();
     }
 }
