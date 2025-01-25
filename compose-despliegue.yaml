@@ -16,6 +16,7 @@ services:
       - ASPNETCORE_URLS=http://0.0.0.0:5000
     volumes:
       - coverage-volume:/app/docs/coverage
+      - docs-volume:/app/docs/site
       - docs-volume:/app/docs/documentation
 
   mongo-db:
