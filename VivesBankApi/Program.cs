@@ -1,5 +1,6 @@
    using System.Data;
-    using System.Text;
+   using System.Security.Claims;
+   using System.Text;
     using ApiFranfurkt.Properties.Currency.Services;
     using ApiFunkosCS.Utils.DevApplyMigrations;
     using ApiFunkosCS.Utils.ExceptionMiddleware;
@@ -187,21 +188,26 @@
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                 };
             });
-        
         myBuilder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
-        });
-        
-        myBuilder.Services.AddAuthorization(options =>
-        {
+            // Política para Admin solamente
+            options.AddPolicy("AdminPolicy", policy =>
+                policy.RequireRole("Admin"));
+
+
             options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
+            
+            options.AddPolicy("ClientPolicy", policy => policy.RequireRole("Client"));
+
+            
+            options.AddPolicy("AdminOrUserPolicy", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.HasClaim(c =>
+                        c.Type == ClaimTypes.Role && (c.Value == "Admin" || c.Value == "User"))
+                ));
         });
         
-        myBuilder.Services.AddAuthorization(options =>
-        {
-            options.AddPolicy("ClientPolicy", policy => policy.RequireRole("Client"));
-        });
+       
         
      
 
