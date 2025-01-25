@@ -22,6 +22,7 @@ public class ClientService : IClientService
     private readonly IDatabase _cache;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly FileStorageConfig _fileStorageConfig;
+    private readonly FileStorageRemoteConfig _fileStorageRemoteConfig;
     
     public ClientService(
         ILogger<ClientService> logger,
@@ -29,7 +30,8 @@ public class ClientService : IClientService
         IClientRepository clientRepository,
         IConnectionMultiplexer connection,
         IHttpContextAccessor httpContextAccessor,
-        FileStorageConfig fileStorageConfig
+        FileStorageConfig fileStorageConfig,
+        FileStorageRemoteConfig fileStorageRemoteConfig
         )
     {
         _userRepository = userRepository; 
@@ -38,6 +40,7 @@ public class ClientService : IClientService
         _cache = connection.GetDatabase();
         _httpContextAccessor = httpContextAccessor;
         _fileStorageConfig = fileStorageConfig;
+        _fileStorageRemoteConfig = fileStorageRemoteConfig;
     } 
     public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber, 
