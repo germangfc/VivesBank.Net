@@ -208,31 +208,75 @@ public class MovimientoService(
     public async Task<Movimiento> AddTransferenciaAsync(User user, Transferencia transferencia)
     {
         logger.LogInformation("Adding new transfer");
+        
         // Validar que la cantidad es mayor que cero
-        if (transferencia.Cantidad <= 0) throw new TransferInvalidAmountException()
+        if (transferencia.Cantidad <= 0) throw new TransferInvalidAmountException(transferencia.Cantidad);
+        
         // Validar Iban correcto
         if (!IbanValidator.ValidateIban(transferencia.IbanDestino)) throw new InvalidDestinationIbanException(transferencia.IbanDestino);
         if (!IbanValidator.ValidateIban(transferencia.IbanOrigen)) throw new InvalidSourceIbanException(transferencia.IbanOrigen);
 
         // Validar que el cliente existe
-        var client = await clientService.GetClientByIdAsync(user.Id);
-        if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
+        var originClient = await clientService.GetClientByIdAsync(user.Id);
+        if (originClient is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
         
         // Validar que la cuenta origen existe
         var clientOriginAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanOrigen);
         if (clientOriginAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanOrigen);
 
+        // Validar que la cuenta es de ese cliente
+        if (!clientOriginAccount.clientID.Equals(originClient.Id)) throw new AccountsExceptions.AccountUnknownIban(transferencia.IbanOrigen);
+
+        // Validar saldo suficiente en cuenta origen
+        var newBalance = clientOriginAccount.Balance - transferencia.Cantidad; 
+        if (newBalance < 0) throw new TransferInsufficientBalance(transferencia.IbanOrigen);
+        
         // HACER MOVIMIENTO INVERSO
-        // Validar saldo suficiente
-        // restar al cliente
+        // Validar que la cuenta destino existe
+        var clientDestinationAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanDestino);
+        if (clientDestinationAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanDestino);
+
+        // restar al cliente origen
+        clientOriginAccount.Balance = newBalance;
+//        await accountsService.UpdateAccountAsync(clientOriginAccount.Id, new UpdateAccountRequest { Balance = clientOriginAccount.Balance });
+    
         // sumar al cliente de la cuenta destino
+        clientDestinationAccount.Balance += transferencia.Cantidad;
+        // await accountsService.UpdateAccountAsync(clientDestinationAccount.Id, new UpdateAccountRequest { Balance = clientDestinationAccount.Balance });
+        
         // crear el movimiento al cliente destino
+        logger.LogInformation("Creating destination movement");
+        Movimiento newDestinationMovement = new Movimiento
+        {
+            ClienteGuid = clientDestinationAccount.clientID,
+            Transferencia = transferencia
+        };
+        
         // Guardar el movimiento destino
+        logger.LogInformation("Saving destination movement");
+        var destinationSavedMovement = await movimientoRepository.AddMovimientoAsync(newDestinationMovement);
+
         // crear el movimiento al cliente origen
+        logger.LogInformation("Creating origin movement");
+        Movimiento newOriginMovement = new Movimiento
+        {
+            ClienteGuid = originClient.Id,
+            Transferencia = new Transferencia
+            {
+                IbanOrigen = transferencia.IbanOrigen,
+                IbanDestino = transferencia.IbanDestino,
+                Cantidad = decimal.Negate(transferencia.Cantidad),
+                NombreBeneficiario = transferencia.NombreBeneficiario,
+                MovimientoDestino = newDestinationMovement.Id!
+            }
+        };
+        
         // Guardar el movimiento origen
+        var originSavedMovement = await movimientoRepository.AddMovimientoAsync(newOriginMovement);
+
         // Notificar al cliente origen y destino
         // Retornar respuesta
-
+        return originSavedMovement;
 
     }
 
