@@ -31,6 +31,7 @@ public class ClientServiceTests
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly ClientService _clientService;
     private readonly FileStorageConfig _fileStorageConfig;
+    private readonly FileStorageRemoteConfig _fileStorageRemoteConfig;
     
     public ClientServiceTests()
     {
@@ -41,7 +42,7 @@ public class ClientServiceTests
         _userRepositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<ClientService>>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _clientService = new ClientService(_loggerMock.Object, _userRepositoryMock.Object, _clientRepositoryMock.Object, _connection.Object, _httpContextAccessorMock.Object, _fileStorageConfig);
+        _clientService = new ClientService(_loggerMock.Object, _userRepositoryMock.Object, _clientRepositoryMock.Object, _connection.Object, _httpContextAccessorMock.Object, _fileStorageConfig, _fileStorageRemoteConfig);
     }
     
     [TearDown]
