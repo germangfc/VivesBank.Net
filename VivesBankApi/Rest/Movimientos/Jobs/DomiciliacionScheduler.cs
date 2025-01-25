@@ -57,7 +57,7 @@ public class DomiciliacionScheduler(
         if (originAccount == null) throw new AccountsExceptions.AccountNotFoundByIban(domiciliacion.IbanOrigen);
 
         // Comprobación saldo suficiente
-        if (originAccount.Balance < domiciliacion.Cantidad) throw new DomiciliacionAccountInsufficientBalance(domiciliacion.IbanOrigen);
+        if (originAccount.Balance < domiciliacion.Cantidad) throw new DomiciliacionAccountInsufficientBalanceException(domiciliacion.IbanOrigen);
 
         // Restamos del saldo y actualizamos la cuenta
         originAccount.Balance -= domiciliacion.Cantidad;
