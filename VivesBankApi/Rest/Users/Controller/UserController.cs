@@ -84,8 +84,7 @@ public class UserController : ControllerBase
     }
     
     [HttpGet("me")]
-    [Authorize(Policy = "UserPolicy")]
-    [Authorize(Policy = "AdminPolicy")]
+    [Authorize(Policy = "AdminOrUserPolicy")]
     public async Task<IActionResult> GetMyProfile()
     {
         var result = await _userService.GettingMyUserData();
@@ -101,7 +100,7 @@ public class UserController : ControllerBase
         var user = await _userService.GetUserByUsernameAsync(username);
         return Ok(user);
     }
-
+    
     [HttpPost]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> AddUser([FromBody] CreateUserRequest userRequest)
@@ -131,6 +130,22 @@ public class UserController : ControllerBase
         return Ok(updatedUser);
     }
 
+    [HttpPut("password")]
+    [Authorize(Policy = "AdminOrUserPolicy")]
+    public async Task<IActionResult> ChangePassword(UpdatePasswordRequest request)
+    {
+        await _userService.UpdateMyPassword(request);
+        return NoContent();
+    }
+    
+    [HttpDelete("baja")]
+    [Authorize(Policy = "AdminOrUserPolicy")]
+    public async Task<IActionResult> DeleteMyAccount()
+    {
+        await _userService.DeleteMeAsync();
+        return NoContent();
+    }
+    
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> DeleteUser(String id, [FromQuery] bool logically = true)

@@ -20,6 +20,6 @@ public interface IUserService
     String GenerateJwtToken(User user);
     Task<User?> LoginUser(LoginRequest request);
     Task<User?> UpdateMyPassword(UpdatePasswordRequest request);
-    Task<User?> DeleteMeAsync();
+    Task DeleteMeAsync();
     Task<User?> RegisterUser(LoginRequest request);
 }
