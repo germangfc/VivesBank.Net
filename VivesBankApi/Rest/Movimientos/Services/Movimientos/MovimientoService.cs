@@ -97,7 +97,7 @@ public class MovimientoService(
         if (!account.clientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(domiciliacion.IbanOrigen);
         
         // Validar si la domiciliación ya existe (mismo cobrador, cuenta destino)
-        var clientDomiciliacion = await domiciliacionRepository.FindByClientGuid(client.Id);
+        var clientDomiciliacion = await domiciliacionRepository.GetDomiciliacionByClientGuidAsync(client.Id);
         if (clientDomiciliacion.Any(d => d.IbanDestino == domiciliacion.IbanDestino)) throw new DuplicatedDomiciliacionException(domiciliacion.IbanDestino);
     
         // Guardar la domiciliación

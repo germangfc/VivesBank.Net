@@ -25,8 +25,8 @@ public class DomiciliacionScheduler(
         logger.LogInformation("Processing scheduled direct debits (domiciliaciones)"); 
         
         // Filtrar domiciliaciones activas que requieren ejecución
-        var domiciliaciones = (await domiciliacionRepository.GetAllDomiciliacionesAsync())
-            .Where(d => d.Activa && RequiereEjecucion(d, DateTime.Now))
+        var domiciliaciones = (await domiciliacionRepository.GetAllDomiciliacionesActivasAsync())
+            .Where(d => RequiereEjecucion(d, DateTime.Now))
             .ToList();
 
         // Lanzamos asíncronamente las actualizaciones. Foreach no las lanza asíncronamente y 

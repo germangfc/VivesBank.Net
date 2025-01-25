@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿/*using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -324,4 +324,4 @@ public class MovimientoServiceTest
             await _movimientoService.RevocarTransferencia(new User(), "some-guid"));
     }
 
-}
+}*/

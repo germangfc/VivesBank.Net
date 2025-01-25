@@ -38,6 +38,9 @@
     using VivesBankApi.Utils.ApiConfig;
     using VivesBankApi.Utils.IbanGenerator;
     using VivesBankApi.WebSocket.Service;
+    using Quartz;
+    using Quartz.Impl;
+    using VivesBankApi.Rest.Movimientos.Jobs;
 
     Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -47,12 +50,15 @@
 
     var logger = InitLogConfig(); // Inicializa y configura el logger de Serilog para registrar eventos y mensajes.
 
+    await InitDomiciliacionSchedulerAsync(); // Configura e inicia el planificador de domiciliaciones
+
     var builder = InitServices(); // Configura y obtiene un WebApplicationBuilder con servicios necesarios.
 
     builder.Services.AddControllers(); // Agrega soporte para controladores, permitiendo manejar solicitudes HTTP.
 
     builder.Services.AddEndpointsApiExplorer(); // Agrega servicios para explorar los endpoints de la API, necesario para Swagger.
 
+    
     var app = builder.Build(); // Construye la aplicación web a partir del WebApplicationBuilder.
 
 
@@ -86,6 +92,32 @@
     Console.WriteLine("🚀 Banco API started 🟢"); // Muestra un mensaje en la consola indicando que la API ha iniciado.
 
     app.Run(); // Inicia la aplicación y comienza a escuchar las solicitudes HTTP entrantes.
+
+    static async Task InitDomiciliacionSchedulerAsync()
+    {
+        // Crear el planificador de Quartz
+        var schedulerFactory = new StdSchedulerFactory();
+        var scheduler = await schedulerFactory.GetScheduler();
+
+        // Crear el trabajo para las domiciliaciones
+        var job = JobBuilder.Create<DomiciliacionScheduler>()
+            .WithIdentity("DirectDebitScheduler", "MovimientosGroup")
+            .Build();
+
+        // Crear un disparador (trigger)
+        var trigger = TriggerBuilder.Create()
+            .WithIdentity("DirectDebitTrigger", "MovimientosGroup")
+//            .WithCronSchedule("0 0 0 * * ?")  // todos los días a las 0:00 horas
+            .WithCronSchedule("0 * * * * ?")  // Una vez por minuto
+            .Build();
+
+        // Asignar el trabajo al disparador
+        await scheduler.ScheduleJob(job, trigger);
+
+        // Iniciar el planificador
+        await scheduler.Start();
+    }
+    
     static void DropDatabaseTables(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
