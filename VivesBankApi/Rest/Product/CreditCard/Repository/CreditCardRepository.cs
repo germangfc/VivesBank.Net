@@ -1,4 +1,5 @@
-﻿using VivesBankApi.Database;
+﻿using Microsoft.EntityFrameworkCore;
+using VivesBankApi.Database;
 using VivesBankApi.Rest.Product.CreditCard.Models;
 
 
@@ -7,5 +8,11 @@ public class CreditCardRepository : GenericRepository<BancoDbContext, CreditCard
     public CreditCardRepository(BancoDbContext context, ILogger<CreditCardRepository> logger)
         : base(context, logger)
     {
+    }
+
+    public async Task<CreditCard?> GetByCardNumber(string cardNumber)
+    {
+        _logger.LogInformation($"Getting credit card with card number: {cardNumber}");
+        return await _dbSet.FirstOrDefaultAsync(a => a.CardNumber == cardNumber);
     }
 }

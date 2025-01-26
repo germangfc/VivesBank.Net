@@ -170,7 +170,8 @@ public class MovimientoService(
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
 
         // Validar que la tarjeta existe
-        //var clientCard = creditCardService.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta);
+        var clientCard = creditCardService.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta);
+        if (clientCard is null) throw new PagoTarjetaCreditCardNotFoundException(pagoConTarjeta.NumeroTarjeta);
         
         // Validar que el cliente tiene esa tarjeta asociada a alguna de sus cuentas
         var clientAccounts = await accountsService.GetCompleteAccountByClientIdAsync(client.Id);
