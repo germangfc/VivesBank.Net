@@ -28,6 +28,19 @@ public static class AccountMappers
         };
     }
     
+    public static Account fromDtoRequest(this UpdateAccountRequest updateRequest)
+    {
+        return new Account
+        {
+            ProductId = updateRequest.ProductID, // Luego en el servicio le cambio el nombre por el id del producto
+            ClientId = updateRequest.ClientID,
+            TarjetaId = updateRequest.TarjetaId,
+            IBAN = updateRequest.IBAN,
+            Balance = updateRequest.Balance,
+            AccountType = updateRequest.AccountType
+        };
+    }
+    
     public static AccountCompleteResponse toCompleteResponse(this Account account)
     {
         return new AccountCompleteResponse

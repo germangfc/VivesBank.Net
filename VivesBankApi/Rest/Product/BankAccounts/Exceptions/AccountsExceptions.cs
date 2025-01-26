@@ -12,5 +12,9 @@ public class AccountsExceptions(String message) : Exception(message)
     public class AccountIbanNotGeneratedException() : AccountsExceptions($"Iban Couldnt be created after 1000 tries");
     
     public class AccountUnknownIban(String Iban) : AccountsExceptions($"Unknown Iban {Iban}");
-    
+
+    public class AccountNotUpdatedException(string id)
+        : AccountsExceptions($"Account couldn't be updated, Id = {id}, check that te client and the product exists");
+
+    public class AccountIbanNotValid(string iban) : AccountsExceptions($"Account IBAN number is not valid: {iban}");
 }

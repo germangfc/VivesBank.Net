@@ -99,6 +99,8 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 /************************** ACCOUNT EXCEPTIONS *****************************************************/
                 case AccountsExceptions.AccountNotCreatedException:
                 case AccountsExceptions.AccountUnknownIban:
+                case AccountsExceptions.AccountIbanNotValid:
+                case AccountsExceptions.AccountNotUpdatedException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
