@@ -248,7 +248,7 @@ public class MovimientoService(
         Movimiento newDestinationMovement = new Movimiento
         {
             ClienteGuid = destinationAccount.clientID,
-            Transferencia = transferencia.
+            Transferencia = transferencia
         };
         
         // Guardar el movimiento destino
@@ -289,7 +289,6 @@ public class MovimientoService(
         if (originalMovement is null) throw new MovimientoNotFoundException(movimientoTransferenciaGuid);
         
         // validar que no haya pasado 1 dia 
-        //domiciliacion.UltimaEjecucion.AddDays(1) < ahora;
         var dateOriginalMovement = originalMovement.CreatedAt;
         if (dateOriginalMovement.HasValue && dateOriginalMovement.Value.AddDays(1) < DateTime.Now) throw new NotRevocableMovimientoException(movimientoTransferenciaGuid);
 
@@ -312,14 +311,29 @@ public class MovimientoService(
         // Revertir la transferencia
 
         // Restar de la cuenta destino
-
+        var transferAmount = originalMovement.Transferencia.Cantidad;
+        destinationAccount.Balance -= transferAmount;
+//        await accountsService.UpdateAccountAsync(destinationAccount.Id, new UpdateAccountRequest { Balance = destinationAccount.Balance });
+        
         // Sumar a la cuenta origen
-
+        originAccount.Balance += transferAmount;
+//       await accountsService.UpdateAccountAsync(originAccount.Id, new UpdateAccountRequest { Balance = originAccount.Balance });
 
         // Marcar el movimiento original como revocado (si es necesario)
-
-        // Marcar ambos movimientos como eliminados
-
+        var originalDestinationMovement =
+            await movimientoRepository.GetMovimientoByGuidAsync(originalMovement.Transferencia.MovimientoDestino);
+        if (originalDestinationMovement is null)
+            throw new MovimientoNotFoundException(originalMovement.Transferencia.MovimientoDestino);
+        
+        // Marcar ambos movimientos como eliminados, simplemente se anulan, no se crean nuevos movimientos de revocación
+        originalMovement.IsDeleted = true;
+        await movimientoRepository.UpdateMovimientoAsync(originalMovement.Id, originalMovement);
+        originalDestinationMovement.IsDeleted = true;
+        await movimientoRepository.UpdateMovimientoAsync(originalDestinationMovement.Id, originalDestinationMovement);
+        
+        // Notificar la revocación de la transferencia
+        
         // Retornar respuesta
+        return originalMovement;
     }
 }
