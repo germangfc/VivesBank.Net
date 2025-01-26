@@ -40,6 +40,7 @@
     using VivesBankApi.WebSocket.Service;
     using Quartz;
     using Quartz.Impl;
+    using Quartz.Spi;
     using VivesBankApi.Rest.Movimientos.Jobs;
 
     Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
@@ -50,17 +51,15 @@
 
     var logger = InitLogConfig(); // Inicializa y configura el logger de Serilog para registrar eventos y mensajes.
 
-    await InitDomiciliacionSchedulerAsync(); // Configura e inicia el planificador de domiciliaciones
-
     var builder = InitServices(); // Configura y obtiene un WebApplicationBuilder con servicios necesarios.
 
     builder.Services.AddControllers(); // Agrega soporte para controladores, permitiendo manejar solicitudes HTTP.
 
     builder.Services.AddEndpointsApiExplorer(); // Agrega servicios para explorar los endpoints de la API, necesario para Swagger.
 
-    
     var app = builder.Build(); // Construye la aplicación web a partir del WebApplicationBuilder.
 
+    await InitDomiciliacionSchedulerAsync(app.Services); // Configura e inicia el planificador de domiciliaciones
 
     if (app.Environment.IsDevelopment()) // Verifica si el entorno es de desarrollo.
     {
@@ -93,11 +92,11 @@
 
     app.Run(); // Inicia la aplicación y comienza a escuchar las solicitudes HTTP entrantes.
 
-    static async Task InitDomiciliacionSchedulerAsync()
+    static async Task InitDomiciliacionSchedulerAsync(IServiceProvider serviceProvider)
     {
         // Crear el planificador de Quartz
         var schedulerFactory = new StdSchedulerFactory();
-        var scheduler = await schedulerFactory.GetScheduler();
+        var scheduler = serviceProvider.GetRequiredService<IScheduler>();
 
         // Crear el trabajo para las domiciliaciones
         var job = JobBuilder.Create<DomiciliacionScheduler>()
@@ -108,7 +107,7 @@
         var trigger = TriggerBuilder.Create()
             .WithIdentity("DirectDebitTrigger", "MovimientosGroup")
 //            .WithCronSchedule("0 0 0 * * ?")  // todos los días a las 0:00 horas
-            .WithCronSchedule("0 * * * * ?")  // Una vez por minuto
+            .WithCronSchedule("0/10 * * * * ?")  // Una vez por minuto
             .Build();
 
         // Asignar el trabajo al disparador
@@ -336,6 +335,21 @@
         myBuilder.Services.AddScoped<ExpirationDateGenerator>();
     // NUMBER GENERATOR
         myBuilder.Services.AddScoped<NumberGenerator>();
+        
+        
+    // MOVIMIENTO SCHEDULER
+    myBuilder.Services.AddSingleton<IJobFactory, ScopedJobFactory>();
+    myBuilder.Services.AddScoped<DomiciliacionScheduler>();
+    myBuilder.Services.AddSingleton(provider =>
+    {
+        var schedulerFactory = new StdSchedulerFactory();
+        var scheduler = schedulerFactory.GetScheduler().Result;
+        scheduler.JobFactory = provider.GetRequiredService<IJobFactory>();
+        return scheduler;
+    });
+
+
+        
     // // CATEGORIA
     //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
     //     myBuilder.Services.AddScoped<ICategoryService, CategoryService>();
