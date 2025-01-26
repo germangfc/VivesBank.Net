@@ -11,6 +11,7 @@ using VivesBankApi.Rest.Clients.storage.Config;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Repository;
 using Path = System.IO.Path;
+using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace VivesBankApi.Rest.Clients.Service;
 
@@ -86,6 +87,7 @@ public class ClientService : IClientService
         var existingClient = await _clientRepository.getByUserIdAsync(id);
         if (existingClient!= null)
             throw new ClientExceptions.ClientAlreadyExistsException(id);
+        userForFound.Role = Role.Client;
         var client = request.FromDtoRequest();
         client.UserId = userForFound.Id;
         await _clientRepository.AddAsync(client);
@@ -104,7 +106,6 @@ public class ClientService : IClientService
         return clientToUpdate.ToResponse();
     }
     
-    //TODO UPDATE PHOTO DNI  y Photo Perfil unicamente para el patch
     
     public async Task LogicDeleteClientAsync(string id)
     {
@@ -165,7 +166,7 @@ public class ClientService : IClientService
         _logger.LogInformation($"File saved: {fullFileName}");
         return fullFileName;
     }
-
+    
 
 
     public async Task<string> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
