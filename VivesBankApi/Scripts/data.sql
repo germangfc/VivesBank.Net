@@ -34,17 +34,17 @@ VALUES
         FALSE
     );
 
-INSERT INTO Clients (
-    id,
-    "userId",
-    "fullName",
-    address,
-    photo,
-    "idPhoto",
-    "accounts",
-    "createdAt",
-    "updatedAt",
-    "isDeleted"
+INSERT INTO "Clients" (
+    "Id",
+    "UserId",
+    "FullName",
+    "Adress",
+    "Photo",
+    "PhotoDni",
+    "AccountsIds",
+    "CreatedAt",
+    "UpdatedAt",
+    "IsDeleted"
 ) VALUES (
              'eJTX-_GjsQ', 
              'HEm-6JC1644',            
@@ -58,49 +58,49 @@ INSERT INTO Clients (
              false                        
          );
 
-INSERT INTO Products (
-    id,
-    name,
-    "productType",
-    "createdAt",
-    "updatedAt",
-    "isDeleted"
+INSERT INTO "Products" (
+    "Id",
+    "Name",
+    "ProductType",
+    "CreatedAt",
+    "UpdatedAt",
+    "IsDeleted"
 ) VALUES (
              'z-nrYGKQjuM',
              'Black Card',
-             'CreditCard',
+             1,
              NOW(),
              NOW(),
              false
          );
              
-INSERT INTO Products (
-    id,
-    name,
-    "productType",
-    "createdAt",
-    "updatedAt",
-    "isDeleted"
+INSERT INTO "Products" (
+    "Id",
+    "Name",
+    "ProductType",
+    "CreatedAt",
+    "UpdatedAt",
+    "IsDeleted"
 ) VALUES (
     'Z-QnRlm7XQ', 
     'Savings Account', 
-    'BankAccount', 
+    0, 
     NOW(), 
     NOW(), 
     false
 );
 
-INSERT INTO BankAccounts (
-    id,
-    "productId",
-    "clientId",
-    "tarjetaId",
-    iban,
-    balance,
-    "accountType",
-    "createdAt",
-    "updatedAt",
-    "isDeleted"
+INSERT INTO "BankAccounts" (
+    "Id",
+    "ProductId",
+    "ClientId",
+    "TarjetaId",
+    "IBAN",
+    "Balance",
+    "AccountType",
+    "CreatedAt",
+    "UpdatedAt",
+    "IsDeleted"
 ) VALUES (
              'mT_ynBQklw', 
              'Z-QnRlm7XQ',          
@@ -108,7 +108,7 @@ INSERT INTO BankAccounts (
              'gCJCp7lRW4Q',                         
              'ES7620770024003102575766',   
              0.00,                        
-             'SAVING',                     
+             0,                     
              NOW(),                        
              NOW(),                       
              false                         
