@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Service;
@@ -13,6 +15,8 @@ using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
+using VivesBankApi.WebSocket.Model;
+using VivesBankApi.WebSocket.Service;
 
 namespace VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
@@ -24,7 +28,9 @@ public class MovimientoService(
     IAccountsService accountsService,
     ICreditCardService creditCardService,
     ILogger<MovimientoService> logger, 
-    IOptions<ApiConfig> apiConfig)
+    IOptions<ApiConfig> apiConfig,
+    IWebsocketHandler websocketHandler,
+    IHttpContextAccessor httpContextAccessor)
     : IMovimientoService
 {
     public async Task<List<Movimiento>> FindAllMovimientosAsync()
@@ -74,6 +80,7 @@ public class MovimientoService(
         return deletedMovimiento;
     }
 
+    [Authorize]
     public async Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion)
     {
         logger.LogInformation($"Adding domiciliacion cantidad: {domiciliacion.Cantidad}");
@@ -105,7 +112,7 @@ public class MovimientoService(
         domiciliacion.ClienteGuid = client.Id;
     
         // Notificación al cliente
-        
+         await EnviarNotificacionCreacionAsync(user, domiciliacion);
         // Retornar respuesta
         return await domiciliacionRepository.AddDomiciliacionAsync(domiciliacion);
 
@@ -150,7 +157,7 @@ public class MovimientoService(
         var movimientoSaved = await movimientoRepository.AddMovimientoAsync(newMovimiento);
         
         // Notificar al cliente
-        
+        EnviarNotificacionCreacionAsync(user, movimientoSaved);
         // Devolver el movimiento guardado
         return movimientoSaved;
     }
@@ -198,7 +205,7 @@ public class MovimientoService(
         var movimientoSaved = await movimientoRepository.AddMovimientoAsync(newMovimiento);
 
         // Notificar al cliente
-
+        EnviarNotificacionCreacionAsync(user, movimientoSaved);
         // Retornar respuesta
         return movimientoSaved;
 
@@ -213,4 +220,16 @@ public class MovimientoService(
     {
         throw new NotImplementedException();
     }
+    public async Task EnviarNotificacionCreacionAsync<T>(User user, T t)
+    {
+        var notificacion = new Notification<T>
+        {
+            Type = Notification<T>.NotificationType.Create.ToString(),
+            CreatedAt = DateTime.Now,
+            Data = t
+        };
+
+        await websocketHandler.NotifyUserAsync(user.Id, notificacion);
+    }
+
 }
