@@ -55,10 +55,10 @@ public class CreditCardService : ICreditCardService
 
         Models.CreditCard? creditCard = await _creditCardRepository.GetByIdAsync(id);
 
-        if (creditCard == null)
+        if (creditCard != null)
         {
-            _logger.LogError($"Card not found with id {id}");
-            throw new CreditCardException.CreditCardNotFoundException($"Credit card with id '{id}' not found.");
+            await _cache.StringSetAsync(id, JsonConvert.SerializeObject(creditCard), TimeSpan.FromMinutes(10));
+            return creditCard;
         }
         return null;
     }
@@ -91,7 +91,7 @@ public class CreditCardService : ICreditCardService
     public async Task<CreditCardClientResponse> UpdateCreditCardAsync(string cardId, CreditCardUpdateRequest updateRequest)
     {
         _logger.LogInformation($"Updating card: {updateRequest} by Id: {cardId}");
-    
+        
         var creditCard = await _creditCardRepository.GetByIdAsync(cardId);
 
         if (creditCard == null)
@@ -102,19 +102,13 @@ public class CreditCardService : ICreditCardService
 
         creditCard.Pin = updateRequest.Pin;
         creditCard.UpdatedAt = DateTime.Now;
-    
+        
         await _creditCardRepository.UpdateAsync(creditCard);
-
         await _cache.KeyDeleteAsync(cardId);
-        _logger.LogInformation("Attempting to delete card from cache: " + cardId);
-    
         await _cache.StringSetAsync(cardId, JsonConvert.SerializeObject(updateRequest), TimeSpan.FromMinutes(10));
-    
+        
         return creditCard.ToClientResponse();
     }
-
-
-
 
     public Task DeleteCreditCardAsync(string cardId)
     {
