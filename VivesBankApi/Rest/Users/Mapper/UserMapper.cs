@@ -77,4 +77,18 @@ public static class UserMapper
             throw new InvalidRoleException(request.Role);
         }
     }
+    
+    public static User ToUser(this UserResponse user)
+    {
+        User newUser = new User();
+        {
+            newUser.Id = user.Id;
+            newUser.Dni = user.Dni;
+            newUser.Role = (Role) Enum.Parse(typeof(Role), user.Role);
+            newUser.CreatedAt = user.CreatedAt;
+            newUser.UpdatedAt = user.UpdatedAt;
+            newUser.IsDeleted = user.IsDeleted;
+            return newUser;
+        }
+    }
 }

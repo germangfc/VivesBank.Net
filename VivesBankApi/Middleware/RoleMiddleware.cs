@@ -48,7 +48,12 @@ public class RoleMiddleware
                                     new(ClaimTypes.Role, roleName),
                                     new (ClaimTypes.NameIdentifier, userId),
                                 };
-
+                                
+                                if (context.User.Identities.Any())
+                                {
+                                    context.User = new ClaimsPrincipal();
+                                }
+                                _logger.LogDebug($"Role {roleName}");
                                 _logger.LogDebug("Adding identity to user.");
                                 var identity = new ClaimsIdentity(claims, "custom");
                                 context.User.AddIdentity(identity);

@@ -12,11 +12,12 @@ public interface IClientService
         string direction);
     Task<ClientResponse> GetClientByIdAsync(string id);
     Task<ClientResponse> GettingMyClientData();
-    Task<ClientResponse> CreateClientAsync(ClientRequest request);
+    Task<String> CreateClientAsync(ClientRequest request);
     Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request);
     Task LogicDeleteClientAsync(string id);
     
     Task<String> SaveFileAsync(IFormFile file, string baseFileName);
+    Task DeleteMe();
 
     Task<string> UpdateClientDniPhotoAsync(string clientId, IFormFile file);
 

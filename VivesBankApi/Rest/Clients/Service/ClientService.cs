@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Newtonsoft.Json;
 using StackExchange.Redis;
+using VivesBankApi.Middleware.Jwt;
 using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Mappers;
@@ -8,8 +9,11 @@ using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Clients.storage;
 using VivesBankApi.Rest.Clients.storage.Config;
+using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
+using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Repository;
+using VivesBankApi.Rest.Users.Service;
 using Path = System.IO.Path;
 using Role = VivesBankApi.Rest.Users.Models.Role;
 
@@ -19,21 +23,24 @@ public class ClientService : IClientService
 {
     private readonly ILogger _logger;
     private readonly IClientRepository _clientRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly IUserService _userService;
     private readonly IDatabase _cache;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly FileStorageConfig _fileStorageConfig;
+    private readonly IJwtGenerator _jwtGenerator;
     
     public ClientService(
         ILogger<ClientService> logger,
-        IUserRepository userRepository,
+        IUserService userService,
         IClientRepository clientRepository,
         IConnectionMultiplexer connection,
         IHttpContextAccessor httpContextAccessor,
-        FileStorageConfig fileStorageConfig
+        FileStorageConfig fileStorageConfig,
+        IJwtGenerator jwtGenerator
         )
     {
-        _userRepository = userRepository; 
+        _jwtGenerator = jwtGenerator;
+        _userService = userService; 
         _logger = logger;
         _clientRepository = clientRepository;
         _cache = connection.GetDatabase();
@@ -61,7 +68,7 @@ public class ClientService : IClientService
     {
         var user = _httpContextAccessor.HttpContext!.User;
         var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userForFound = await _userRepository.GetByIdAsync(id);
+        var userForFound = await _userService.GetUserByIdAsync(id);
         if (userForFound == null)
             throw new UserNotFoundException(id);
         var client = await _clientRepository.getByUserIdAsync(userForFound.Id);
@@ -77,22 +84,40 @@ public class ClientService : IClientService
         return res.ToResponse();
     }
 
-    public async Task<ClientResponse> CreateClientAsync(ClientRequest request)
+    public async Task<String> CreateClientAsync(ClientRequest request)
     {
         var user = _httpContextAccessor.HttpContext!.User;
         var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userForFound = await _userRepository.GetByIdAsync(id);
+        var userForFound = await _userService.GetUserByIdAsync(id);
+    
         if (userForFound == null)
             throw new UserNotFoundException(id);
+    
         var existingClient = await _clientRepository.getByUserIdAsync(id);
-        if (existingClient!= null)
+        if (existingClient != null)
             throw new ClientExceptions.ClientAlreadyExistsException(id);
-        userForFound.Role = Role.Client;
+    
+        // Actualiza el rol del usuario
+        var userUpdate = new UserUpdateRequest
+        {
+            Role = Role.Client.ToString(),
+        };
+    
         var client = request.FromDtoRequest();
-        client.UserId = userForFound.Id;
+        client.UserId = id;
+    
+        // Actualiza el usuario
+        await _userService.UpdateUserAsync(id, userUpdate);
+    
+        // Agrega el cliente
         await _clientRepository.AddAsync(client);
-        return client.ToResponse();
+
+        // Obtén el usuario actualizado antes de generar el token
+        var updatedUser = await _userService.GetUserByIdAsync(id); // Obtén la última versión del usuario
+        _logger.LogDebug($"Updating user for client rol: {updatedUser.Role}");
+        return _jwtGenerator.GenerateJwtToken(updatedUser.ToUser());
     }
+
 
     public async Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request)
     {
@@ -112,7 +137,37 @@ public class ClientService : IClientService
         _logger.LogInformation($"Setting Client with id {id} to deleted");
         var clientToDelete = await _clientRepository.GetByIdAsync(id)?? throw new ClientExceptions.ClientNotFoundException(id);
         clientToDelete.IsDeleted = true;
+        var userToDelete = await _userService.GetUserByIdAsync(clientToDelete.UserId);
+        var userUpdate = new UserUpdateRequest
+        {
+            Role = Role.Revoked.ToString(),
+            IsDeleted = false
+        };
+        await _userService.UpdateUserAsync(clientToDelete.UserId, userUpdate);
         await _clientRepository.UpdateAsync(clientToDelete);
+    }
+
+    public async Task DeleteMe()
+    {
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userForFound = await _userService.GetUserByIdAsync(id);
+    
+        if (userForFound == null)
+            throw new UserNotFoundException(id);
+    
+        var existingClient = await _clientRepository.getByUserIdAsync(id);
+        if (existingClient != null)
+            throw new ClientExceptions.ClientAlreadyExistsException(id);
+        
+        existingClient.IsDeleted = true;
+        await _clientRepository.UpdateAsync(existingClient);
+        var userUpdate = new UserUpdateRequest
+        {
+            Role = Role.Revoked.ToString(),
+            IsDeleted = false
+        };
+        await _userService.UpdateUserAsync(id, userUpdate);
     }
     
     private async Task<Client?> GetByIdAsync(string id)
@@ -184,7 +239,7 @@ public class ClientService : IClientService
             throw new ClientExceptions.ClientNotFoundException($"Client with ID {clientId} not found.");
         }
 
-        var user = await _userRepository.GetByIdAsync(client.UserId);
+        var user = await _userService.GetUserByIdAsync(client.UserId);
         if (user == null)
         {
             throw new UserNotFoundException(client.UserId);
@@ -222,7 +277,7 @@ public class ClientService : IClientService
             throw new ClientExceptions.ClientNotFoundException($"Client with ID {clientId} not found.");
         }
 
-        var user = await _userRepository.GetByIdAsync(client.UserId);
+        var user = await _userService.GetUserByIdAsync(client.UserId);
         if (user == null)
         {
             throw new UserNotFoundException(client.UserId);

@@ -82,3 +82,55 @@ ORDER BY "MigrationId";
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
+[2025-01-26 20:54:36.933] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 22:33:33.590] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 22:36:25.017] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 23:02:31.453] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 23:07:08.508] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (20ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 23:10:48.454] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 23:24:46.304] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (13ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 23:25:33.619] [ERR] [Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware] An unhandled exception has occurred while executing the request.
+System.ArgumentException: The value passed in must be an enum base or an underlying type for an enum, such as an Int32. (Parameter 'value')
+   at System.RuntimeType.GetEnumName(Object value)
+   at VivesBankApi.Middleware.RoleMiddleware.InvokeAsync(HttpContext context) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Middleware\RoleMiddleware.cs:line 43
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+[2025-01-26 23:28:15.742] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 23:29:20.691] [ERR] [Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware] An unhandled exception has occurred while executing the request.
+System.ArgumentException: The value passed in must be an enum base or an underlying type for an enum, such as an Int32. (Parameter 'value')
+   at System.RuntimeType.GetEnumName(Object value)
+   at VivesBankApi.Middleware.RoleMiddleware.InvokeAsync(HttpContext context) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Middleware\RoleMiddleware.cs:line 44
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+[2025-01-26 23:30:48.635] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
