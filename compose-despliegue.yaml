@@ -1,4 +1,4 @@
-﻿version: "2.1"
+﻿version: "3.8"
 
 services:
   vivesbankapi:
@@ -50,9 +50,6 @@ services:
     image: redis:latest
     container_name: Redis
     restart: always
-    volumes:
-      - /path/to/local/dаta:/root/redis
-      - /path/to/local/redis.conf:/usr/local/etc/redis/redis.conf
     environment:
       - REDIS_PASSWORD=my-password
       - REDIS_PORT=6379
