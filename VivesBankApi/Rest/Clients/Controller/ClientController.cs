@@ -91,6 +91,21 @@ public class ClientController : ControllerBase
         return Ok(client);
     }
     
+    [HttpPut("me")]
+    [Authorize("ClientPolicy")]
+    public async Task<ActionResult<ClientResponse>> UpdateMeAsClient(ClientUpdateRequest request)
+    {
+        _logger.LogInformation($"Updating client registered on the system");
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var client = await _clientService.UpdateMeAsync(request);
+        return Ok(client);
+    }
+    
+    
     [HttpDelete("{id}")]
     [Authorize("AdminPolicy")]
     public async Task DeleteClient(string id)
@@ -99,7 +114,7 @@ public class ClientController : ControllerBase
         await _clientService.LogicDeleteClientAsync(id);
     }
     
-    [HttpDelete("me")]
+    [HttpDelete("baja")]
     [Authorize("ClientPolicy")]
     public async Task DeleteMeClient()
     {

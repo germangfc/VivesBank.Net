@@ -130,6 +130,21 @@ public class ClientService : IClientService
         await _cache.KeyDeleteAsync(id); // Invalidating the cached client
         return clientToUpdate.ToResponse();
     }
+
+    public async Task<ClientResponse> UpdateMeAsync(ClientUpdateRequest request)
+    {
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userForFound = await _userService.GetUserByIdAsync(id);
+        _logger.LogInformation($"Updating client with id {id}");
+        var clientToUpdate = await _clientRepository.getByUserIdAsync(id) ??  throw new ClientExceptions.ClientNotFoundException(id);
+        clientToUpdate.Adress = request.Address;
+        clientToUpdate.FullName = request.FullName;
+        clientToUpdate.UpdatedAt = DateTime.UtcNow;
+        await _clientRepository.UpdateAsync(clientToUpdate);
+        await _cache.KeyDeleteAsync(id);
+        return clientToUpdate.ToResponse();
+    }
     
     
     public async Task LogicDeleteClientAsync(string id)
@@ -157,17 +172,12 @@ public class ClientService : IClientService
             throw new UserNotFoundException(id);
     
         var existingClient = await _clientRepository.getByUserIdAsync(id);
-        if (existingClient != null)
-            throw new ClientExceptions.ClientAlreadyExistsException(id);
+        if (existingClient == null)
+            throw new ClientExceptions.ClientNotFoundException(id);
         
         existingClient.IsDeleted = true;
         await _clientRepository.UpdateAsync(existingClient);
-        var userUpdate = new UserUpdateRequest
-        {
-            Role = Role.Revoked.ToString(),
-            IsDeleted = false
-        };
-        await _userService.UpdateUserAsync(id, userUpdate);
+        await _userService.DeleteUserAsync(id, logically: true);
     }
     
     private async Task<Client?> GetByIdAsync(string id)

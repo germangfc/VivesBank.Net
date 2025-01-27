@@ -33,6 +33,11 @@ public static class UserMapper
             user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
         }
 
+        if (request.IsDeleted != null)
+        {
+            user.IsDeleted = request.IsDeleted;
+        }
+
         if (request.Role != null)
         {
             if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
