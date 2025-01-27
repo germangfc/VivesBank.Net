@@ -1,0 +1,19 @@
+server {
+    listen 80;
+    listen [::]:80;
+
+    root /var/www/html;
+    index index.html;
+
+    # Redirect all requests without the /coverage prefix to /coverage/
+    location / {
+        if ($request_uri !~ ^/coverage) {
+            return 301 /coverage$request_uri;
+        }
+    }
+
+    location /coverage {
+        alias /var/www/html/;
+        try_files $uri $uri/ /index.html;
+    }
+}
