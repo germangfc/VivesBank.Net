@@ -9,11 +9,11 @@
     depends_on:
       - mongo-db
       - postgres
+      - ftp-server
     networks:
       - banco-network
     environment:
       - ASPNETCORE_ENVIRONMENT=DEVELOPMENT
-
 
   mongo-db:
     container_name: tienda-mongo
@@ -31,7 +31,6 @@
     networks:
       - banco-network
   
-  
   postgres:
     image: postgres:latest
     container_name: postgres_container
@@ -46,7 +45,7 @@
       - postgres_data:/var/lib/postgresql/data
     networks:
       - banco-network
-        
+
   redis:
     image: redis:latest
     container_name: Redis
@@ -61,9 +60,28 @@
       - REDIS_PORT=6379
       - REDIS_DATABASES=16
 
+  ftp-server:
+    image: fauria/vsftpd
+    container_name: ftp-server
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    environment:
+      FTP_USER: "myuser"
+      FTP_PASS: "mypass"
+      PASV_ADDRESS: "127.0.0.1"
+      PASV_MIN_PORT: 21000
+      PASV_MAX_PORT: 21010
+      FTP_HOME: "/home/vsftpd"
+    volumes:
+      - "./ftp_data:/home/vsftpd"
+    networks:
+      - banco-network
+
 volumes:
   mongo-init:
   postgres_data:
+  ftp-data:
 
 networks:
   banco-network:

@@ -25,7 +25,8 @@ public interface IClientService
     Task<bool> DeleteFileAsync(string fileName);
     
     //Funciones para storage remoto FTP
-    Task<string> SaveFileToFtpAsync(IFormFile file);
+    Task<string> SaveFileToFtpAsync(IFormFile file, string dni);
     Task<FileStream> GetFileFromFtpAsync(string fileName);
+    Task<string> UpdateClientPhotoDniAsync(string userId, IFormFile file);
     Task DeleteFileFromFtpAsync(string fileName);
 }

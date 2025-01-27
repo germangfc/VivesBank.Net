@@ -1,0 +1,691 @@
+[2025-01-26 11:46:45.316] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (71ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 11:49:27.976] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 266
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 394
+[2025-01-26 11:49:28.069] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 266
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 394
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 12:42:19.794] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (53ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 12:44:46.928] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 266
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 394
+[2025-01-26 12:44:46.944] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 266
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 394
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 13:08:45.643] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (49ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 13:09:49.459] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 269
+[2025-01-26 13:09:49.486] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 269
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 436
+[2025-01-26 13:09:49.517] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 269
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 436
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 13:13:11.378] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (72ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 13:14:18.138] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] La configuración de almacenamiento remoto (_fileStorageRemoteConfig) es nula.
+[2025-01-26 13:14:18.142] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.InvalidOperationException: La configuración de almacenamiento remoto no está disponible.
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 271
+[2025-01-26 13:14:18.176] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.InvalidOperationException: La configuración de almacenamiento remoto no está disponible.
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 271
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 13:17:17.099] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (83ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 13:18:20.563] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+[2025-01-26 13:18:20.582] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 13:18:20.615] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 13:19:16.737] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (60ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 13:20:06.494] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+VivesBankApi.Rest.Clients.Exceptions.ClientExceptions+ClientNotFoundException: Client not found by id El cliente con ClientId Jf270rHgy-M no existe.
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 433
+[2025-01-26 13:20:46.771] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+[2025-01-26 13:20:46.781] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 13:20:46.792] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 13:24:53.052] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (48ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 13:25:49.890] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+[2025-01-26 13:25:49.909] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 13:25:49.940] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 13:29:22.795] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (47ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 13:30:41.823] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+[2025-01-26 13:30:41.847] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 13:30:41.898] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 13:44:07.582] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (53ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 13:45:27.077] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+[2025-01-26 13:45:27.095] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 13:45:27.118] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 13:57:05.359] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (73ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 13:58:46.319] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+[2025-01-26 13:58:46.350] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 13:58:46.392] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 14:00:59.039] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (45ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 14:03:39.975] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+[2025-01-26 14:03:39.998] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 14:03:40.024] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 14:11:19.600] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (56ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 14:12:12.783] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+[2025-01-26 14:12:12.802] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 14:12:12.834] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 14:17:25.168] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (53ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 14:21:00.759] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (51ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 18:51:02.149] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (58ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 18:53:32.767] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+[2025-01-26 18:53:32.786] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 18:53:32.810] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 19:17:34.280] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (59ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 19:49:53.020] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (50ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 19:51:43.525] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+[2025-01-26 19:51:43.558] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+[2025-01-26 19:51:43.591] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 305
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 451
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-26 20:18:39.233] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (48ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-26 20:19:25.222] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 310
+[2025-01-26 20:19:25.241] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 310
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 456
+[2025-01-26 20:19:25.266] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (11001): Host desconocido.
+   at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+   at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.GetCachedHostAddressesAsync(String host, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 310
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 456
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 145
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16

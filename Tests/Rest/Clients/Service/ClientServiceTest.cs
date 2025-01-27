@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using System.Text.Json;
+using Castle.Core.Configuration;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using NUnit.Framework.Legacy;
@@ -29,20 +30,33 @@ public class ClientServiceTests
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<ILogger<ClientService>> _loggerMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private readonly Mock<IConfiguration> _configurationMock;
     private readonly ClientService _clientService;
     private readonly FileStorageConfig _fileStorageConfig;
-    private readonly FileStorageRemoteConfig _fileStorageRemoteConfig;
     
     public ClientServiceTests()
     {
         _connection = new Mock<IConnectionMultiplexer>();
         _cache = new Mock<IDatabase>();
         _connection.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_cache.Object);
+
         _clientRepositoryMock = new Mock<IClientRepository>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<ClientService>>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _clientService = new ClientService(_loggerMock.Object, _userRepositoryMock.Object, _clientRepositoryMock.Object, _connection.Object, _httpContextAccessorMock.Object, _fileStorageConfig, _fileStorageRemoteConfig);
+        _configurationMock = new Mock<IConfiguration>();
+
+        _fileStorageConfig = new FileStorageConfig();
+
+        _clientService = new ClientService(
+            _loggerMock.Object,
+            _userRepositoryMock.Object,
+            _clientRepositoryMock.Object,
+            _connection.Object,
+            _httpContextAccessorMock.Object,
+            _fileStorageConfig,
+            _configurationMock.Object
+        );
     }
     
     [TearDown]
