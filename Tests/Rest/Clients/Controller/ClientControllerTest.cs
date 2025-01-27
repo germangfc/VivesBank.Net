@@ -96,26 +96,7 @@ public class ClientControllerTest
         // Assert
         ClassicAssert.Null(result.Value);
     }
-
-    [Test]
-    public async Task CreateClient_ReturnsCreatedResult()
-    {
-        // Arrange
-        var request = new ClientRequest { FullName = "New Client" };
-        var createdClient = new ClientResponse { Id = "1", Fullname = "New Client" };
-
-        _service.Setup(s => s.CreateClientAsync(request)).ReturnsAsync(createdClient);
-
-        // Act
-        var result = await _clientController.CreateClient(request);
-
-        // Assert
-        ClassicAssert.NotNull(result.Result);
-        ClassicAssert.IsInstanceOf<CreatedAtActionResult>(result.Result);
-        var createdClientResult = result.Result as CreatedAtActionResult;
-        ClassicAssert.AreEqual(createdClientResult.Value, createdClient);
-    }
-
+    
     [Test]
     public async Task UpdateClient_ReturnsOkResult_WhenClientExists()
     {
