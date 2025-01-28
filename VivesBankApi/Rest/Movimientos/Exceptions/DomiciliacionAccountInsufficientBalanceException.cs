@@ -1,4 +1,4 @@
 ﻿namespace VivesBankApi.Rest.Movimientos.Exceptions;
 
-public class DomiciliacionAccountInsufficientBalance(string IBAN) 
+public class DomiciliacionAccountInsufficientBalanceException(string IBAN) 
     : MovimientoException($"Insufficient balance for direct debit from account IBAN {IBAN} ");

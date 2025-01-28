@@ -25,8 +25,8 @@ public class DomiciliacionScheduler(
         logger.LogInformation("Processing scheduled direct debits (domiciliaciones)"); 
         
         // Filtrar domiciliaciones activas que requieren ejecución
-        var domiciliaciones = (await domiciliacionRepository.GetAllDomiciliacionesAsync())
-            .Where(d => d.Activa && RequiereEjecucion(d, DateTime.Now))
+        var domiciliaciones = (await domiciliacionRepository.GetAllDomiciliacionesActivasAsync())
+            .Where(d => RequiereEjecucion(d, DateTime.Now))
             .ToList();
 
         // Lanzamos asíncronamente las actualizaciones. Foreach no las lanza asíncronamente y 
@@ -57,7 +57,7 @@ public class DomiciliacionScheduler(
         if (originAccount == null) throw new AccountsExceptions.AccountNotFoundByIban(domiciliacion.IbanOrigen);
 
         // Comprobación saldo suficiente
-        if (originAccount.Balance < domiciliacion.Cantidad) throw new DomiciliacionAccountInsufficientBalance(domiciliacion.IbanOrigen);
+        if (originAccount.Balance < domiciliacion.Cantidad) throw new DomiciliacionAccountInsufficientBalanceException(domiciliacion.IbanOrigen);
 
         // Restamos del saldo y actualizamos la cuenta
         originAccount.Balance -= domiciliacion.Cantidad;

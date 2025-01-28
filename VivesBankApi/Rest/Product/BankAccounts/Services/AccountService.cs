@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Repositories;
+using VivesBankApi.Rest.Movimientos.Validators;
+using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
 using VivesBankApi.Rest.Product.BankAccounts.Mappers;
 using VivesBankApi.Rest.Product.BankAccounts.Models;
@@ -114,6 +116,35 @@ public class AccountService : IAccountsService
         account.Balance = 0;
         await _accountsRepository.AddAsync(account);
         return account.toResponse();
+    }
+
+    public async Task<AccountResponse> UpdateAccountAsync(string id, UpdateAccountRequest request)
+    {
+        _logger.LogInformation($"Updating account with id {id}");
+        
+        var account = await _accountsRepository.GetByIdAsync(id);
+        if (account == null) throw new AccountsExceptions.AccountNotFoundException(id);
+        
+        if (await _productRepository.GetByNameAsync(request.ProductID) == null)
+            throw new AccountsExceptions.AccountNotUpdatedException(id);
+    
+        if (await _clientRepository.GetByIdAsync(request.ClientID) == null)
+            throw new AccountsExceptions.AccountNotCreatedException();
+
+        if (!IbanValidator.ValidateIban(request.IBAN)) 
+            throw new AccountsExceptions.AccountIbanNotValid(request.IBAN);
+
+        if (!Enum.IsDefined(typeof(AccountType), request.AccountType)) 
+            throw new AccountsExceptions.AccountNotUpdatedException(id);
+
+        var updatingAccount = request.fromDtoRequest();
+        updatingAccount.Id = account.Id;
+        updatingAccount.UpdatedAt = DateTime.UtcNow;
+        updatingAccount.IsDeleted = account.IsDeleted;
+
+        await _accountsRepository.UpdateAsync(updatingAccount);
+        return updatingAccount.toResponse();
+        
     }
 
     public async Task DeleteAccountAsync(string id)
