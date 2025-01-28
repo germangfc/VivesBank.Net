@@ -1,0 +1,7 @@
+[2025-01-25 17:21:06.768] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (55ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-25 17:22:18.058] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+VivesBankApi.Rest.Users.Exceptions.UserNotFoundException: The user with id: El usuario con UserId O8nCXmrckEI no existe. was not found
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String userId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 383

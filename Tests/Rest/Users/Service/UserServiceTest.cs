@@ -38,7 +38,6 @@ public class UserServiceTest
     private Mock<IHttpContextAccessor> _httpContextAccessor;
     
     
-
     [SetUp]
     public void SetUp()
     {
@@ -783,6 +782,162 @@ public class UserServiceTest
         Assert.That(result.Message, Is.EqualTo($"A user with the username '{loginRequest.Dni}' already exists."));
         
     }
+
+    [Test]
+    public async Task UpdateMyPassword_Success()
+    {
+        // Arrange
+        var userId = "test-user-id";
+        var oldPassword = "old-password";
+        var newPassword = "new-password";
+        var hashedNewPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+        var user = new User
+        {
+            Id = userId,
+            Password = BCrypt.Net.BCrypt.HashPassword(oldPassword),
+            Dni = "test-dni"
+        };
+
+        var updatePasswordRequest = new UpdatePasswordRequest
+        {
+            Password = newPassword
+        };
+
+        // Set up HttpContext with claims
+        var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId) };
+        var identity = new ClaimsIdentity(claims);
+        var principal = new ClaimsPrincipal(identity);
+        var mockHttpContext = new DefaultHttpContext { User = principal };
+
+        _httpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext);
+
+        userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId))
+            .ReturnsAsync(user);
+
+        userRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<User>()))
+            .Returns(Task.CompletedTask)
+            .Callback<User>(u => u.Password = hashedNewPassword); // Ensure the password is updated
+
+        _cache.Setup(cache => cache.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await userService.UpdateMyPassword(updatePasswordRequest);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            ClassicAssert.IsNotNull(result);
+            ClassicAssert.AreEqual(userId, result.Id);
+            ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(newPassword, result.Password));
+        });
+
+        userRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u => u.Password == hashedNewPassword)), Times.Once);
+        _cache.Verify(cache => cache.KeyDeleteAsync(userId, It.IsAny<CommandFlags>()), Times.Once);
+        _cache.Verify(cache => cache.KeyDeleteAsync("users:" + user.Dni.Trim().ToUpper(), It.IsAny<CommandFlags>()), Times.Once);
+    }
+    
+    [Test]
+    public async Task UpdateMyPassword_NotSuccess_UserNotFound()
+    {
+        // Arrange
+        var userId = "non-existent-user-id";
+        var newPassword = "new-password";
+
+        var updatePasswordRequest = new UpdatePasswordRequest
+        {
+            Password = newPassword
+        };
+
+        // Set up HttpContext with claims
+        var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId) };
+        var identity = new ClaimsIdentity(claims);
+        var principal = new ClaimsPrincipal(identity);
+        var mockHttpContext = new DefaultHttpContext { User = principal };
+
+        _httpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext);
+
+        userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId))
+            .ReturnsAsync((User)null); // User not found
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(async () =>
+            await userService.UpdateMyPassword(updatePasswordRequest)
+        );
+        Assert.That(ex.Message, Is.EqualTo($"The user with id: {userId} was not found"));
+
+        userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Never);
+        _cache.Verify(cache => cache.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Never);
+    }
+    
+    [Test]
+public async Task DeleteMeAsync_Success()
+{
+    // Arrange
+    var userId = "test-user-id";
+    var user = new User
+    {
+        Id = userId,
+        Dni = "test-dni",
+        IsDeleted = false,
+        Role = Role.User
+    };
+
+    // Set up HttpContext with claims
+    var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId) };
+    var identity = new ClaimsIdentity(claims);
+    var principal = new ClaimsPrincipal(identity);
+    var mockHttpContext = new DefaultHttpContext { User = principal };
+
+    _httpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext);
+
+    userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId))
+        .ReturnsAsync(user);
+
+    userRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<User>()))
+        .Returns(Task.CompletedTask);
+
+    _cache.Setup(cache => cache.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+        .ReturnsAsync(true);
+
+    // Act
+    await userService.DeleteMeAsync();
+
+    // Assert
+    userRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<User>(u => u.IsDeleted && u.Role == Role.Revoked)), Times.Once);
+    _cache.Verify(cache => cache.KeyDeleteAsync(userId, It.IsAny<CommandFlags>()), Times.Once);
+    _cache.Verify(cache => cache.KeyDeleteAsync("users:" + user.Dni.Trim().ToUpper(), It.IsAny<CommandFlags>()), Times.Once);
+}
+
+[Test]
+public async Task DeleteMeAsync_UserNotFound()
+{
+    // Arrange
+    var userId = "xxx";
+
+    // Set up HttpContext with claims
+    var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId) };
+    var identity = new ClaimsIdentity(claims);
+    var principal = new ClaimsPrincipal(identity);
+    var mockHttpContext = new DefaultHttpContext { User = principal };
+
+    _httpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext);
+
+    userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId))
+        .ReturnsAsync((User)null); // User not found
+
+    // Act & Assert
+    var ex = Assert.ThrowsAsync<UserNotFoundException>(async () =>
+        await userService.DeleteMeAsync()
+    );
+    Assert.That(ex.Message, Is.EqualTo($"The user with id: {userId} was not found"));
+
+    userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Never);
+    _cache.Verify(cache => cache.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Never);
+}
+    
+    
     /*
     [Test]
     public async Task GenerateJwtToken()
