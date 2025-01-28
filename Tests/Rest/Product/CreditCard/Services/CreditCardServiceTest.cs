@@ -73,7 +73,7 @@ public class CreditCardServiceTest
     }
     
     [Test]
-    public async Task GetAllCreditCardAdminAsync_ShouldReturnAllCreditCards()
+    public async Task GetAllCreditCardAdminAsync()
     {
         // Arrange
         var creditCards = new List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard> { _CreditCard1, _CreditCard2 };
@@ -116,6 +116,27 @@ public class CreditCardServiceTest
         // Verify
         creditCardRepositoryMock.Verify(repo => repo.GetByIdAsync(_CreditCard1.Id), Times.Never);
     }
+    
+    [Test]
+    public async Task GetCreditCardByIdAdminAsync_WhenCardFound()
+    {
+        // Arrange
+        var cardId = _CreditCard1.Id;
+        creditCardRepositoryMock.Setup(repo => repo.GetByIdAsync(cardId)).ReturnsAsync(_CreditCard1);
+
+        // Act
+        var result = await CreditCardService.GetCreditCardByIdAdminAsync(cardId);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            ClassicAssert.IsNotNull(result);
+            ClassicAssert.AreEqual(_CreditCard1.CardNumber, result.CardNumber);
+        });
+
+        // Verify
+        creditCardRepositoryMock.Verify(repo => repo.GetByIdAsync(cardId), Times.Once);
+    }
 
     [Test]
     public void GetCreditCardByIdAdminAsync_NotFound()
@@ -130,10 +151,9 @@ public class CreditCardServiceTest
         });
     }
     
-    
 
     [Test]
-    public async Task CreateCreditCardAsync_WhenAccountExists_ShouldCreateCreditCard()
+    public async Task CreateCreditCardAsync_WhenAccountExists()
     {
         // Arrange
         var createRequest = new CreditCardRequest
@@ -167,6 +187,29 @@ public class CreditCardServiceTest
         });
 
         creditCardRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>()), Times.Once);
+    }
+    
+    [Test]
+    public async Task CreateCreditCardAsync_WhenAccountIsNull()
+    {
+        // Arrange
+        var createRequest = new CreditCardRequest
+        {
+            AccountIban = "IBAN123456789",
+            Pin = "1234"
+        };
+
+        accountsRepositiryMock
+            .Setup(repo => repo.getAccountByIbanAsync(createRequest.AccountIban)).ReturnsAsync((Account?)null);
+
+        // Act & Assert
+        var exception = Assert.ThrowsAsync<Exception>(async () =>
+            await CreditCardService.CreateCreditCardAsync(createRequest));
+
+        ClassicAssert.AreEqual(createRequest.AccountIban, exception.Message);
+
+        // Verify
+        accountsRepositiryMock.Verify(repo => repo.getAccountByIbanAsync(createRequest.AccountIban), Times.Once);
     }
 
     [Test]

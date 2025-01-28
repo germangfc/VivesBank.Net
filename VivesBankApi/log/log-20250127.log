@@ -1,0 +1,104 @@
+[2025-01-27 11:12:17.700] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (19ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 11:27:09.694] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (20ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 11:30:45.295] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 11:38:07.626] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 11:54:28.524] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 12:05:16.182] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 12:31:26.905] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 12:38:24.040] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (13ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 12:41:50.598] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 19:33:33.862] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 19:42:25.304] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 19:49:31.125] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 20:08:02.530] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 20:11:33.325] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 20:12:58.229] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 20:19:53.423] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 20:27:40.746] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 20:34:54.189] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-27 20:37:11.766] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException: The database operation was expected to affect 1 row(s), but actually affected 0 row(s); data may have been modified or deleted since entities were loaded. See https://go.microsoft.com/fwlink/?LinkId=527962 for information on understanding and handling optimistic concurrency exceptions.
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal.NpgsqlModificationCommandBatch.ThrowAggregateUpdateConcurrencyExceptionAsync(RelationalDataReader reader, Int32 commandIndex, Int32 expectedRowsAffected, Int32 rowsAffected, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal.NpgsqlModificationCommandBatch.Consume(RelationalDataReader reader, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChangesAsync(IList`1 entries, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at GenericRepository`2.UpdateAsync(T entity) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Utils\GenericRepository\GenericRepository.cs:line 54
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateMeAsync(ClientUpdateRequest request) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 144
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateMeAsClient(ClientUpdateRequest request) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 104
+   at lambda_method250(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-27 20:40:10.411] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";

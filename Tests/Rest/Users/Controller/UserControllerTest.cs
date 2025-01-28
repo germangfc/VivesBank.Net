@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Moq;
 using NUnit.Framework.Legacy;
+using Quartz;
+using VivesBankApi.Middleware.Jwt;
 using VivesBankApi.Rest.Users.Controller;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
@@ -13,12 +15,13 @@ namespace Tests.Rest.Users.Controller
     {
         private Mock<IUserService> _service;
         private UserController _userController;
+        private Mock<IJwtGenerator> _jwtGenerator;
 
         [SetUp]
         public void Setup()
         {
             _service = new Mock<IUserService>();
-            _userController = new UserController(_service.Object);
+            _userController = new UserController(_service.Object, _jwtGenerator.Object);
         }
 
         [Test]

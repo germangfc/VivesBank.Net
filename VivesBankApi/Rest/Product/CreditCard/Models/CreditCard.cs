@@ -24,7 +24,7 @@ public class CreditCard
     [Required]
     public DateOnly ExpirationDate { get; set; }
     
-    public DateTime CreatedAt = DateTime.Now;
-    public DateTime UpdatedAt = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
     public bool IsDeleted { get; set; } = false;
 }

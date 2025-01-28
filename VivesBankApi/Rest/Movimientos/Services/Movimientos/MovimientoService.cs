@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Exceptions;
@@ -17,6 +18,7 @@ using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
 using VivesBankApi.WebSocket.Model;
 using VivesBankApi.WebSocket.Service;
+using JsonConvert = Newtonsoft.Json.JsonConvert;
 
 namespace VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
@@ -30,9 +32,10 @@ public class MovimientoService(
     ILogger<MovimientoService> logger, 
     IOptions<ApiConfig> apiConfig,
     IWebsocketHandler websocketHandler
-   )
+    IConnectionMultiplexer connection)
     : IMovimientoService
 {
+    private readonly IDatabase _cache = connection.GetDatabase();
     public async Task<List<Movimiento>> FindAllMovimientosAsync()
     {
         logger.LogInformation("Finding all movimientos");
@@ -42,7 +45,7 @@ public class MovimientoService(
     public async Task<Movimiento> FindMovimientoByIdAsync(String id)
     {
         logger.LogInformation($"Finding movimiento by id: {id}");
-        var movimiento = await movimientoRepository.GetMovimientoByIdAsync(id);
+        var movimiento = await GetByIdAsync(id);
         if (movimiento is null) throw new MovimientoNotFoundException(id);
         return movimiento;
     }
@@ -50,7 +53,7 @@ public class MovimientoService(
     public async Task<Movimiento> FindMovimientoByGuidAsync(string guid)
     {
         logger.LogInformation($"Finding movimiento by guid: {guid}");
-        var movimiento = await movimientoRepository.GetMovimientoByGuidAsync(guid);
+        var movimiento = await GetByGuidAsync(guid);
         if (movimiento is null) throw new MovimientoNotFoundException(guid);
         return movimiento;
     }
@@ -70,12 +73,19 @@ public class MovimientoService(
     public async Task<Movimiento> UpdateMovimientoAsync(String id, Movimiento movimiento)
     {
         logger.LogInformation($"Updating movimiento with id: {id}");
+        Movimiento? movimientoToUpdate = await GetByIdAsync(id) ?? throw new MovimientoNotFoundException(id);
+        await _cache.KeyDeleteAsync(movimientoToUpdate.Id);
+        await _cache.KeyDeleteAsync(movimientoToUpdate.Guid);
+        await _cache.StringSetAsync(id, JsonConvert.SerializeObject(movimientoToUpdate), TimeSpan.FromMinutes(10));
         return await movimientoRepository.UpdateMovimientoAsync(id, movimiento);
     }
 
     public async Task<Movimiento> DeleteMovimientoAsync(String id)
     {
         logger.LogInformation($"Deleting movimiento with id: {id}");
+        Movimiento? movimientoToUpdate = await GetByIdAsync(id) ?? throw new MovimientoNotFoundException(id);
+        await _cache.KeyDeleteAsync(movimientoToUpdate.Id);
+        await _cache.KeyDeleteAsync(movimientoToUpdate.Guid);
         var deletedMovimiento = await movimientoRepository.DeleteMovimientoAsync(id);
         return deletedMovimiento;
     }
@@ -220,6 +230,43 @@ public class MovimientoService(
     {
         throw new NotImplementedException();
     }
+    
+    
+    // CACHE
+    
+    private async Task<Movimiento?> GetByIdAsync(string id)
+    {
+        var cachedMovimientos = await _cache.StringGetAsync(id);
+        if (!cachedMovimientos.IsNullOrEmpty)
+        {
+            return JsonConvert.DeserializeObject<Movimiento>(cachedMovimientos);
+        }
+        Movimiento? movimiento = await movimientoRepository.GetMovimientoByIdAsync(id);
+        if (movimiento != null)
+        {
+            await _cache.StringSetAsync("movimiento:" + id, JsonConvert.SerializeObject(movimiento), TimeSpan.FromMinutes(10));
+            return movimiento;
+        }
+        return null;
+    }
+    
+    
+    private async Task<Movimiento?> GetByGuidAsync(string id)
+    {
+        var cachedMovimientos = await _cache.StringGetAsync(id);
+        if (!cachedMovimientos.IsNullOrEmpty)
+        {
+            return JsonConvert.DeserializeObject<Movimiento>(cachedMovimientos);
+        }
+        Movimiento? movimiento = await movimientoRepository.GetMovimientoByGuidAsync(id);
+        if (movimiento != null)
+        {
+            await _cache.StringSetAsync("movimiento:" + id, JsonConvert.SerializeObject(movimiento), TimeSpan.FromMinutes(10));
+            return movimiento;
+        }
+        return null;
+    }
+    
     public async Task EnviarNotificacionCreacionAsync<T>(User user, T t)
     {
         var notificacion = new Notification<T>

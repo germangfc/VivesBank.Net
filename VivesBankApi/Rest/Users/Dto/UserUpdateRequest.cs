@@ -16,4 +16,6 @@ public class UserUpdateRequest
 
     [JsonProperty("role")]
     public string? Role { get; set; } = null;
+    
+    public bool IsDeleted { get; set; }
 }

@@ -22,8 +22,8 @@ public class Account
     [Required]
     public AccountType AccountType { get; set; }
     public double InterestRate => AccountType.GetInterestRate();
-    public DateTime CreatedAt = DateTime.UtcNow;
-    public DateTime UpdatedAt = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public bool IsDeleted { get; set; } = false;
     
     

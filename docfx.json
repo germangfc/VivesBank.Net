@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": ["**/bin/Release/net8.0/VivesBankApi.dll"]
+        }
+      ],
+      "dest": "api"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": ["**/*.{md,yml}"],
+        "exclude": ["_site/**"]
+      }
+    ],
+    "resource": [
+      {
+        "files": ["images/**"]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern",
+      "templates/material"
+    ],
+    "globalMetadata": {
+      "_appName": "VivesBank",
+      "_appTitle": "VivesBank API",
+      "_enableSearch": true,
+      "pdf": false
+    }
+  }
+}
