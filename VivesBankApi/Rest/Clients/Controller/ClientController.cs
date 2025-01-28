@@ -138,22 +138,6 @@ public class ClientController : ControllerBase
         return Ok(new { message = "Profile photo updated successfully", fileName });
     }
     
-    [HttpPatch("{clientId}/dni")]
-    public async Task<IActionResult> UpdateClientPhotoDniAsync(string clientId, IFormFile file)
-    {
-        _logger.LogInformation($"Request to update profile photo for client with ID: {clientId}");
-
-        if (file == null || file.Length == 0)
-        {
-            return BadRequest("No file was provided or the file is empty.");
-        }
-
-        var fileName = await _clientService.UpdateClientPhotoDniAsync(clientId, file);
-
-        return Ok(new { message = "Dni photo updated successfully", fileName });
-    }
-
-
 
     [HttpGet("photo/{fileName}")]
     [Authorize("AdminPolicy")]
