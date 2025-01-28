@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
@@ -19,6 +20,7 @@ public class AccountController : ControllerBase
     
     
     [HttpGet]
+    [Authorize("AdminPolicy")]
     public async Task<IActionResult> GetAllAccounts([FromQuery] int page = 0, [FromQuery] int size = 10, [FromQuery] string sortBy = "id", [FromQuery] string direction = "asc")
     {
         _logger.LogInformation("Getting all accounts with pagination");
@@ -29,6 +31,7 @@ public class AccountController : ControllerBase
 
 
     [HttpGet("{id}")]
+    [Authorize("AdminPolicy")]
     public async Task<ActionResult<AccountResponse>> GetAccountById(string id)
     {
         try
@@ -43,10 +46,19 @@ public class AccountController : ControllerBase
         {
             return NotFound();
         }
-        
+    }
+
+    [HttpGet("me")]
+    [Authorize("ClientPolicy")]
+    public async Task<ActionResult<List<AccountResponse>>> GetMyAccountsAsClientAsync()
+    { 
+        _logger.LogInformation("Getting my accounts as client");
+        var accounts = await _accountsService.GetMyAccountsAsClientAsync();
+        return Ok(accounts);
     }
 
     [HttpGet("iban/{iban}")]
+    [Authorize("AdminPolicy")]
     public async Task<ActionResult<AccountResponse>> GetAccountByIban(String iban)
     {
         try
@@ -62,6 +74,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize("ClientPolicy")]
     public async Task<ActionResult<AccountResponse>> CreateAccount([FromBody] CreateAccountRequest request)
     {
         _logger.LogInformation("Creating new account");
@@ -69,7 +82,17 @@ public class AccountController : ControllerBase
         return Ok(res);
     }
 
+    [HttpDelete("account/{iban}")]
+    [Authorize("ClientPolicy")]
+    public async Task<ActionResult> DeleteMyAccountAsClientAsync(String iban)
+    {
+        _logger.LogInformation($"Deleting account with IBAN {iban}");
+        await _accountsService.DeleteMyAccountAsync(iban);
+        return NoContent();
+    }
+
     [HttpDelete("{id}")]
+    [Authorize("AdminPolicy")]
     public async Task<ActionResult> DeleteAccount(string id)
     {
         
