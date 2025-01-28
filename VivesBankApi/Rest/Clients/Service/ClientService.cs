@@ -14,6 +14,8 @@ using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Service;
+using VivesBankApi.WebSocket.Model;
+using VivesBankApi.WebSocket.Service;
 using Path = System.IO.Path;
 using Role = VivesBankApi.Rest.Users.Models.Role;
 
@@ -28,6 +30,7 @@ public class ClientService : IClientService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly FileStorageConfig _fileStorageConfig;
     private readonly IJwtGenerator _jwtGenerator;
+    private readonly IWebsocketHandler _websocketHandler;
     
     public ClientService(
         ILogger<ClientService> logger,
@@ -36,7 +39,8 @@ public class ClientService : IClientService
         IConnectionMultiplexer connection,
         IHttpContextAccessor httpContextAccessor,
         FileStorageConfig fileStorageConfig,
-        IJwtGenerator jwtGenerator
+        IJwtGenerator jwtGenerator,
+        IWebsocketHandler websocketHandler
         )
     {
         _jwtGenerator = jwtGenerator;
@@ -46,6 +50,7 @@ public class ClientService : IClientService
         _cache = connection.GetDatabase();
         _httpContextAccessor = httpContextAccessor;
         _fileStorageConfig = fileStorageConfig;
+        _websocketHandler = websocketHandler;
     } 
     public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber, 
@@ -143,6 +148,7 @@ public class ClientService : IClientService
         clientToUpdate.UpdatedAt = DateTime.UtcNow;
         await _clientRepository.UpdateAsync(clientToUpdate);
         await _cache.KeyDeleteAsync(id);
+        await EnviarNotificacionUpdateAsync(clientToUpdate.ToResponse());
         return clientToUpdate.ToResponse();
     }
     
@@ -357,4 +363,21 @@ public class ClientService : IClientService
             throw;
         }
     }
+    
+    public async Task EnviarNotificacionUpdateAsync<T>(T t)
+    {
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userForFound = await _userService.GetUserByIdAsync(id);
+        if (userForFound == null)
+            throw new UserNotFoundException(id);
+        var notificacion = new Notification<T>
+        {
+            Type = Notification<T>.NotificationType.Update.ToString(),
+            CreatedAt = DateTime.Now,
+            Data = t
+        };
+        await _websocketHandler.NotifyUserAsync(userForFound.Id, notificacion);
+    }
+
 }
