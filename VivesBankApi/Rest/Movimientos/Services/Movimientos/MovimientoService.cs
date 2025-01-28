@@ -31,7 +31,7 @@ public class MovimientoService(
     ICreditCardService creditCardService,
     ILogger<MovimientoService> logger, 
     IOptions<ApiConfig> apiConfig,
-    IWebsocketHandler websocketHandler
+    IWebsocketHandler websocketHandler,
     IConnectionMultiplexer connection)
     : IMovimientoService
 {
