@@ -1,4 +1,4 @@
 ﻿namespace VivesBankApi.Rest.Movimientos.Exceptions;
 
-public class PagoTarjetaAccountInsufficientBalance(string cardNumber) 
+public class PagoTarjetaAccountInsufficientBalanceException(string cardNumber) 
     : MovimientoException($"Insufficient balance for card payment from card {cardNumber} ");

@@ -1,3 +1,4 @@
 ﻿namespace VivesBankApi.Rest.Movimientos.Exceptions;
 
-public class InvalidDestinationIbanException(string iban) : MovimientoException($"Iban de destino invalido: {iban}");
+public class InvalidDestinationIbanException(string iban) 
+    : MovimientoException($"Destination IBAN not valid: {iban}");

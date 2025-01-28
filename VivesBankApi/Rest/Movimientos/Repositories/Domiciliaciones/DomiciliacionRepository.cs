@@ -27,6 +27,12 @@ public class DomiciliacionRepository: IDomiciliacionRepository
         return await _collection.Find(_ => true).ToListAsync();
     }
 
+    public async Task<List<Domiciliacion>> GetAllDomiciliacionesActivasAsync()
+    {
+        _logger.LogInformation("Getting all active domiciliaciones from the database.");
+        return await _collection.Find(d => d.Activa).ToListAsync();
+    }
+
     public async Task<Domiciliacion> GetDomiciliacionByIdAsync(String id)
     {
         _logger.LogInformation($"Getting domiciliacion with id {id} from the database.");
@@ -64,7 +70,7 @@ public class DomiciliacionRepository: IDomiciliacionRepository
         return await _collection.Find(d => d.ClienteGuid == clienteGuid && d.Activa).ToListAsync();
     }
 
-    public async Task<List<Domiciliacion>> FindByClientGuid(string clientGuid)
+    public async Task<List<Domiciliacion>> GetDomiciliacionByClientGuidAsync(string clientGuid)
     {
         _logger.LogInformation($"Finding domiciliaciones for client with guid {clientGuid}.");
         return await _collection.Find(d => d.ClienteGuid == clientGuid).ToListAsync();
