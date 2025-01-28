@@ -37,12 +37,17 @@ public class UserController : ControllerBase
         {
             return Unauthorized(e.Message);
         }
-        
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+ 
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var user = await _userService.LoginUser(request);
         if (user == null) return Unauthorized("Invalid username or password");
         var token = _jwtGenerator.GenerateJwtToken(user);
@@ -95,7 +100,6 @@ public class UserController : ControllerBase
     }
     
     
-    
     [HttpGet("username/{username}")]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult> GetUserByUsername(string username)
@@ -137,6 +141,10 @@ public class UserController : ControllerBase
     [Authorize(Policy = "AdminOrUserPolicy")]
     public async Task<IActionResult> ChangePassword(UpdatePasswordRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         await _userService.UpdateMyPassword(request);
         return NoContent();
     }
