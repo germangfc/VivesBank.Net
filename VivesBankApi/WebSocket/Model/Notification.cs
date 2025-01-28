@@ -4,6 +4,7 @@ public class Notification<T>
 {
     public enum NotificationType
     {
+        Execute,
         Create,
         Update,
         Delete

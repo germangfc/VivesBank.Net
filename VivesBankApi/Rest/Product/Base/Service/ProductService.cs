@@ -3,6 +3,8 @@ using StackExchange.Redis;
 using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
 using VivesBankApi.Rest.Product.Base.Validators;
+using VivesBankApi.WebSocket.Model;
+using VivesBankApi.WebSocket.Service;
 
 namespace VivesBankApi.Rest.Product.Service;
 
@@ -11,14 +13,16 @@ public class ProductService : IProductService
     private readonly ILogger<ProductService> _logger;
     private readonly IProductRepository _productRepository;
     private readonly ProductValidator _productValidator;
+    private readonly IWebsocketHandler _websocketHandler;
     private readonly IDatabase _cache;
     
-    public ProductService(ILogger<ProductService> logger, IProductRepository productRepository, ProductValidator productValidator, IConnectionMultiplexer connection)
+    public ProductService(ILogger<ProductService> logger, IProductRepository productRepository, ProductValidator productValidator, IConnectionMultiplexer connection, IWebsocketHandler websocketHandler)
     {
         _logger = logger;
         _productRepository = productRepository;
         _productValidator = productValidator;
         _cache = connection.GetDatabase();
+        _websocketHandler = websocketHandler;
     }
     
     public async Task<List<ProductResponse>> GetAllProductsAsync()
@@ -58,7 +62,7 @@ public class ProductService : IProductService
 
         var productModel = ProductMapper.FromDtoRequest(createRequest);
         await _productRepository.AddAsync(productModel);
-    
+        await EnviarNotificacionGlobalCreateAsync(productModel.ToDtoResponse());
         return productModel.ToDtoResponse();
     }
 
@@ -117,5 +121,16 @@ public class ProductService : IProductService
             return product;
         }
         return null;
+    }
+    
+    public async Task EnviarNotificacionGlobalCreateAsync<T>(T t)
+    {
+        var notificacion = new Notification<T>
+        {
+            Type = Notification<T>.NotificationType.Create.ToString(),
+            CreatedAt = DateTime.Now,
+            Data = t
+        };
+        await _websocketHandler.NotifyAllAsync(notificacion);
     }
 }
