@@ -83,6 +83,9 @@ namespace VivesBankApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("IBAN")
                         .IsRequired()
                         .HasColumnType("text");
@@ -96,6 +99,9 @@ namespace VivesBankApi.Migrations
 
                     b.Property<string>("TarjetaId")
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -142,6 +148,9 @@ namespace VivesBankApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Cvc")
                         .IsRequired()
                         .HasColumnType("text");
@@ -155,6 +164,9 @@ namespace VivesBankApi.Migrations
                     b.Property<string>("Pin")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

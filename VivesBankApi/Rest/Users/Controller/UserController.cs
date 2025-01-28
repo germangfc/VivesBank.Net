@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using VivesBankApi.Middleware.Jwt;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Mapper;
@@ -15,10 +16,12 @@ namespace VivesBankApi.Rest.Users.Controller;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IJwtGenerator _jwtGenerator;
     
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, IJwtGenerator jwtGenerator)
     {
         _userService = userService;
+        _jwtGenerator = jwtGenerator;
     }
 
     [HttpPost("register")]
@@ -27,7 +30,7 @@ public class UserController : ControllerBase
         try
         {
             var user = await _userService.RegisterUser(request);
-            var token = _userService.GenerateJwtToken(user);
+            var token = _jwtGenerator.GenerateJwtToken(user);
             return Ok(new { token });
         }
         catch (UserAlreadyExistsException e)
@@ -42,7 +45,7 @@ public class UserController : ControllerBase
     {
         var user = await _userService.LoginUser(request);
         if (user == null) return Unauthorized("Invalid username or password");
-        var token = _userService.GenerateJwtToken(user);
+        var token = _jwtGenerator.GenerateJwtToken(user);
         return Ok(new { token });
     }
     

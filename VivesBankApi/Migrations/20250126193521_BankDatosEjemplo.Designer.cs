@@ -13,8 +13,8 @@ using VivesBankApi.Database;
 namespace VivesBankApi.Migrations
 {
     [DbContext(typeof(BancoDbContext))]
-    [Migration("20250121151353_BankWithAuth")]
-    partial class BankWithAuth
+    [Migration("20250126193521_BankDatosEjemplo")]
+    partial class BankDatosEjemplo
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -86,6 +86,9 @@ namespace VivesBankApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("IBAN")
                         .IsRequired()
                         .HasColumnType("text");
@@ -99,6 +102,9 @@ namespace VivesBankApi.Migrations
 
                     b.Property<string>("TarjetaId")
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -145,6 +151,9 @@ namespace VivesBankApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Cvc")
                         .IsRequired()
                         .HasColumnType("text");
@@ -158,6 +167,9 @@ namespace VivesBankApi.Migrations
                     b.Property<string>("Pin")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
