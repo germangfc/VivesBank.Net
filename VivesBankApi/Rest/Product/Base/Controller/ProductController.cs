@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
 using VivesBankApi.Rest.Product.Service;
@@ -27,6 +28,7 @@ public class ProductController : ControllerBase
     }
     
     [HttpGet("{productId}")]
+    [Authorize("AdminPolicy")]
     public async Task<ActionResult<ProductResponse>> GetProductByIdAsync(string productId)
     {
         _logger.LogInformation($"Getting product with id {productId}");
@@ -43,6 +45,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize("AdminPolicy")]
     public async Task<ActionResult<ProductResponse>> CreateProductAsync(ProductCreateRequest request)
     {
         _logger.LogInformation("Creating a new product");
@@ -51,6 +54,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpPut("{productId}")]
+    [Authorize("AdminPolicy")]
     public async Task<ActionResult<ProductResponse>> UpdateProductAsync(string productId, ProductUpdateRequest request)
     {
         _logger.LogInformation($"Updating product with id {productId}");
@@ -66,6 +70,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpDelete("{productId}")]
+    [Authorize("AdminPolicy")]
     public async Task<IActionResult> DeleteProductAsync(string productId)
     {
         _logger.LogInformation($"Deleting product with id {productId}");
