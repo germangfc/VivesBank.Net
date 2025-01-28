@@ -10,9 +10,13 @@ using VivesBankApi.Rest.Product.BankAccounts.Mappers;
 using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
+using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
+using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.IbanGenerator;
+using VivesBankApi.WebSocket.Model;
+using VivesBankApi.WebSocket.Service;
 
 namespace VivesBankApi.Rest.Product.BankAccounts.Services;
 
@@ -26,8 +30,9 @@ public class AccountService : IAccountsService
     private readonly IDatabase _cache;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserService _userService;
+    private readonly IWebsocketHandler _websocketHandler;
     
-    public AccountService(ILogger<AccountService> logger, IIbanGenerator ibanGenerator,IClientRepository clientRepository,IProductRepository productRepository ,IAccountsRepository accountsRepository, IConnectionMultiplexer connection, IHttpContextAccessor httpContextAccessor, IUserService userService)
+    public AccountService(ILogger<AccountService> logger, IIbanGenerator ibanGenerator,IClientRepository clientRepository,IProductRepository productRepository ,IAccountsRepository accountsRepository, IConnectionMultiplexer connection, IHttpContextAccessor httpContextAccessor, IUserService userService, IWebsocketHandler websocketHandler)
     {
         _logger = logger;
         _ibanGenerator = ibanGenerator;
@@ -37,6 +42,7 @@ public class AccountService : IAccountsService
         _cache = connection.GetDatabase();
         _httpContextAccessor = httpContextAccessor;
         _userService = userService;
+        _websocketHandler = websocketHandler;
     }
     public async Task<PageResponse<AccountResponse>> GetAccountsAsync(int pageNumber = 0, int pageSize = 10, string sortBy = "id", string direction = "asc")
     {
@@ -131,6 +137,7 @@ public class AccountService : IAccountsService
         account.IBAN = Iban;
         account.Balance = 0;
         await _accountsRepository.AddAsync(account);
+        await EnviarNotificacionCreateAsync(userForFound, account.toResponse());
         return account.toResponse();
     }
     
@@ -147,6 +154,7 @@ public class AccountService : IAccountsService
         if (accountToDelete.Balance > 0) throw new AccountsExceptions(iban);
         accountToDelete.IsDeleted = true;
         await _accountsRepository.UpdateAsync(accountToDelete);
+        await EnviarNotificacionDeleteAsync(userForFound, accountToDelete.toResponse());
         await _cache.KeyDeleteAsync(id);
         await _cache.KeyDeleteAsync("account:" + accountToDelete.IBAN);
     }
@@ -228,6 +236,24 @@ public class AccountService : IAccountsService
         }
         return null;
     }
-
     
+    public async Task EnviarNotificacionCreateAsync<T>(UserResponse user, T t)
+    {
+        var notificacion = new Notification<T>
+        {
+            Type = Notification<T>.NotificationType.Create.ToString(),
+            CreatedAt = DateTime.Now,
+            Data = t
+        };
+        await _websocketHandler.NotifyUserAsync(user.Id, notificacion);
+    }public async Task EnviarNotificacionDeleteAsync<T>(UserResponse user, T t)
+    {
+        var notificacion = new Notification<T>
+        {
+            Type = Notification<T>.NotificationType.Delete.ToString(),
+            CreatedAt = DateTime.Now,
+            Data = t
+        };
+        await _websocketHandler.NotifyUserAsync(user.Id, notificacion);
+    }
 }
