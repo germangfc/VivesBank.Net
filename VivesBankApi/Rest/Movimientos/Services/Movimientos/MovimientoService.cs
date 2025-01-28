@@ -29,8 +29,8 @@ public class MovimientoService(
     ICreditCardService creditCardService,
     ILogger<MovimientoService> logger, 
     IOptions<ApiConfig> apiConfig,
-    IWebsocketHandler websocketHandler,
-    IHttpContextAccessor httpContextAccessor)
+    IWebsocketHandler websocketHandler
+   )
     : IMovimientoService
 {
     public async Task<List<Movimiento>> FindAllMovimientosAsync()
