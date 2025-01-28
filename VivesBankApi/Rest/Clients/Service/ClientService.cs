@@ -157,7 +157,7 @@ public class ClientService : IClientService
             Directory.CreateDirectory(uploadPath);
         }
 
-        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd");
         var fullFileName = $"{baseFileName}-{timestamp}{fileExtension}";
         var filePath = Path.Combine(uploadPath, fullFileName);
 
@@ -261,110 +261,65 @@ public class ClientService : IClientService
     }
     
     public async Task<string> SaveFileToFtpAsync(IFormFile file, string fileName)
-{
-    try
     {
-        // Validar que la configuración no sea nula
-        if (_fileStorageRemoteConfig == null)
+        try
         {
-            _logger.LogError("La configuración de almacenamiento remoto (_fileStorageRemoteConfig) es nula.");
-            throw new InvalidOperationException("La configuración de almacenamiento remoto no está disponible.");
-        }
-
-        // Establecer el host FTP dependiendo del entorno
-        string ftpHost = _fileStorageRemoteConfig.FtpHost;
-
-        // Si estamos fuera de Docker, usa 'localhost'
-        if (string.IsNullOrEmpty(ftpHost))
-        {
-            ftpHost = "localhost"; // O "127.0.0.1" si prefieres
-        }
-
-        // Validar que las propiedades necesarias estén configuradas
-        if (string.IsNullOrEmpty(ftpHost) ||
-            string.IsNullOrEmpty(_fileStorageRemoteConfig.FtpUsername) ||
-            string.IsNullOrEmpty(_fileStorageRemoteConfig.FtpPassword) ||
-            string.IsNullOrEmpty(_fileStorageRemoteConfig.FtpDirectory))
-        {
-            _logger.LogError("La configuración de almacenamiento remoto contiene valores nulos o vacíos.");
-            throw new InvalidOperationException("La configuración de almacenamiento remoto es inválida.");
-        }
-
-        // Validar el tipo de archivo
-        string extension = Path.GetExtension(file.FileName).ToLower();
-        if (!_fileStorageRemoteConfig.AllowedFileTypes.Contains(extension))
-        {
-            throw new InvalidOperationException($"El tipo de archivo '{extension}' no está permitido.");
-        }
-
-        // Validar el tamaño del archivo
-        if (file.Length > _fileStorageRemoteConfig.MaxFileSize)
-        {
-            throw new InvalidOperationException($"El archivo excede el tamaño máximo permitido de {_fileStorageRemoteConfig.MaxFileSize} bytes.");
-        }
-
-        // Conexión al FTP
-        using (var client = new AsyncFtpClient(ftpHost, _fileStorageRemoteConfig.FtpUsername, _fileStorageRemoteConfig.FtpPassword))
-        {
-            _logger.LogInformation("Intentando conectar al servidor FTP...");
-
-            // Configurar tiempos de espera
-            client.Config.ConnectTimeout = 30000;  // Tiempo de espera al conectar (30s)
-            client.Config.ReadTimeout = 30000;     // Tiempo de espera para lectura (30s)
-            client.Config.DataConnectionConnectTimeout = 30000; // Tiempo de espera para conexiones de datos (30s)
-            client.Config.DataConnectionReadTimeout = 30000;    // Tiempo de espera para transferencias (30s)
-
-
-            // Conexión al servidor FTP
-            await client.Connect();
-            _logger.LogInformation("Conexión exitosa al servidor FTP.");
-
-            // Crear directorio si no existe
-            if (!await client.DirectoryExists(_fileStorageRemoteConfig.FtpDirectory))
+            if (_fileStorageRemoteConfig == null || 
+                string.IsNullOrEmpty(_fileStorageRemoteConfig.FtpHost) || 
+                string.IsNullOrEmpty(_fileStorageRemoteConfig.FtpUsername) || 
+                string.IsNullOrEmpty(_fileStorageRemoteConfig.FtpPassword) || 
+                string.IsNullOrEmpty(_fileStorageRemoteConfig.FtpDirectory))
             {
-                _logger.LogWarning($"El directorio '{_fileStorageRemoteConfig.FtpDirectory}' no existe. Creándolo...");
-                await client.CreateDirectory(_fileStorageRemoteConfig.FtpDirectory);
-                _logger.LogInformation($"Directorio '{_fileStorageRemoteConfig.FtpDirectory}' creado exitosamente.");
-            }
-            else
-            {
-                _logger.LogInformation($"El directorio '{_fileStorageRemoteConfig.FtpDirectory}' ya existe.");
+                throw new InvalidOperationException("Configuración de almacenamiento remoto inválida o incompleta.");
             }
 
-            // Construir la ruta completa del archivo en el servidor
-            string fullPath = $"{_fileStorageRemoteConfig.FtpDirectory}/{fileName}";
-            _logger.LogInformation($"Ruta completa del archivo remoto: {fullPath}");
-
-            // Subir el archivo al servidor
-            using (var stream = file.OpenReadStream())
+            if (!_fileStorageRemoteConfig.AllowedFileTypes.Contains(Path.GetExtension(file.FileName).ToLower()) || 
+                file.Length > _fileStorageRemoteConfig.MaxFileSize)
             {
-                _logger.LogInformation($"Subiendo archivo '{fileName}' al servidor FTP...");
-                var uploadStatus = await client.UploadStream(stream, fullPath, FtpRemoteExists.Overwrite, true);
+                throw new InvalidOperationException("Archivo no permitido por tipo o tamaño.");
+            }
 
-                if (uploadStatus != FtpStatus.Success)
+            using (var client = new AsyncFtpClient(
+                       _fileStorageRemoteConfig.FtpHost, 
+                       _fileStorageRemoteConfig.FtpUsername, 
+                       _fileStorageRemoteConfig.FtpPassword))
+            {
+                client.Config.ConnectTimeout = 30000;
+                client.Config.ReadTimeout = 30000;
+                client.Config.DataConnectionConnectTimeout = 30000;
+                client.Config.DataConnectionReadTimeout = 30000;
+
+                await client.Connect();
+
+                if (!await client.DirectoryExists(_fileStorageRemoteConfig.FtpDirectory))
                 {
-                    throw new Exception($"Error al subir el archivo. Estado de subida: {uploadStatus}");
+                    await client.CreateDirectory(_fileStorageRemoteConfig.FtpDirectory);
                 }
+
+                string fullPath = $"{_fileStorageRemoteConfig.FtpDirectory}/{fileName}";
+                
+                _logger.LogInformation($"Esta es lA ruta donde se guarda el ftp: {fullPath}");
+
+                using (var stream = file.OpenReadStream())
+                {
+                    if (await client.UploadStream(stream, fullPath, FtpRemoteExists.Overwrite, true) != FtpStatus.Success)
+                    {
+                        throw new Exception("Error al subir el archivo al servidor FTP.");
+                    }
+                }
+
+                await client.Disconnect();
+                return fileName;
             }
-
-            _logger.LogInformation($"Archivo '{fileName}' subido exitosamente al servidor FTP.");
-            await client.Disconnect();
-            _logger.LogInformation("Desconexión exitosa del servidor FTP.");
-
-            return fullPath;  // Devolvemos la ruta completa del archivo en el servidor FTP
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al guardar el archivo en el servidor FTP.");
+            throw;
         }
     }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error al guardar el archivo en el servidor FTP.");
-        throw;  // Relanzar la excepción para que sea manejada en un nivel superior
-    }
-}
 
-
-
-
-
+    
     public async Task<FileStream> GetFileFromFtpAsync(string fileName)
     {
         _logger.LogInformation($"Getting file from FTP: {fileName}");
@@ -376,6 +331,7 @@ public class ClientService : IClientService
                 await client.Connect();
 
                 string remotePath = $"{_fileStorageRemoteConfig.FtpDirectory}/{fileName}";
+                _logger.LogInformation($"FTP file path resolved to: {remotePath}");
 
                 if (!await client.FileExists(remotePath))
                 {
@@ -401,54 +357,46 @@ public class ClientService : IClientService
         }
     }
 
-    public async Task DeleteFileFromFtpAsync(string fileName)
+    public async Task<bool> DeleteFileFromFtpAsync(string fileName)
     {
-        _logger.LogInformation("Deleting file from FTP {fileName}", fileName);
-    
-        try
+        _logger.LogInformation("Deleting file from FTP: {fileName}", fileName);
+
+        using (var client = new AsyncFtpClient(_fileStorageRemoteConfig.FtpHost, _fileStorageRemoteConfig.FtpUsername, _fileStorageRemoteConfig.FtpPassword))
         {
-            using (var client = new AsyncFtpClient(_fileStorageRemoteConfig.FtpHost, _fileStorageRemoteConfig.FtpUsername, _fileStorageRemoteConfig.FtpPassword))
+            await client.Connect();
+
+            string remotePath = $"{_fileStorageRemoteConfig.FtpDirectory}/{fileName}";
+            _logger.LogInformation($"FTP file path resolved to: {remotePath}");
+
+            if (!await client.FileExists(remotePath))
             {
-                await client.Connect();
-
-                // Construye la ruta completa en el servidor
-                string remotePath = $"{_fileStorageRemoteConfig.FtpDirectory}/{fileName}";
-
-                // Verifica si el archivo existe en el servidor
-                if (!await client.FileExists(remotePath))
-                {
-                    _logger.LogWarning($"File not found on FTP server: {remotePath}");
-                    throw new FileNotFoundException($"El archivo '{fileName}' no existe en el servidor FTP.");
-                }
-                _logger.LogInformation($"File found on FTP server: {remotePath}");
-
-                // Elimina el archivo
-                await client.DeleteFile(remotePath);
-
-                await client.Disconnect();
+                _logger.LogWarning($"File not found on FTP server: {remotePath}");
+                return false;
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting file from FTP");
-            throw;
+
+            _logger.LogInformation($"File found on FTP server. Deleting: {remotePath}");
+            await client.DeleteFile(remotePath);
+            _logger.LogInformation($"File successfully deleted: {remotePath}");
+
+            await client.Disconnect();
+            return true;
         }
     }
+
+
 
     
     public async Task<string> UpdateClientPhotoDniAsync(string clientId, IFormFile file)
     {
         try
         {
-            // Verificar si el cliente existe usando el ClientId
             var client = await _clientRepository.GetByIdAsync(clientId);
             if (client == null)
             {
                 throw new ClientExceptions.ClientNotFoundException($"El cliente con ClientId {clientId} no existe.");
             }
 
-            // Buscar el usuario para obtener el DNI
-            var user = await _userRepository.GetByIdAsync(client.UserId); // Aquí usamos el UserId del cliente
+            var user = await _userRepository.GetByIdAsync(client.UserId);
             if (user == null)
             {
                 throw new UserNotFoundException($"El usuario con UserId {client.UserId} no existe.");
@@ -456,21 +404,17 @@ public class ClientService : IClientService
 
             string dni = user.Dni;
 
-            // Generar el nombre del archivo basado en el DNI y el timestamp
             string extension = Path.GetExtension(file.FileName).ToLower();
             string timestamp = DateTime.UtcNow.ToString("yyyyMMdd");
-            string fileName = $"{dni}-{timestamp}{extension}";
+            string fileName = $"DNI-{dni}-{timestamp}{extension}";
 
-            // Guardar el archivo en el servidor FTP y obtener el nombre del archivo almacenado
             string savedFileName = await SaveFileToFtpAsync(file, fileName);
 
-            // Actualizar la propiedad de la foto del cliente con la nueva URL
             client.PhotoDni = savedFileName;
 
-            // Actualizar el cliente en la base de datos
             await _clientRepository.UpdateAsync(client);
 
-            return savedFileName;  // O puedes devolver la URL completa del archivo si es necesario
+            return savedFileName;
         }
         catch (Exception ex)
         {

@@ -33,6 +33,7 @@ public class ClientServiceTests
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly ClientService _clientService;
     private readonly FileStorageConfig _fileStorageConfig;
+    private readonly IConfiguration configuration;
     
     public ClientServiceTests()
     {
@@ -47,6 +48,7 @@ public class ClientServiceTests
         _configurationMock = new Mock<IConfiguration>();
 
         _fileStorageConfig = new FileStorageConfig();
+        
 
         _clientService = new ClientService(
             _loggerMock.Object,

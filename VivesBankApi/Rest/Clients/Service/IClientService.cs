@@ -10,23 +10,24 @@ public interface IClientService
         string fullName,
         bool? isDeleted,
         string direction);
+
     Task<ClientResponse> GetClientByIdAsync(string id);
     Task<ClientResponse> GettingMyClientData();
     Task<ClientResponse> CreateClientAsync(ClientRequest request);
     Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request);
     Task LogicDeleteClientAsync(string id);
-    
+
     //Funciones para storage en Local
 
     Task<String> SaveFileAsync(IFormFile file, string baseFileName);
-    
     Task<string> UpdateClientPhotoAsync(string clientId, IFormFile file);
     Task<FileStream> GetFileAsync(string fileName);
     Task<bool> DeleteFileAsync(string fileName);
-    
+
     //Funciones para storage remoto FTP
     Task<string> SaveFileToFtpAsync(IFormFile file, string dni);
     Task<FileStream> GetFileFromFtpAsync(string fileName);
     Task<string> UpdateClientPhotoDniAsync(string userId, IFormFile file);
-    Task DeleteFileFromFtpAsync(string fileName);
+    Task<bool> DeleteFileFromFtpAsync(string fileName);
+
 }
