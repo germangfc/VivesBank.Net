@@ -18,8 +18,7 @@ public interface IClientService
     Task<ClientResponse> UpdateMeAsync(ClientUpdateRequest request);
     Task LogicDeleteClientAsync(string id);
     
-    Task<String> SaveFileAsync(IFormFile file, string baseFileName);
-    Task DeleteMe();
+   Task DeleteMe();
 
     //Funciones para storage en Local
 

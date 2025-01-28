@@ -25,10 +25,13 @@ public class ClientService : IClientService
     private readonly ILogger _logger;
     private readonly IClientRepository _clientRepository;
     private readonly IUserService _userService;
+    private readonly IUserRepository _userRepository;
     private readonly IDatabase _cache;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly FileStorageConfig _fileStorageConfig;
     private readonly IJwtGenerator _jwtGenerator;
+    private readonly FileStorageRemoteConfig _fileStorageRemoteConfig;
+    private readonly IConfiguration _configuration;
     
     public ClientService(
         ILogger<ClientService> logger,
@@ -37,7 +40,8 @@ public class ClientService : IClientService
         IConnectionMultiplexer connection,
         IHttpContextAccessor httpContextAccessor,
         FileStorageConfig fileStorageConfig,
-        IJwtGenerator jwtGenerator
+        IJwtGenerator jwtGenerator,
+        IConfiguration configuration
         )
     {
         _jwtGenerator = jwtGenerator;
