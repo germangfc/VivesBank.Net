@@ -1,0 +1,91 @@
+[2025-01-28 10:41:40.781] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (80ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-28 10:44:11.953] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al guardar el archivo en el servidor FTP.
+System.Net.Sockets.SocketException (10061): No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.EnableCancellation(Task task, CancellationToken token, Action action)
+   at FluentFTP.FtpSocketStream.ConnectHelperAsync(IPAddress ipad, Int32 port, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 292
+[2025-01-28 10:44:11.972] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
+System.Net.Sockets.SocketException (10061): No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.EnableCancellation(Task task, CancellationToken token, Action action)
+   at FluentFTP.FtpSocketStream.ConnectHelperAsync(IPAddress ipad, Int32 port, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 292
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 406
+[2025-01-28 10:44:11.990] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+System.Net.Sockets.SocketException (10061): No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+--- End of stack trace from previous location ---
+   at FluentFTP.FtpSocketStream.EnableCancellation(Task task, CancellationToken token, Action action)
+   at FluentFTP.FtpSocketStream.ConnectHelperAsync(IPAddress ipad, Int32 port, CancellationToken token)
+   at FluentFTP.FtpSocketStream.ConnectAsync(String host, Int32 port, FtpIpVersion ipVersions, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.ConnectAsync(FtpSocketStream stream, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(Boolean reConnect, CancellationToken token)
+   at FluentFTP.AsyncFtpClient.Connect(CancellationToken token)
+   at VivesBankApi.Rest.Clients.Service.ClientService.SaveFileToFtpAsync(IFormFile file, String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 292
+   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 406
+   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 132
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 16
+[2025-01-28 10:47:19.042] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (22ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-28 10:57:31.073] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (52ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-28 11:06:18.421] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (32ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-28 15:34:29.797] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (24ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-28 15:37:46.153] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (37ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-28 15:39:45.132] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (37ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-28 15:46:44.290] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (26ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-28 15:50:19.985] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (28ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
