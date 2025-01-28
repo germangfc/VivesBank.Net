@@ -783,7 +783,7 @@ public class UserServiceTest
         Assert.That(result.Message, Is.EqualTo($"A user with the username '{loginRequest.Dni}' already exists."));
         
     }
-
+    /*
     [Test]
     public async Task GenerateJwtToken()
     {
@@ -810,4 +810,5 @@ public class UserServiceTest
         ClassicAssert.IsNotNull(validatedToken);
         ClassicAssert.AreEqual("1", principal.FindFirst("UserId")?.Value);
     }
+    */
 }

@@ -33,6 +33,11 @@ public static class UserMapper
             user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
         }
 
+        if (request.IsDeleted != null)
+        {
+            user.IsDeleted = request.IsDeleted;
+        }
+
         if (request.Role != null)
         {
             if (Enum.TryParse<Role>(request.Role.Trim(), true, out var userRole))
@@ -75,6 +80,20 @@ public static class UserMapper
         else
         {
             throw new InvalidRoleException(request.Role);
+        }
+    }
+    
+    public static User ToUser(this UserResponse user)
+    {
+        User newUser = new User();
+        {
+            newUser.Id = user.Id;
+            newUser.Dni = user.Dni;
+            newUser.Role = (Role) Enum.Parse(typeof(Role), user.Role);
+            newUser.CreatedAt = user.CreatedAt;
+            newUser.UpdatedAt = user.UpdatedAt;
+            newUser.IsDeleted = user.IsDeleted;
+            return newUser;
         }
     }
 }

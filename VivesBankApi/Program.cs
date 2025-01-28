@@ -15,6 +15,7 @@
     using StackExchange.Redis;
     using VivesBankApi.Database;
     using VivesBankApi.Middleware;
+    using VivesBankApi.Middleware.Jwt;
     using VivesBankApi.Rest.Clients.Repositories;
     using VivesBankApi.Rest.Clients.Service;
     using VivesBankApi.Rest.Clients.storage.Config;
@@ -304,6 +305,7 @@
         myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
         myBuilder.Services.AddScoped<IClientService, ClientService>();
         myBuilder.Services.AddScoped<FileStorageConfig>();
+        myBuilder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
         
     // USUARIO
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();

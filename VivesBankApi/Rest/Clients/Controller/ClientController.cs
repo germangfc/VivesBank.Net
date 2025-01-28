@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Service;
@@ -20,6 +21,7 @@ public class ClientController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize("AdminPolicy")]
     public async Task<ActionResult<PageResponse<ClientResponse>>> GetAllUsersAsync(
         [FromQuery ]int pageNumber = 0, 
         [FromQuery] int pageSize = 10,
@@ -48,6 +50,7 @@ public class ClientController : ControllerBase
     }
     
     [HttpGet("{id}")]
+    [Authorize("AdminPolicy")]
     public async Task<ActionResult<ClientResponse>> GetById(string id)
     {
         _logger.LogInformation($"Getting client with id {id}");
@@ -55,7 +58,7 @@ public class ClientController : ControllerBase
     }
 
     [HttpGet("me")] 
-    
+    [Authorize("ClientPolicy")]
     public async Task<ActionResult<ClientResponse>> GetMyClientData()
     {
         _logger.LogInformation("Getting my client data");
@@ -63,7 +66,8 @@ public class ClientController : ControllerBase
     }
 
     [HttpPost("toclient")]
-    public async Task<ActionResult<ClientResponse>> CreateClientAsUser([FromBody] ClientRequest request)
+    [Authorize("UserPolicy")]
+    public async Task<IActionResult> CreateClientAsUser([FromBody] ClientRequest request)
     {
         _logger.LogInformation("Creating new client");
         if (!ModelState.IsValid)
@@ -71,21 +75,11 @@ public class ClientController : ControllerBase
             return BadRequest(ModelState);
         }
         var client = await _clientService.CreateClientAsync(request);
-        return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
+        return Ok(new { client });
     }
-    [HttpPost]
-    public async Task<ActionResult<ClientResponse>> CreateClient([FromBody] ClientRequest request)
-    {
-        _logger.LogInformation("Creating new client");
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-        var client =  await _clientService.CreateClientAsync(request);
-        return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
-    }
-
+    
     [HttpPut("{id}")]
+    [Authorize("AdminPolicy")]
     public async Task<ActionResult<ClientResponse>> UpdateClient(string id, ClientUpdateRequest request)
     {
         _logger.LogInformation($"Updating client with id {id}");
@@ -97,14 +91,40 @@ public class ClientController : ControllerBase
         return Ok(client);
     }
     
+    [HttpPut("me")]
+    [Authorize("ClientPolicy")]
+    public async Task<ActionResult<ClientResponse>> UpdateMeAsClient(ClientUpdateRequest request)
+    {
+        _logger.LogInformation($"Updating client registered on the system");
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var client = await _clientService.UpdateMeAsync(request);
+        return Ok(client);
+    }
+    
+    
     [HttpDelete("{id}")]
+    [Authorize("AdminPolicy")]
     public async Task DeleteClient(string id)
     {
         _logger.LogInformation($"Deleting client with id {id}");
         await _clientService.LogicDeleteClientAsync(id);
     }
     
+    [HttpDelete("baja")]
+    [Authorize("ClientPolicy")]
+    public async Task DeleteMeClient()
+    {
+        _logger.LogInformation($"Deleting client registered on the system");
+        await _clientService.DeleteMe();
+    }
+    
+    
     [HttpPatch("{clientId}/dni")]
+    [Authorize("ClientPolicy")]
     public async Task<IActionResult> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
     {
         _logger.LogInformation($"Request to update DNI photo for client with ID: {clientId}");
@@ -133,6 +153,7 @@ public class ClientController : ControllerBase
     }
 
     [HttpGet("photo/{fileName}")]
+    [Authorize("AdminPolicy")]
     public async Task<IActionResult> GetPhotoByFileNameAsync(string fileName)
     {
         _logger.LogInformation($"Request to get photo with file name: {fileName}");
