@@ -4,7 +4,11 @@ namespace VivesBankApi.Rest.Product.CreditCard.Service;
 
 public interface ICreditCardService
 {
-    Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync();
+    Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync(int pageNumber,
+        int pageSize,
+        string fullName,
+        bool? isDeleted,
+        string direction);
     //Task<List<CreditCardClientResponse>> GetAllCreditCardClientAsync();
     Task<CreditCardAdminResponse?> GetCreditCardByIdAdminAsync(string id);
     Task<CreditCardAdminResponse?> GetCreditCardByCardNumber(string cardNumber);

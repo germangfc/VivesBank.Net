@@ -15,4 +15,9 @@ public class CreditCardRepository : GenericRepository<BancoDbContext, CreditCard
         _logger.LogInformation($"Getting credit card with card number: {cardNumber}");
         return await _dbSet.FirstOrDefaultAsync(a => a.CardNumber == cardNumber);
     }
+
+    public Task<PagedList<CreditCard>> GetAllClientsPagedAsync(int pageNumber, int pageSize, string name, bool? isDeleted, string direction)
+    {
+        throw new NotImplementedException();
+    }
 }

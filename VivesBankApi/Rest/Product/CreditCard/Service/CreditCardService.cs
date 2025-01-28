@@ -17,8 +17,9 @@ public class CreditCardService : ICreditCardService
     private readonly NumberGenerator _numberGenerator;
     private readonly IAccountsRepository _accountsRepository;
     private readonly IDatabase _cache;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, CvcGenerator cvcGenerator, ExpirationDateGenerator expirationDateGenerator, NumberGenerator numberGenerator, IAccountsRepository accountsRepository, IConnectionMultiplexer connectionMultiplexer)
+    public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, CvcGenerator cvcGenerator, ExpirationDateGenerator expirationDateGenerator, NumberGenerator numberGenerator, IAccountsRepository accountsRepository, IConnectionMultiplexer connectionMultiplexer, IHttpContextAccessor httpContextAccessor)
     {
         _logger = logger;
         _creditCardRepository = creditCardRepository;
@@ -27,15 +28,18 @@ public class CreditCardService : ICreditCardService
         _numberGenerator = numberGenerator;
         _accountsRepository = accountsRepository;
         _cache = connectionMultiplexer.GetDatabase();
+        _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync()
+    public async Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync(int pageNumber, 
+        int pageSize,
+        string fullName,
+        bool? isDeleted,
+        string direction)
     {
         _logger.LogInformation("Getting all credit cards");
         
-        var creditCards = await _creditCardRepository.GetAllAsync();
         
-        return creditCards.Select(creditCard => creditCard.ToAdminResponse()).ToList();
     }
 
     public async Task<CreditCardAdminResponse?> GetCreditCardByIdAdminAsync(string id)
