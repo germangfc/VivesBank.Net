@@ -131,6 +131,23 @@ public class AccountService : IAccountsService
         await _accountsRepository.AddAsync(account);
         return account.toResponse();
     }
+    
+    public async Task DeleteMyAccountAsync(String iban)
+    {
+        _logger.LogInformation("Deleting my account with iban: " +iban);
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userForFound = await _userService.GetUserByIdAsync(id) ?? throw new UserNotFoundException(id);
+        var client = await _clientRepository.getByUserIdAsync(id) ?? throw new ClientExceptions.ClientNotFoundException(id);
+        var accountToDelete = await _accountsRepository.getAccountByIbanAsync(iban) ?? throw new AccountsExceptions.AccountNotFoundException(iban);
+        if(accountToDelete.ClientId!= client.Id)
+            throw new AccountsExceptions.AccountNotDeletedException(iban);
+        if (accountToDelete.Balance > 0) throw new AccountsExceptions(iban);
+        accountToDelete.IsDeleted = true;
+        await _accountsRepository.UpdateAsync(accountToDelete);
+        await _cache.KeyDeleteAsync(id);
+        await _cache.KeyDeleteAsync("account:" + accountToDelete.IBAN);
+    }
 
     public async Task DeleteAccountAsync(string id)
     {
@@ -180,4 +197,6 @@ public class AccountService : IAccountsService
         }
         return null;
     }
+
+    
 }
