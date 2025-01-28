@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using StackExchange.Redis;
+using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
@@ -38,8 +39,14 @@ public class CreditCardService : ICreditCardService
         string direction)
     {
         _logger.LogInformation("Getting all credit cards");
-        
-        
+        var cards = await _creditCardRepository.GetAllCrediCardsPaginated(pageNumber, pageSize, fullName, isDeleted, direction);
+        var mappedCards = new PagedList<CreditCardAdminResponse>(
+            cards.Select(u => u.ToAdminResponse()),
+            cards.TotalCount,
+            cards.PageNumber,
+            cards.PageSize
+        );
+        return mappedCards;
     }
 
     public async Task<CreditCardAdminResponse?> GetCreditCardByIdAdminAsync(string id)
