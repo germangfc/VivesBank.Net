@@ -87,10 +87,10 @@ public class MovimientoService(
 
     public async Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion)
     {
-        logger.LogInformation($"Adding domiciliacion cantidad: {domiciliacion.Cantidad}");
+        logger.LogInformation($"Adding domiciliacion {domiciliacion}");
         
         // Validar que la cantidad es mayor que cero
-        if (domiciliacion.Cantidad <= 0) throw new DomiciliacionInvalidCuantityException(domiciliacion.Id!, domiciliacion.Cantidad);
+        if (domiciliacion.Cantidad <= 0) throw new DomiciliacionInvalidAmountException(domiciliacion.Id!, domiciliacion.Cantidad);
         
         // validar Iban correcto
         if (!IbanValidator.ValidateIban(domiciliacion.IbanDestino)) throw new InvalidDestinationIbanException(domiciliacion.IbanDestino);
@@ -108,7 +108,7 @@ public class MovimientoService(
         if (!account.clientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(domiciliacion.IbanOrigen);
         
         // Validar si la domiciliación ya existe (mismo cobrador, cuenta destino)
-        var clientDomiciliacion = await domiciliacionRepository.FindByClientGuid(client.Id);
+        var clientDomiciliacion = await domiciliacionRepository.GetDomiciliacionByClientGuidAsync(client.Id);
         if (clientDomiciliacion.Any(d => d.IbanDestino == domiciliacion.IbanDestino)) throw new DuplicatedDomiciliacionException(domiciliacion.IbanDestino);
     
         // Guardar la domiciliación
@@ -124,9 +124,9 @@ public class MovimientoService(
 
     public async Task<Movimiento> AddIngresoDeNominaAsync(User user, IngresoDeNomina ingresoDeNomina)
     {
-        logger.LogInformation("Adding new Ingreso de Nomina");
+        logger.LogInformation($"Adding new Ingreso de Nomina {ingresoDeNomina}");
         // Validar que el ingreso de nomina es > 0
-        if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidCuantityException(ingresoDeNomina.Cantidad);
+        if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidAmountException(ingresoDeNomina.Cantidad);
         
         // Validar Iban correcto
         if (!IbanValidator.ValidateIban(ingresoDeNomina.IbanDestino)) throw new InvalidDestinationIbanException(ingresoDeNomina.IbanDestino);
@@ -168,9 +168,10 @@ public class MovimientoService(
 
     public async Task<Movimiento> AddPagoConTarjetaAsync(User user, PagoConTarjeta pagoConTarjeta)
     {
+        logger.LogInformation($"Adding new Pago con Tarjeta {pagoConTarjeta}");
         
         // Validar que la cantidad es mayor que cero
-        if (pagoConTarjeta.Cantidad <= 0) throw new PagoTarjetaInvalidCuantityException(pagoConTarjeta.Cantidad);
+        if (pagoConTarjeta.Cantidad <= 0) throw new PagoTarjetaInvalidAmountException(pagoConTarjeta.Cantidad);
 
         // Validar número tarjeta
         if (!NumTarjetaValidator.ValidateTarjeta(pagoConTarjeta.NumeroTarjeta)) throw new InvalidCardNumberException(pagoConTarjeta.NumeroTarjeta);
@@ -180,11 +181,12 @@ public class MovimientoService(
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
 
         // Validar que la tarjeta existe
-        //var clientCard = creditCardService.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta);
+        var clientCard = creditCardService.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta);
+        if (clientCard is null) throw new PagoTarjetaCreditCardNotFoundException(pagoConTarjeta.NumeroTarjeta);
         
         // Validar que el cliente tiene esa tarjeta asociada a alguna de sus cuentas
         var clientAccounts = await accountsService.GetCompleteAccountByClientIdAsync(client.Id);
-        if (clientAccounts is null) throw new AccountNotFoundByClientId(client.Id); // cliente no tiene cuentas asociadas
+        if (clientAccounts is null) throw new AccountNotFoundByClientIdException(client.Id); // cliente no tiene cuentas asociadas
 
         // buscamos la cuenta a la que está asociada la tarjeta
         var cardAccount = clientAccounts.FirstOrDefault(a => a.TarjetaId == pagoConTarjeta.NumeroTarjeta);
@@ -192,7 +194,7 @@ public class MovimientoService(
 
         // Validar saldo suficiente en la cuenta
         var newBalance = cardAccount.Balance - pagoConTarjeta.Cantidad; 
-        if ( newBalance < 0 ) throw new PagoTarjetaAccountInsufficientBalance(pagoConTarjeta.NumeroTarjeta);
+        if ( newBalance < 0 ) throw new PagoTarjetaAccountInsufficientBalanceException(pagoConTarjeta.NumeroTarjeta);
 
         // restar al cliente
         cardAccount.Balance = newBalance;
@@ -215,14 +217,136 @@ public class MovimientoService(
 
     }
 
-    public Task<Movimiento> AddTransferenciaAsync(User user, Transferencia transferencia)
+    public async Task<Movimiento> AddTransferenciaAsync(User user, Transferencia transferencia)
     {
-        throw new NotImplementedException();
+        logger.LogInformation("Adding new transfer");
+        
+        // Validar que la cantidad es mayor que cero
+        if (transferencia.Cantidad <= 0) throw new TransferInvalidAmountException(transferencia.Cantidad);
+        
+        // Validar Iban correcto
+        if (!IbanValidator.ValidateIban(transferencia.IbanDestino)) throw new InvalidDestinationIbanException(transferencia.IbanDestino);
+        if (!IbanValidator.ValidateIban(transferencia.IbanOrigen)) throw new InvalidSourceIbanException(transferencia.IbanOrigen);
+
+        // Validar que el cliente existe
+        var originClient = await clientService.GetClientByIdAsync(user.Id);
+        if (originClient is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
+        
+        // Validar que la cuenta origen existe
+        var originAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanOrigen);
+        if (originAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanOrigen);
+
+        // Validar que la cuenta es de ese cliente
+        if (!originAccount.clientID.Equals(originClient.Id)) throw new AccountsExceptions.AccountUnknownIban(transferencia.IbanOrigen);
+
+        // Validar que la cuenta destino existe
+        var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanDestino);
+        if (destinationAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanDestino);
+
+        // Validar saldo suficiente en cuenta origen
+        var newBalance = originAccount.Balance - transferencia.Cantidad; 
+        if (newBalance < 0) throw new TransferInsufficientBalance(transferencia.IbanOrigen);
+
+        // restar de la cuenta origen
+        originAccount.Balance = newBalance;
+//        await accountsService.UpdateAccountAsync(clientOriginAccount.Id, new UpdateAccountRequest { Balance = clientOriginAccount.Balance });
+    
+        // sumar a la cuenta destino
+        destinationAccount.Balance += transferencia.Cantidad;
+//        await accountsService.UpdateAccountAsync(clientDestinationAccount.Id, new UpdateAccountRequest { Balance = clientDestinationAccount.Balance });
+        
+        // crear el movimiento al cliente destino
+        logger.LogInformation("Creating destination movement");
+        Movimiento newDestinationMovement = new Movimiento
+        {
+            ClienteGuid = destinationAccount.clientID,
+            Transferencia = transferencia
+        };
+        
+        // Guardar el movimiento destino
+        logger.LogInformation("Saving destination movement");
+        await movimientoRepository.AddMovimientoAsync(newDestinationMovement);
+
+        // crear el movimiento al cliente origen
+        logger.LogInformation("Creating origin movement");
+        Movimiento newOriginMovement = new Movimiento
+        {
+            ClienteGuid = originClient.Id,
+            Transferencia = new Transferencia
+            {
+                IbanOrigen = transferencia.IbanOrigen,
+                IbanDestino = transferencia.IbanDestino,
+                Cantidad = decimal.Negate(transferencia.Cantidad),
+                NombreBeneficiario = transferencia.NombreBeneficiario,
+                MovimientoDestino = newDestinationMovement.Id!
+            }
+        };
+        
+        // Guardar el movimiento origen
+        var originSavedMovement = await movimientoRepository.AddMovimientoAsync(newOriginMovement);
+
+        // Notificar al cliente origen y destino
+        
+        // Retornar respuesta
+        return originSavedMovement;
+
     }
 
-    public Task<Movimiento> RevocarTransferencia(User user, string movimientoTransferenciaGuid)
+    public async Task<Movimiento> RevocarTransferencia(User user, string movimientoTransferenciaGuid)
     {
-        throw new NotImplementedException();
+        logger.LogInformation($"Revoking Transfer Id: {movimientoTransferenciaGuid}, user: {user.Id}");
+        
+        // Obtener el movimiento original
+        var originalMovement = await movimientoRepository.GetMovimientoByGuidAsync(movimientoTransferenciaGuid);
+        if (originalMovement is null) throw new MovimientoNotFoundException(movimientoTransferenciaGuid);
+        
+        // validar que no haya pasado 1 dia 
+        var dateOriginalMovement = originalMovement.CreatedAt;
+        if (dateOriginalMovement.HasValue && dateOriginalMovement.Value.AddDays(1) < DateTime.Now) throw new NotRevocableMovimientoException(movimientoTransferenciaGuid);
+
+        // Verificar que el movimiento es una transferencia
+        if (originalMovement.Transferencia is null) throw new MovementIsNotTransferException(movimientoTransferenciaGuid);
+
+        // Verificar que el usuario que solicita la revocación es el propietario de la cuenta de origen
+        var client = await clientService.GetClientByIdAsync(user.Id);
+        if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
+        if (!client.Id.Equals(originalMovement.ClienteGuid))
+            throw new AccountsExceptions.AccountUnknownIban(originalMovement.Transferencia.IbanOrigen);
+
+        // Obtener las cuentas involucradas
+        var originAccount = await accountsService.GetCompleteAccountByIbanAsync(originalMovement.Transferencia.IbanOrigen);
+        if (originAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(originalMovement.Transferencia.IbanOrigen);
+
+        var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(originalMovement.Transferencia.IbanDestino);
+        if (destinationAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(originalMovement.Transferencia.IbanDestino);
+
+        // Revertir la transferencia
+
+        // Restar de la cuenta destino
+        var transferAmount = originalMovement.Transferencia.Cantidad;
+        destinationAccount.Balance -= transferAmount;
+//        await accountsService.UpdateAccountAsync(destinationAccount.Id, new UpdateAccountRequest { Balance = destinationAccount.Balance });
+        
+        // Sumar a la cuenta origen
+        originAccount.Balance += transferAmount;
+//       await accountsService.UpdateAccountAsync(originAccount.Id, new UpdateAccountRequest { Balance = originAccount.Balance });
+
+        // Marcar el movimiento original como revocado (si es necesario)
+        var originalDestinationMovement =
+            await movimientoRepository.GetMovimientoByGuidAsync(originalMovement.Transferencia.MovimientoDestino);
+        if (originalDestinationMovement is null)
+            throw new MovimientoNotFoundException(originalMovement.Transferencia.MovimientoDestino);
+        
+        // Marcar ambos movimientos como eliminados, simplemente se anulan, no se crean nuevos movimientos de revocación
+        originalMovement.IsDeleted = true;
+        await movimientoRepository.UpdateMovimientoAsync(originalMovement.Id, originalMovement);
+        originalDestinationMovement.IsDeleted = true;
+        await movimientoRepository.UpdateMovimientoAsync(originalDestinationMovement.Id, originalDestinationMovement);
+        
+        // Notificar la revocación de la transferencia
+        
+        // Retornar respuesta
+        return originalMovement;
     }
     
     

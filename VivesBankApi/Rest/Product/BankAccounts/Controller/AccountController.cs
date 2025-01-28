@@ -69,6 +69,21 @@ public class AccountController : ControllerBase
         return Ok(res);
     }
 
+    [HttpPut("{id}")]
+    public async Task<ActionResult<AccountResponse>> UpdateAccountAsync(string id,
+        UpdateAccountRequest updateRequest)
+    {
+        _logger.LogInformation($"Updating account with id {id}");
+        var account = await _accountsService.UpdateAccountAsync(id, updateRequest);
+        
+        if (account == null) 
+        {
+            return NotFound(); 
+        }
+        
+        return CreatedAtAction(nameof(GetAccountById), new { id = account.Id }, account);
+    }
+    
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAccount(string id)
     {

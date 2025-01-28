@@ -233,4 +233,52 @@ public class UserMapperTests
             ClassicAssert.AreEqual(Role.User, newUser.Role);
         });
     }
+    [Test]
+    public void ToUser_FromUserResponse()
+    {
+        // Arrange
+        var userResponse = new UserResponse
+        {
+            Id = "1",
+            Dni = "user1",
+            Role = Role.User.ToString(),
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
+            UpdatedAt = DateTime.UtcNow.AddDays(-1),
+            IsDeleted = false
+        };
+
+        // Act
+        var result = UserMapper.ToUser(userResponse);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            ClassicAssert.IsNotNull(result);
+            ClassicAssert.AreEqual(userResponse.Id, result.Id);
+            ClassicAssert.AreEqual(userResponse.Dni, result.Dni);
+            ClassicAssert.AreEqual(userResponse.Role, result.Role.ToString());
+            ClassicAssert.AreEqual(userResponse.CreatedAt, result.CreatedAt);
+            ClassicAssert.AreEqual(userResponse.UpdatedAt, result.UpdatedAt);
+            ClassicAssert.AreEqual(userResponse.IsDeleted, result.IsDeleted);
+        });
+    }
+
+    [Test]
+    public void UserUpdateRequest_ShouldSetIsDeleted()
+    {
+        // Arrange
+        var userUpdateRequest = new UserUpdateRequest
+        {
+            Dni = "12345678Z",
+            Password = "password123",
+            Role = "User",
+            IsDeleted = true
+        };
+
+        // Act
+        var result = userUpdateRequest.IsDeleted;
+
+        // Assert
+        ClassicAssert.IsTrue(result, "The IsDeleted property should be set to true.");
+    }
 }

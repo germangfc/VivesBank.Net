@@ -39,6 +39,10 @@
     using VivesBankApi.Utils.ApiConfig;
     using VivesBankApi.Utils.IbanGenerator;
     using VivesBankApi.WebSocket.Service;
+    using Quartz;
+    using Quartz.Impl;
+    using Quartz.Spi;
+    using VivesBankApi.Rest.Movimientos.Jobs;
 
     Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -56,6 +60,7 @@
 
     var app = builder.Build(); // Construye la aplicación web a partir del WebApplicationBuilder.
 
+    await InitDomiciliacionSchedulerAsync(app.Services); // Configura e inicia el planificador de domiciliaciones
 
     if (app.Environment.IsDevelopment()) // Verifica si el entorno es de desarrollo.
     {
@@ -87,6 +92,32 @@
     Console.WriteLine("🚀 Banco API started 🟢"); // Muestra un mensaje en la consola indicando que la API ha iniciado.
 
     app.Run(); // Inicia la aplicación y comienza a escuchar las solicitudes HTTP entrantes.
+
+    static async Task InitDomiciliacionSchedulerAsync(IServiceProvider serviceProvider)
+    {
+        // Crear el planificador de Quartz
+        var schedulerFactory = new StdSchedulerFactory();
+        var scheduler = serviceProvider.GetRequiredService<IScheduler>();
+
+        // Crear el trabajo para las domiciliaciones
+        var job = JobBuilder.Create<DomiciliacionScheduler>()
+            .WithIdentity("DirectDebitScheduler", "MovimientosGroup")
+            .Build();
+
+        // Crear un disparador (trigger)
+        var trigger = TriggerBuilder.Create()
+            .WithIdentity("DirectDebitTrigger", "MovimientosGroup")
+//            .WithCronSchedule("0 0 0 * * ?")  // todos los días a las 0:00 horas
+            .WithCronSchedule("0/10 * * * * ?")  // Una vez por minuto
+            .Build();
+
+        // Asignar el trabajo al disparador
+        await scheduler.ScheduleJob(job, trigger);
+
+        // Iniciar el planificador
+        await scheduler.Start();
+    }
+    
     static void DropDatabaseTables(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
@@ -306,6 +337,21 @@
         myBuilder.Services.AddScoped<ExpirationDateGenerator>();
     // NUMBER GENERATOR
         myBuilder.Services.AddScoped<NumberGenerator>();
+        
+        
+    // MOVIMIENTO SCHEDULER
+    myBuilder.Services.AddSingleton<IJobFactory, ScopedJobFactory>();
+    myBuilder.Services.AddScoped<DomiciliacionScheduler>();
+    myBuilder.Services.AddSingleton(provider =>
+    {
+        var schedulerFactory = new StdSchedulerFactory();
+        var scheduler = schedulerFactory.GetScheduler().Result;
+        scheduler.JobFactory = provider.GetRequiredService<IJobFactory>();
+        return scheduler;
+    });
+
+
+        
     // // CATEGORIA
     //     myBuilder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
     //     myBuilder.Services.AddScoped<ICategoryService, CategoryService>();

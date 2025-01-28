@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Movimientos.Exceptions;
+using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Exceptions;
 
@@ -42,6 +43,9 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 case UserNotFoundException:
                 case AccountsExceptions.AccountNotFoundException:
                 case AccountsExceptions.AccountNotFoundByIban:
+                case AccountNotFoundByClientIdException:
+                case CreditCardException.CreditCardNotFoundByCardNumberException:
+                case CreditCardException.CreditCardNotFoundException:
                     statusCode = HttpStatusCode.NotFound;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
@@ -49,22 +53,31 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                         
                 /**************** MOVIMIENTOS EXCEPTIONS *****************************************/
                 
-                case DomiciliacionInvalidCuantityException:
-                case IngresoNominaInvalidCuantityException:
-                case PagoTarjetaInvalidCuantityException:
+                case DomiciliacionInvalidAmountException:
+                case IngresoNominaInvalidAmountException:
+                case PagoTarjetaInvalidAmountException:
+                case TransferInvalidAmountException:
                 case InvalidSourceIbanException:
                 case InvalidCardNumberException:
                 case InvalidDestinationIbanException:
                 case InvalidCifException:
-                case DuplicatedDomiciliacionException:
                 case NegativeAmountException:
-                case AccountNotFoundByClientId:
-                case PagoTarjetaAccountInsufficientBalance:
-                case DomiciliacionAccountInsufficientBalance:
+                case PagoTarjetaAccountInsufficientBalanceException:
+                case PagoTarjetaCreditCardNotFoundException:
+                case DomiciliacionAccountInsufficientBalanceException:
+                case NotRevocableMovimientoException:
+                case MovementIsNotTransferException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
-                    break;  
+                    break;
+                
+                case DuplicatedDomiciliacionException:
+                    statusCode = HttpStatusCode.Conflict;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+
                 
                 /**************** USER EXCEPTIONS *****************************************/
                 
@@ -86,6 +99,8 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 /************************** ACCOUNT EXCEPTIONS *****************************************************/
                 case AccountsExceptions.AccountNotCreatedException:
                 case AccountsExceptions.AccountUnknownIban:
+                case AccountsExceptions.AccountIbanNotValid:
+                case AccountsExceptions.AccountNotUpdatedException:
                     statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
