@@ -18,7 +18,7 @@ public class UserStorageJson : IUserStorageJson
     public IObservable<User> Import(IFormFile fileStream)
     {
         _logger.LogInformation("Importing Users from a JSON file");
-        
+
         return Observable.Create<User>(async (observer, cancellationToken) =>
         {
             try
@@ -29,36 +29,28 @@ public class UserStorageJson : IUserStorageJson
                 {
                     SupportMultipleContent = true
                 };
-                
+
                 var serializer = new JsonSerializer
                 {
                     MissingMemberHandling = MissingMemberHandling.Error
                 };
-                
+
                 while (await jsonReader.ReadAsync(cancellationToken))
                 {
                     if (jsonReader.TokenType == JsonToken.StartObject)
                     {
-                        try
-                        {
-                            var obj = serializer.Deserialize<User>(jsonReader);
-                            observer.OnNext(obj);
-                        }
-                        catch (JsonSerializationException e)
-                        {
-                            observer.OnError(e);
-                            return;
-                        }
+                        var obj = serializer.Deserialize<User>(jsonReader);
+                        observer.OnNext(obj);
                     }
                 }
                 observer.OnCompleted();
-            }
-            catch (Exception ex)
+            }catch (Exception ex)
             {
                 observer.OnError(ex);
             }
         });
-    } 
+    }
+
 
     public async Task<FileStream> Export(List<User> users)
     {
