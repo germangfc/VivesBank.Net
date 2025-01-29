@@ -127,7 +127,7 @@ public class MovimientoService(
 
     public async Task<Movimiento> AddIngresoDeNominaAsync(User user, IngresoDeNomina ingresoDeNomina)
     {
-        logger.LogInformation($"Adding new Ingreso de Nomina {ingresoDeNomina} User.id {user.Id}");
+        logger.LogInformation($"Adding new Payroll Income {ingresoDeNomina} User.id {user.Id}");
         
         // Validar que el ingreso de nomina es > 0
         if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidAmountException(ingresoDeNomina.Cantidad);
@@ -159,8 +159,8 @@ public class MovimientoService(
         var updatedAccount = await accountsService.UpdateAccountAsync(clientAccount.Id, updateAccountRequest);
         logger.LogInformation($"New balance after Payroll Income: {updatedAccount.Balance}");
 
-        var now = DateTime.UtcNow;
         // Crear el movimiento
+        var now = DateTime.UtcNow;
         Movimiento newMovimiento = new Movimiento
         {
             ClienteGuid = client.Id,
@@ -181,7 +181,7 @@ public class MovimientoService(
 
     public async Task<Movimiento> AddPagoConTarjetaAsync(User user, PagoConTarjeta pagoConTarjeta)
     {
-        logger.LogInformation($"Adding new Pago con Tarjeta {pagoConTarjeta}");
+        logger.LogInformation($"Adding new Credit Card Payment {pagoConTarjeta}");
         
         // Validar que la cantidad es mayor que cero
         if (pagoConTarjeta.Cantidad <= 0) throw new PagoTarjetaInvalidAmountException(pagoConTarjeta.Cantidad);
@@ -190,11 +190,11 @@ public class MovimientoService(
         if (!NumTarjetaValidator.ValidateTarjeta(pagoConTarjeta.NumeroTarjeta)) throw new InvalidCardNumberException(pagoConTarjeta.NumeroTarjeta);
 
         // Validar que el cliente existe
-        var client = await clientService.GetClientByIdAsync(user.Id);
+        var client = await clientService.GetClientByUserIdAsync(user.Id);
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
 
         // Validar que la tarjeta existe
-        var clientCard = creditCardService.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta);
+        var clientCard = await creditCardService.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta);
         if (clientCard is null) throw new PagoTarjetaCreditCardNotFoundException(pagoConTarjeta.NumeroTarjeta);
         
         // Validar que el cliente tiene esa tarjeta asociada a alguna de sus cuentas
@@ -202,22 +202,29 @@ public class MovimientoService(
         if (clientAccounts is null) throw new AccountNotFoundByClientIdException(client.Id); // cliente no tiene cuentas asociadas
 
         // buscamos la cuenta a la que está asociada la tarjeta
-        var cardAccount = clientAccounts.FirstOrDefault(a => a.TarjetaId == pagoConTarjeta.NumeroTarjeta);
-        if (cardAccount is null) throw new CreditCardException.CreditCardNotFoundException(pagoConTarjeta.NumeroTarjeta); // tarjeta no está asociada a ninguna cuenta
+        var cardAccount = clientAccounts.FirstOrDefault(a => a.TarjetaId == clientCard.Id);
+        if (cardAccount is null) throw new CreditCardException.CreditCardNotAssignedException(pagoConTarjeta.NumeroTarjeta); // tarjeta no está asociada a ninguna cuenta
 
         // Validar saldo suficiente en la cuenta
         var newBalance = cardAccount.Balance - pagoConTarjeta.Cantidad; 
         if ( newBalance < 0 ) throw new PagoTarjetaAccountInsufficientBalanceException(pagoConTarjeta.NumeroTarjeta);
 
         // restar al cliente
-        cardAccount.Balance = newBalance;
-//        await accountsService.UpdateAccountAsync(cardAccount.Id, new UpdateAccountRequest { Balance = cardAccount.Balance });
+        var updateAccountRequest = cardAccount.toUpdateAccountRequest();
+        updateAccountRequest.Balance = newBalance;
+        
+        var updatedAccount = await accountsService.UpdateAccountAsync(cardAccount.Id, updateAccountRequest);
+        logger.LogInformation($"New balance after Credit Card Payment: {updatedAccount.Balance}");
 
         // Crear el movimiento
+        var now = DateTime.UtcNow;
         Movimiento newMovimiento = new Movimiento
         {
             ClienteGuid = client.Id,
-            PagoConTarjeta = pagoConTarjeta
+            PagoConTarjeta = pagoConTarjeta,
+            CreatedAt = now,
+            UpdatedAt = now,
+            IsDeleted = false
         };
 
         // Guardar el movimiento
