@@ -18,6 +18,18 @@ public static class AccountMappers
         };
     }
 
+    public static UpdateAccountRequest toUpdateAccountRequest(this AccountCompleteResponse account)
+    {
+        return new UpdateAccountRequest
+        {
+            ProductID = account.productID,
+            ClientID = account.ClientID,
+            TarjetaId = account.TarjetaId,
+            IBAN = account.IBAN,
+            Balance = account.Balance,
+            AccountType = account.AccountType
+        };
+    }
     public static Account fromDtoRequest(this CreateAccountRequest createRequest)
     {
         return new Account
@@ -47,7 +59,7 @@ public static class AccountMappers
         {
             Id = account.Id,
             IBAN = account.IBAN,
-            clientID = account.ClientId,
+            ClientID = account.ClientId,
             productID = account.ProductId,
             AccountType = account.AccountType,
             InterestRate = account.InterestRate,

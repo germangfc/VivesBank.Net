@@ -8,6 +8,8 @@ using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Movimientos.Validators;
+using VivesBankApi.Rest.Product.BankAccounts.Dto;
+using VivesBankApi.Rest.Product.BankAccounts.Mappers;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Service;
@@ -146,14 +148,22 @@ public class MovimientoService(
         if (clientAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(ingresoDeNomina.IbanDestino);
 
         // Validar que la cuenta es de ese cliente
-        logger.LogInformation($"clientAccount.clientID {clientAccount.clientID}");
-        logger.LogInformation($"client.Id userid {client.UserId}");
-        if (!clientAccount.clientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(ingresoDeNomina.IbanDestino);
+        if (!clientAccount.ClientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(ingresoDeNomina.IbanDestino);
 
-        // sumar al cliente la cantidad de la nomina
-        clientAccount.Balance += ingresoDeNomina.Cantidad;
-        //accountsService.UpdateAccountAsync(clientAccount.Id, UpdateAccountRequest);
+        // sumar al cliente la cantidad de la nómina
+        //clientAccount.Balance += ingresoDeNomina.Cantidad;
+        var newBalance = clientAccount.Balance + ingresoDeNomina.Cantidad;
+        logger.LogInformation($"nuevo Balance {newBalance}");
         
+        var updateAccountRequest = clientAccount.toUpdateAccountRequest();
+        updateAccountRequest.Balance = newBalance;
+        logger.LogInformation($"nuevo Balance updateaccountRequest {updateAccountRequest.Balance}");
+        
+        var updated = await accountsService.UpdateAccountAsync(clientAccount.Id, updateAccountRequest);
+        logger.LogInformation($"updatedCompleteResponse balance {updated.Balance}");
+        var kk = await accountsService.GetCompleteAccountByIbanAsync(clientAccount.IBAN);
+        logger.LogInformation($"nuevo Balance tras update {kk.Balance}");
+
         // Crear el movimiento
         Movimiento newMovimiento = new Movimiento
         {
@@ -241,7 +251,7 @@ public class MovimientoService(
         if (originAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanOrigen);
 
         // Validar que la cuenta es de ese cliente
-        if (!originAccount.clientID.Equals(originClient.Id)) throw new AccountsExceptions.AccountUnknownIban(transferencia.IbanOrigen);
+        if (!originAccount.ClientID.Equals(originClient.Id)) throw new AccountsExceptions.AccountUnknownIban(transferencia.IbanOrigen);
 
         // Validar que la cuenta destino existe
         var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanDestino);
@@ -263,7 +273,7 @@ public class MovimientoService(
         logger.LogInformation("Creating destination movement");
         Movimiento newDestinationMovement = new Movimiento
         {
-            ClienteGuid = destinationAccount.clientID,
+            ClienteGuid = destinationAccount.ClientID,
             Transferencia = transferencia
         };
         

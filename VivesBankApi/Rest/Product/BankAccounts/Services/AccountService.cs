@@ -118,16 +118,16 @@ public class AccountService : IAccountsService
         return account.toResponse();
     }
 
-    public async Task<AccountResponse> UpdateAccountAsync(string id, UpdateAccountRequest request)
+    public async Task<AccountCompleteResponse> UpdateAccountAsync(string id, UpdateAccountRequest request)
     {
         _logger.LogInformation($"Updating account with id {id}");
         
         var account = await _accountsRepository.GetByIdAsync(id);
         if (account == null) throw new AccountsExceptions.AccountNotFoundException(id);
         
-        if (await _productRepository.GetByNameAsync(request.ProductID) == null)
+        if (await _productRepository.GetByIdAsync(request.ProductID) == null)
             throw new AccountsExceptions.AccountNotUpdatedException(id);
-    
+        
         if (await _clientRepository.GetByIdAsync(request.ClientID) == null)
             throw new AccountsExceptions.AccountNotCreatedException();
 
@@ -137,13 +137,11 @@ public class AccountService : IAccountsService
         if (!Enum.IsDefined(typeof(AccountType), request.AccountType)) 
             throw new AccountsExceptions.AccountNotUpdatedException(id);
 
-        var updatingAccount = request.fromDtoRequest();
-        updatingAccount.Id = account.Id;
-        updatingAccount.UpdatedAt = DateTime.UtcNow;
-        updatingAccount.IsDeleted = account.IsDeleted;
-
-        await _accountsRepository.UpdateAsync(updatingAccount);
-        return updatingAccount.toResponse();
+        account.Balance = request.Balance;
+        account.UpdatedAt = DateTime.UtcNow;
+        
+        await _accountsRepository.UpdateAsync(account);
+        return account.toCompleteResponse();
         
     }
 
