@@ -128,6 +128,7 @@ public class MovimientoService(
     public async Task<Movimiento> AddIngresoDeNominaAsync(User user, IngresoDeNomina ingresoDeNomina)
     {
         logger.LogInformation($"Adding new Ingreso de Nomina {ingresoDeNomina} User.id {user.Id}");
+        
         // Validar que el ingreso de nomina es > 0
         if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidAmountException(ingresoDeNomina.Cantidad);
         
@@ -141,7 +142,6 @@ public class MovimientoService(
         // Validar que el cliente existe
         var client = await clientService.GetClientByUserIdAsync(user.Id);
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
-        //logger.LogInformation($"Client id de user: {client.Id}, cliente userid: {client.UserId}");
         
         // Validar que la cuenta del cliente existe (destino)
         var clientAccount = await accountsService.GetCompleteAccountByIbanAsync(ingresoDeNomina.IbanDestino);
@@ -151,24 +151,23 @@ public class MovimientoService(
         if (!clientAccount.ClientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(ingresoDeNomina.IbanDestino);
 
         // sumar al cliente la cantidad de la nómina
-        //clientAccount.Balance += ingresoDeNomina.Cantidad;
         var newBalance = clientAccount.Balance + ingresoDeNomina.Cantidad;
-        logger.LogInformation($"nuevo Balance {newBalance}");
         
         var updateAccountRequest = clientAccount.toUpdateAccountRequest();
         updateAccountRequest.Balance = newBalance;
-        logger.LogInformation($"nuevo Balance updateaccountRequest {updateAccountRequest.Balance}");
         
-        var updated = await accountsService.UpdateAccountAsync(clientAccount.Id, updateAccountRequest);
-        logger.LogInformation($"updatedCompleteResponse balance {updated.Balance}");
-        var kk = await accountsService.GetCompleteAccountByIbanAsync(clientAccount.IBAN);
-        logger.LogInformation($"nuevo Balance tras update {kk.Balance}");
+        var updatedAccount = await accountsService.UpdateAccountAsync(clientAccount.Id, updateAccountRequest);
+        logger.LogInformation($"New balance after Payroll Income: {updatedAccount.Balance}");
 
+        var now = DateTime.UtcNow;
         // Crear el movimiento
         Movimiento newMovimiento = new Movimiento
         {
             ClienteGuid = client.Id,
-            IngresoDeNomina = ingresoDeNomina
+            IngresoDeNomina = ingresoDeNomina,
+            CreatedAt = now,
+            UpdatedAt = now,
+            IsDeleted = false
         };
         
         // Guardar el movimiento
