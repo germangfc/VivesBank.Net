@@ -36,6 +36,7 @@
     using VivesBankApi.Rest.Product.Service;
     using VivesBankApi.Rest.Users.Repository;
     using VivesBankApi.Rest.Users.Service;
+    using VivesBankApi.Rest.Users.Storage;
     using VivesBankApi.Utils.ApiConfig;
     using VivesBankApi.Utils.IbanGenerator;
     using VivesBankApi.WebSocket.Service;
@@ -311,6 +312,7 @@
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
         myBuilder.Services.AddScoped<IUserService, UserService>();
         myBuilder.Services.AddSingleton<IWebsocketHandler, WebSocketHandler>();
+        myBuilder.Services.AddScoped<IUserStorageJson, UserStorageJson>();
         myBuilder.Services.AddHttpContextAccessor();
     // API FRANKFURTER 
         string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
