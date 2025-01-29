@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Exceptions;
+using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
@@ -124,7 +125,7 @@ public class MovimientoService(
 
     public async Task<Movimiento> AddIngresoDeNominaAsync(User user, IngresoDeNomina ingresoDeNomina)
     {
-        logger.LogInformation($"Adding new Ingreso de Nomina {ingresoDeNomina}");
+        logger.LogInformation($"Adding new Ingreso de Nomina {ingresoDeNomina} User.id {user.Id}");
         // Validar que el ingreso de nomina es > 0
         if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidAmountException(ingresoDeNomina.Cantidad);
         
@@ -136,14 +137,17 @@ public class MovimientoService(
         if (!CifValidator.ValidateCif(ingresoDeNomina.CifEmpresa)) throw new InvalidCifException(ingresoDeNomina.CifEmpresa);
 
         // Validar que el cliente existe
-        var client = await clientService.GetClientByIdAsync(user.Id);
+        var client = await clientService.GetClientByUserIdAsync(user.Id);
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
+        //logger.LogInformation($"Client id de user: {client.Id}, cliente userid: {client.UserId}");
         
         // Validar que la cuenta del cliente existe (destino)
         var clientAccount = await accountsService.GetCompleteAccountByIbanAsync(ingresoDeNomina.IbanDestino);
         if (clientAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(ingresoDeNomina.IbanDestino);
 
         // Validar que la cuenta es de ese cliente
+        logger.LogInformation($"clientAccount.clientID {clientAccount.clientID}");
+        logger.LogInformation($"client.Id userid {client.UserId}");
         if (!clientAccount.clientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(ingresoDeNomina.IbanDestino);
 
         // sumar al cliente la cantidad de la nomina
