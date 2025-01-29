@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Models;
+using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Users.Storage;
 
@@ -45,7 +46,7 @@ public class UserStorageJson : IUserStorageJson
                         }
                         catch (JsonSerializationException e)
                         {
-                            observer.OnError(new UserStorageException("There was a problem importing users from the file" + fileStream.FileName + ":" + e));
+                            observer.OnError(e);
                             return;
                         }
                     }
@@ -59,8 +60,12 @@ public class UserStorageJson : IUserStorageJson
         });
     } 
 
-    public Task<FileStream> Export(string filename, IObservable<User> users)
+    public async Task<FileStream> Export(List<User> users)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Exporting users to a Json file");
+        var json = JsonConvert.SerializeObject(users, Formatting.Indented);
+        var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json");
+        await File.WriteAllTextAsync(tempFilePath, json);
+        return new FileStream(tempFilePath, FileMode.Open);
     }
 }
