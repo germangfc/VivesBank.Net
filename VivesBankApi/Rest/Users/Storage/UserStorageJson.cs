@@ -8,7 +8,7 @@ namespace VivesBankApi.Rest.Users.Storage;
 
 public class UserStorageJson : IUserStorageJson
 {
-    private ILogger<UserStorageJson> _logger;
+    private readonly ILogger<UserStorageJson> _logger;
     
     public UserStorageJson(ILogger<UserStorageJson> logger)
     {
@@ -18,7 +18,6 @@ public class UserStorageJson : IUserStorageJson
     public IObservable<User> Import(IFormFile fileStream)
     {
         _logger.LogInformation("Importing Users from a JSON file");
-
         return Observable.Create<User>(async (observer, cancellationToken) =>
         {
             try
