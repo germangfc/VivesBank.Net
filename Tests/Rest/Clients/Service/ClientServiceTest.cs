@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using Castle.Core.Configuration;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +11,6 @@ using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.storage.Config;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Models;
-using VivesBankApi.Rest.Users.Service;
 using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace Tests.Rest.Clients.Service;
@@ -363,4 +363,5 @@ public class ClientServiceTests
         // Assert
         _clientRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<Client>(c => c.IsDeleted == true)), Times.Once);
     }
+    
 }
