@@ -1,17 +1,12 @@
 ﻿using Newtonsoft.Json;
-using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Utils.GenericStorage.JSON;
 using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Clients.storage.JSON;
 
-public class ClientStorageJson : GenericStorageJson<Client>, IClientStorageJson
+public class ClientStorageJson(ILogger<ClientStorageJson> logger) : GenericStorageJson<Client>(logger), IClientStorageJson
 {
-    public ClientStorageJson(ILogger<GenericStorageJson<Client>> logger) : base(logger)
-    {
-    }
-
     public async Task<FileStream> ExportOnlyMeData(Client client)
     {
         _logger.LogInformation($"Exporting Client to a JSON file");
