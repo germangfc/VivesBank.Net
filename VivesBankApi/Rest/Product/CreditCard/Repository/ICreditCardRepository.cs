@@ -6,4 +6,11 @@ using VivesBankApi.Rest.Product.CreditCard.Models;
 public interface ICreditCardRepository : IGenericRepository<CreditCard>
 {
     Task<CreditCard?> GetByCardNumber(string cardNumber);
+    Task<CreditCard?> GetCardsByAccountId(string clientId);
+     Task<PagedList<CreditCard>> GetAllCrediCardsPaginated(
+        int pageNumber,
+        int pageSize,
+        string name,
+        bool? isDeleted,
+        string direction);
 }

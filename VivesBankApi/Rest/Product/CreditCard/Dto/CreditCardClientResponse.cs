@@ -26,4 +26,6 @@ public class CreditCardClientResponse
     
     public DateTime CreatedAt = DateTime.Now;
     public DateTime UpdatedAt = DateTime.Now;
+    
+    public bool IsDeleted { get; set; }
 }
