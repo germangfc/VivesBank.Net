@@ -181,6 +181,7 @@ public class ClientController : ControllerBase
     }
     
     [HttpGet("ftp/{fileName}")]
+    [Authorize("AdminPolicy")]
     public async Task<IActionResult> GetFileFromFtpAsync(string fileName)
     {
         _logger.LogInformation($"Request to get file with file name: {fileName}");
@@ -233,6 +234,25 @@ public class ClientController : ControllerBase
 
         return Ok(new { message = "Profile photo updated successfully", fileName = newFileName });
     }
+    
+    [HttpPatch("me-dni-photo")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> UpdateMyDniPhotoAsync(IFormFile file)
+    {
+        _logger.LogInformation("Request to update my DNI photo.");
+
+        if (file == null || file.Length == 0)
+        {
+            _logger.LogWarning("No file provided.");
+            return BadRequest("No file provided.");
+        }
+
+        var newFileName = await _clientService.UpdateMyPhotoDniAsync(file);
+        _logger.LogInformation($"DNI photo updated successfully: {newFileName}");
+
+        return Ok(new { message = "DNI photo updated successfully", fileName = newFileName });
+    }
+
 
     [HttpGet("me-dni-photo")]
     [Authorize("ClientPolicy")]
@@ -240,17 +260,15 @@ public class ClientController : ControllerBase
     {
         _logger.LogInformation("Request to get my DNI photo from FTP.");
 
-        // Llamamos al servicio para obtener la foto del DNI del cliente desde el FTP
         var fileStream = await _clientService.GettingMyDniPhotoFromFtpAsync();
 
-        // Determinamos el MIME type según la extensión del archivo
         var mimeType = MimeTypes.GetMimeType(Path.GetExtension(fileStream.Name));
 
         _logger.LogInformation($"Returning DNI photo from FTP: {Path.GetFileName(fileStream.Name)} with MIME type: {mimeType}");
-
-        // Devolvemos el archivo con el MIME type
         return File(fileStream, mimeType, Path.GetFileName(fileStream.Name));
     }
+    
+    
     
     
 }
