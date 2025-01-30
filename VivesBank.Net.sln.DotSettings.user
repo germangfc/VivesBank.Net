@@ -1,4 +1,4 @@
-<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AAssert_002Ecs_002Fl_003A_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003F182ec85d25b779c7118bca2890ca95ae8dd32868c52272faee4a3a304f624b_003FAssert_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AControllerBase_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003F96a4cc66aa48dda8a9d8be8febec4a769fc143f7a86dd53ecdebfb9c3177d_003FControllerBase_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ADateOnly_002Ecs_002Fl_003A_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003Ff3e11c961d12b2fefb2e241260357683bec19a3e8943c3398e4e4e57515e3140_003FDateOnly_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
@@ -27,6 +27,11 @@
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3d8e25e5_002D18fe_002D4edf_002D80e8_002D35b31fa62b6f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="AccountsRepositoryTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=485a46b0_002Dfb4d_002D42c2_002Daa12_002Df19f9e4a2115/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="ClientRepositoryTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Repository.ClientRepositoryTest&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=57ace027_002Dc220_002D48d1_002Dbe7e_002Df3cf7a11a8de/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="RegisterUser_Should_ReturnUser" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
