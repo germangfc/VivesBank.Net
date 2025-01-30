@@ -44,22 +44,25 @@ public class CreditCardService : ICreditCardService
         _clientRepository = clientRepository;
     }
 
-    public async Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync(int pageNumber, 
-        int pageSize,
-        string fullName,
-        bool? isDeleted,
-        string direction)
+    public async Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync(
+        int pageNumber, int pageSize, string fullName, bool? isDeleted, string direction)
     {
         _logger.LogInformation("Getting all credit cards");
+    
         var cards = await _creditCardRepository.GetAllCrediCardsPaginated(pageNumber, pageSize, fullName, isDeleted, direction);
+
+        _logger.LogInformation($"Total cards retrieved: {cards.Count}");
+
         var mappedCards = new PagedList<CreditCardAdminResponse>(
             cards.Select(u => u.ToAdminResponse()),
             cards.TotalCount,
             cards.PageNumber,
             cards.PageSize
         );
+
         return mappedCards;
     }
+
 
     public async Task<List<CreditCardClientResponse>> GetMyCreditCardsAsync()
     {
@@ -203,19 +206,19 @@ public class CreditCardService : ICreditCardService
         await _creditCardRepository.UpdateAsync(deletedCard);
         
     }
-
-    {
+    
     public IObservable<Models.CreditCard> Import(IFormFile fileStream)
+    {
         _logger.LogInformation("Starting to import credit cards from JSON file.");
 
         return Observable.Create<Models.CreditCard>(async (observer, cancellationToken) =>
         {
-            {
             try
+            {
                 using var stream = fileStream.OpenReadStream();
                 using var streamReader = new StreamReader(stream);
-
                 using var jsonReader = new JsonTextReader(streamReader) { SupportMultipleContent = true };
+            
                 var serializer = new JsonSerializer
                 {
                     MissingMemberHandling = MissingMemberHandling.Error
@@ -226,28 +229,26 @@ public class CreditCardService : ICreditCardService
                     if (jsonReader.TokenType == JsonToken.StartObject)
                     {
                         var creditCard = serializer.Deserialize<Models.CreditCard>(jsonReader);
-                        // Deserializar el objeto CreditCard
-                        observer.OnNext(creditCard);
-                }
+                        observer.OnNext(creditCard); 
                     }
+                }
 
                 observer.OnCompleted();
             }
             catch (Exception ex)
-                _logger.LogError($"Error while processing the JSON file: {ex.Message}");
             {
+                _logger.LogError($"Error while processing the JSON file: {ex.Message}");
                 observer.OnError(ex);
             }
         });
     }
 
 
-    {
     public async Task<FileStream> Export(List<Models.CreditCard> entities)
+    {
         _logger.LogInformation("Exporting Credit Cards to JSON file...");
 
-
-        var json = JsonConvert.SerializeObject(entities, Formatting.Indented);
+        var json = JsonConvert.SerializeObject(entities, Formatting.Indented); 
         var directoryPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads", "Json");
 
         if (!Directory.Exists(directoryPath))
@@ -255,12 +256,11 @@ public class CreditCardService : ICreditCardService
             Directory.CreateDirectory(directoryPath);
         }
 
-        var filePath = System.IO.Path.Combine(directoryPath, fileName);
         var fileName = "CreditCardInSystem-" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") + ".json";
-        await File.WriteAllTextAsync(filePath, json);
+        var filePath = System.IO.Path.Combine(directoryPath, fileName);
 
+        await File.WriteAllTextAsync(filePath, json);
 
         return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
-        _logger.LogInformation($"File written to: {filePath}");
 }
