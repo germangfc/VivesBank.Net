@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Clients.Dto;
-using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Service;
-using VivesBankApi.Rest.Clients.storage;
 using VivesBankApi.Rest.Clients.storage.Config;
+using VivesBankApi.Rest.Clients.storage.JSON;
 using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Clients.Controller;
@@ -13,10 +12,13 @@ namespace VivesBankApi.Rest.Clients.Controller;
 public class ClientController : ControllerBase
 {
     private readonly IClientService _clientService;
+    private readonly IClientStorageJson _storage;
     private ILogger _logger;
-    public ClientController(IClientService clientService, ILogger<ClientController> logger)
+    
+    public ClientController(IClientService clientService, ILogger<ClientController> logger, IClientStorageJson storage)
     {
         _clientService = clientService;
+        _storage = storage;
         _logger = logger;
     }
 
@@ -103,6 +105,23 @@ public class ClientController : ControllerBase
 
         var client = await _clientService.UpdateMeAsync(request);
         return Ok(client);
+    }
+    
+    [HttpGet("me/export")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> GetMeDataAsClient()
+    {
+        _logger.LogInformation("Getting my client data");
+        var data = await _clientService.GettingMyClientData();
+        try
+        {
+            var fileStream = await _storage.ExportOnlyMeData(data);
+            return File(fileStream, "application/json", "user.json");
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500);
+        }
     }
     
     
@@ -205,8 +224,6 @@ public class ClientController : ControllerBase
 
         return Ok(new { message = $"File with name {fileName} deleted successfully." });
     }
-
     
-
     
 }
