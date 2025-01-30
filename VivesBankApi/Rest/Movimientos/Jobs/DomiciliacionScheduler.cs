@@ -70,7 +70,7 @@ public class DomiciliacionScheduler(
         // Registrar el movimiento
         var movimiento = new Movimiento
         {
-            ClienteGuid = originAccount.clientID,
+            ClienteGuid = originAccount.ClientID,
             Domiciliacion = domiciliacion
         };
         

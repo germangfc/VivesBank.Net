@@ -39,7 +39,7 @@ db.movimientos.insertMany([
             IbanOrigen: "ES9820385778983000760237",
             Cantidad: 2000.00,
             NombreEmpresa: "Empresa ABC",
-            CifEmpresa: "B12345678"
+            CifEmpresa: "B76543214"
         },
         PagoConTarjeta: null,
         Transferencia: null,

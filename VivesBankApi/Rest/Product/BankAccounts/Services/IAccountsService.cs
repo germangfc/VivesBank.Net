@@ -12,7 +12,7 @@ public interface IAccountsService
     Task<List<AccountResponse>> GetMyAccountsAsClientAsync();
     Task<AccountCompleteResponse> GetCompleteAccountByIbanAsync(string iban);
     Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request);
-    Task<AccountResponse> UpdateAccountAsync(string id, UpdateAccountRequest request);
+    Task<AccountCompleteResponse> UpdateAccountAsync(string id, UpdateAccountRequest request);
     Task DeleteAccountAsync(string id);
     Task DeleteMyAccountAsync(String iban);
 }

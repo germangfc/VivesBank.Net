@@ -95,6 +95,13 @@ public class ClientService : IClientService
         return res.ToResponse();
     }
 
+    public async Task<ClientResponse> GetClientByUserIdAsync(string userId)
+    {
+        _logger.LogInformation($"Getting client by user id {userId}");
+        var res = await _clientRepository.getByUserIdAsync(userId) ?? throw new ClientExceptions.ClientNotFoundException(userId);
+        return res.ToResponse();
+    }
+
     public async Task<String> CreateClientAsync(ClientRequest request)
     {
         var user = _httpContextAccessor.HttpContext!.User;

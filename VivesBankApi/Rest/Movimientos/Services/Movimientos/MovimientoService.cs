@@ -3,12 +3,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Exceptions;
+using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Movimientos.Validators;
+using VivesBankApi.Rest.Product.BankAccounts.Dto;
+using VivesBankApi.Rest.Product.BankAccounts.Mappers;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Service;
@@ -130,7 +133,8 @@ public class MovimientoService(
 
     public async Task<Movimiento> AddIngresoDeNominaAsync(User user, IngresoDeNomina ingresoDeNomina)
     {
-        logger.LogInformation($"Adding new Ingreso de Nomina {ingresoDeNomina}");
+        logger.LogInformation($"Adding new Payroll Income {ingresoDeNomina} User.id {user.Id}");
+        
         // Validar que el ingreso de nomina es > 0
         if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidAmountException(ingresoDeNomina.Cantidad);
         
@@ -142,7 +146,7 @@ public class MovimientoService(
         if (!CifValidator.ValidateCif(ingresoDeNomina.CifEmpresa)) throw new InvalidCifException(ingresoDeNomina.CifEmpresa);
 
         // Validar que el cliente existe
-        var client = await clientService.GetClientByIdAsync(user.Id);
+        var client = await clientService.GetClientByUserIdAsync(user.Id);
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
         
         // Validar que la cuenta del cliente existe (destino)
@@ -150,17 +154,26 @@ public class MovimientoService(
         if (clientAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(ingresoDeNomina.IbanDestino);
 
         // Validar que la cuenta es de ese cliente
-        if (!clientAccount.clientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(ingresoDeNomina.IbanDestino);
+        if (!clientAccount.ClientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(ingresoDeNomina.IbanDestino);
 
-        // sumar al cliente la cantidad de la nomina
-        clientAccount.Balance += ingresoDeNomina.Cantidad;
-        //accountsService.UpdateAccountAsync(clientAccount.Id, UpdateAccountRequest);
+        // sumar al cliente la cantidad de la nómina
+        var newBalance = clientAccount.Balance + ingresoDeNomina.Cantidad;
         
+        var updateAccountRequest = clientAccount.toUpdateAccountRequest();
+        updateAccountRequest.Balance = newBalance;
+        
+        var updatedAccount = await accountsService.UpdateAccountAsync(clientAccount.Id, updateAccountRequest);
+        logger.LogInformation($"New balance after Payroll Income: {updatedAccount.Balance}");
+
         // Crear el movimiento
+        var now = DateTime.UtcNow;
         Movimiento newMovimiento = new Movimiento
         {
             ClienteGuid = client.Id,
-            IngresoDeNomina = ingresoDeNomina
+            IngresoDeNomina = ingresoDeNomina,
+            CreatedAt = now,
+            UpdatedAt = now,
+            IsDeleted = false
         };
         
         // Guardar el movimiento
@@ -174,7 +187,7 @@ public class MovimientoService(
 
     public async Task<Movimiento> AddPagoConTarjetaAsync(User user, PagoConTarjeta pagoConTarjeta)
     {
-        logger.LogInformation($"Adding new Pago con Tarjeta {pagoConTarjeta}");
+        logger.LogInformation($"Adding new Credit Card Payment {pagoConTarjeta}");
         
         // Validar que la cantidad es mayor que cero
         if (pagoConTarjeta.Cantidad <= 0) throw new PagoTarjetaInvalidAmountException(pagoConTarjeta.Cantidad);
@@ -183,11 +196,11 @@ public class MovimientoService(
         if (!NumTarjetaValidator.ValidateTarjeta(pagoConTarjeta.NumeroTarjeta)) throw new InvalidCardNumberException(pagoConTarjeta.NumeroTarjeta);
 
         // Validar que el cliente existe
-        var client = await clientService.GetClientByIdAsync(user.Id);
+        var client = await clientService.GetClientByUserIdAsync(user.Id);
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
 
         // Validar que la tarjeta existe
-        var clientCard = creditCardService.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta);
+        var clientCard = await creditCardService.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta);
         if (clientCard is null) throw new PagoTarjetaCreditCardNotFoundException(pagoConTarjeta.NumeroTarjeta);
         
         // Validar que el cliente tiene esa tarjeta asociada a alguna de sus cuentas
@@ -195,22 +208,29 @@ public class MovimientoService(
         if (clientAccounts is null) throw new AccountNotFoundByClientIdException(client.Id); // cliente no tiene cuentas asociadas
 
         // buscamos la cuenta a la que está asociada la tarjeta
-        var cardAccount = clientAccounts.FirstOrDefault(a => a.TarjetaId == pagoConTarjeta.NumeroTarjeta);
-        if (cardAccount is null) throw new CreditCardException.CreditCardNotFoundException(pagoConTarjeta.NumeroTarjeta); // tarjeta no está asociada a ninguna cuenta
+        var cardAccount = clientAccounts.FirstOrDefault(a => a.TarjetaId == clientCard.Id);
+        if (cardAccount is null) throw new CreditCardException.CreditCardNotAssignedException(pagoConTarjeta.NumeroTarjeta); // tarjeta no está asociada a ninguna cuenta
 
         // Validar saldo suficiente en la cuenta
         var newBalance = cardAccount.Balance - pagoConTarjeta.Cantidad; 
         if ( newBalance < 0 ) throw new PagoTarjetaAccountInsufficientBalanceException(pagoConTarjeta.NumeroTarjeta);
 
         // restar al cliente
-        cardAccount.Balance = newBalance;
-//        await accountsService.UpdateAccountAsync(cardAccount.Id, new UpdateAccountRequest { Balance = cardAccount.Balance });
+        var updateAccountRequest = cardAccount.toUpdateAccountRequest();
+        updateAccountRequest.Balance = newBalance;
+        
+        var updatedAccount = await accountsService.UpdateAccountAsync(cardAccount.Id, updateAccountRequest);
+        logger.LogInformation($"New balance after Credit Card Payment: {updatedAccount.Balance}");
 
         // Crear el movimiento
+        var now = DateTime.UtcNow;
         Movimiento newMovimiento = new Movimiento
         {
             ClienteGuid = client.Id,
-            PagoConTarjeta = pagoConTarjeta
+            PagoConTarjeta = pagoConTarjeta,
+            CreatedAt = now,
+            UpdatedAt = now,
+            IsDeleted = false
         };
 
         // Guardar el movimiento
@@ -243,8 +263,12 @@ public class MovimientoService(
         if (originAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanOrigen);
 
         // Validar que la cuenta es de ese cliente
-        if (!originAccount.clientID.Equals(originClient.Id)) throw new AccountsExceptions.AccountUnknownIban(transferencia.IbanOrigen);
-        
+        if (!originAccount.ClientID.Equals(originClient.Id)) throw new AccountsExceptions.AccountUnknownIban(transferencia.IbanOrigen);
+
+        // Validar que la cuenta destino existe
+        var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanDestino);
+        if (destinationAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanDestino);
+
         // Validar saldo suficiente en cuenta origen
         var newBalance = originAccount.Balance - transferencia.Cantidad; 
         if (newBalance < 0) throw new TransferInsufficientBalance(transferencia.IbanOrigen);
@@ -285,7 +309,23 @@ public class MovimientoService(
         }
         // restar de la cuenta origen
         originAccount.Balance = newBalance;
-        // await accountsService.UpdateAccountAsync(clientOriginAccount.Id, new UpdateAccountRequest { Balance = clientOriginAccount.Balance });
+//        await accountsService.UpdateAccountAsync(clientOriginAccount.Id, new UpdateAccountRequest { Balance = clientOriginAccount.Balance });
+    
+        // sumar a la cuenta destino
+        destinationAccount.Balance += transferencia.Cantidad;
+//        await accountsService.UpdateAccountAsync(clientDestinationAccount.Id, new UpdateAccountRequest { Balance = clientDestinationAccount.Balance });
+        
+        // crear el movimiento al cliente destino
+        logger.LogInformation("Creating destination movement");
+        Movimiento newDestinationMovement = new Movimiento
+        {
+            ClienteGuid = destinationAccount.ClientID,
+            Transferencia = transferencia
+        };
+        
+        // Guardar el movimiento destino
+        logger.LogInformation("Saving destination movement");
+        await movimientoRepository.AddMovimientoAsync(newDestinationMovement);
 
         // crear el movimiento al cliente origen
         logger.LogInformation("Creating origin movement");

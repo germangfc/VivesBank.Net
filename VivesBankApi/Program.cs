@@ -108,8 +108,9 @@
         // Crear un disparador (trigger)
         var trigger = TriggerBuilder.Create()
             .WithIdentity("DirectDebitTrigger", "MovimientosGroup")
-//            .WithCronSchedule("0 0 0 * * ?")  // todos los días a las 0:00 horas
-            .WithCronSchedule("0/10 * * * * ?")  // Una vez por minuto
+            .WithCronSchedule("0 0 0 * * ?")  // todos los días a las 0:00 horas
+//            .WithCronSchedule("0 * * * * ?")  // Una vez por minuto
+//            .WithCronSchedule("0/10 * * * * ?")  // Una vez cada 10 segundos
             .Build();
 
         // Asignar el trabajo al disparador

@@ -96,6 +96,12 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;
+                /************************** CREDIT CARD EXCEPTIONS *****************************************************/
+                case CreditCardException.CreditCardNotAssignedException:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
                 /************************** ACCOUNT EXCEPTIONS *****************************************************/
                 case AccountsExceptions.AccountNotCreatedException:
                     statusCode = HttpStatusCode.BadRequest;
