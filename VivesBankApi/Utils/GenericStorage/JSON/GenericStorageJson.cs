@@ -6,7 +6,7 @@ namespace VivesBankApi.Utils.GenericStorage.JSON;
 
 public class GenericStorageJson<T> : IGenericStorageJson<T> where T : class
 {
-    private readonly ILogger<GenericStorageJson<T>> _logger;
+    protected readonly ILogger<GenericStorageJson<T>> _logger;
     
     public GenericStorageJson(ILogger<GenericStorageJson<T>> logger)
     {

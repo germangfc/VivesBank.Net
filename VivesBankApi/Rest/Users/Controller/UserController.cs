@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Middleware.Jwt;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
-using VivesBankApi.Rest.Users.Mapper;
-using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using LoginRequest = VivesBankApi.Rest.Users.Dtos.LoginRequest;
 
@@ -78,7 +75,7 @@ public class UserController : ControllerBase
             Empty = pagedList.Count == 0,
             First = pagedList.IsFirstPage,
             Last = pagedList.IsLastPage,
-            SortBy = "username",
+            SortBy = "dni",
             Direction = direction
         };
     }
