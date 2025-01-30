@@ -99,41 +99,35 @@ public class ClientService : IClientService
     {
         var user = _httpContextAccessor.HttpContext!.User;
         var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        _logger.LogInformation($"Creating client for user ID: {id}");
-
         var userForFound = await _userService.GetUserByIdAsync(id);
+    
         if (userForFound == null)
-        {
-            _logger.LogWarning($"User not found: {id}");
             throw new UserNotFoundException(id);
-        }
-
+    
         var existingClient = await _clientRepository.getByUserIdAsync(id);
         if (existingClient != null)
-        {
-            _logger.LogWarning($"Client already exists for user ID: {id}");
             throw new ClientExceptions.ClientAlreadyExistsException(id);
-        }
-
-        var userUpdate = new UserUpdateRequest { Role = Role.Client.ToString() };
+    
+        var userUpdate = new UserUpdateRequest
+        {
+            Role = Role.Client.ToString(),
+        };
+    
         var client = request.FromDtoRequest();
         client.UserId = id;
 
-        // Asignar fotos por defecto
         client.Photo = "defaultProfile.png";
         client.PhotoDni = "defaultDni.png";
-
-        _logger.LogInformation("Assigning default profile photos.");
-
+    
         await _userService.UpdateUserAsync(id, userUpdate);
+    
         await _clientRepository.AddAsync(client);
 
         var updatedUser = await _userService.GetUserByIdAsync(id);
-        _logger.LogInformation($"Updating user role: {updatedUser.Role}");
+        _logger.LogDebug($"Updating user for client role: {updatedUser.Role}");
 
         return _jwtGenerator.GenerateJwtToken(updatedUser.ToUser());
     }
-
 
 
 
@@ -548,17 +542,14 @@ public class ClientService : IClientService
 
         var user = _httpContextAccessor.HttpContext!.User;
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        _logger.LogInformation($"User ID: {userId}");
 
         var client = await _clientRepository.getByUserIdAsync(userId);
         if (client == null)
         {
-            _logger.LogWarning($"Client not found for user ID: {userId}");
             throw new ClientExceptions.ClientNotFoundException(userId);
         }
 
         string filePath = Path.Combine(_fileStorageConfig.UploadDirectory, client.Photo);
-        _logger.LogInformation($"Resolved file path: {filePath}");
 
         if (!File.Exists(filePath))
         {
@@ -566,12 +557,9 @@ public class ClientService : IClientService
             throw new FileNotFoundException($"Profile photo file not found: {client.Photo}");
         }
 
-        var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-        _logger.LogInformation($"File stream opened successfully: {fileStream.Name}");
-
-        return fileStream;
+        _logger.LogInformation($"Profile photo found: {filePath}");
+        return new FileStream(filePath, FileMode.Open, FileAccess.Read);
     }
-
 
     
     public async Task EnviarNotificacionUpdateAsync<T>(T t)
