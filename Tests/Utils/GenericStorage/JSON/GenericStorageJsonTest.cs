@@ -3,20 +3,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework.Legacy;
 using VivesBankApi.Rest.Users.Models;
-using VivesBankApi.Rest.Users.Storage;
-using Path = System.IO.Path;
+using VivesBankApi.Utils.GenericStorage.JSON;
 
-namespace Tests.Rest.Users.Storage;
+namespace Tests.Utils.GenericStorage.JSON;
 
-public class UserStorageJsonTest
+public class GenericStorageJsonTest
 {
-    private UserStorageJson storage;
+    private GenericStorageJson<User> _storage;
 
     [SetUp]
     public void Setup()
     {
-        storage = new UserStorageJson(
-            NullLogger<UserStorageJson>.Instance);
+        _storage = new GenericStorageJson<User>(
+            NullLogger<GenericStorageJson<User>>.Instance);
     }
 
     [Test]
@@ -27,13 +26,13 @@ public class UserStorageJsonTest
         var fileName = "test.json";
         var stream = new MemoryStream();
         var writer = new StreamWriter(stream);
-        writer.Write(content);
-        writer.Flush();
+        await writer.WriteAsync(content);
+        await writer.FlushAsync();
         stream.Position = 0;
         IFormFile file = new FormFile(stream, 0, stream.Length, "id_from_form", fileName);
         
         //Act
-        var result = await storage.Import(file).ToList();
+        var result = await _storage.Import(file).ToList();
 
         //Assert
         ClassicAssert.IsInstanceOf<List<User>>(result);
@@ -52,14 +51,14 @@ public class UserStorageJsonTest
         var fileName = "test.json";
         var stream = new MemoryStream();
         var writer = new StreamWriter(stream);
-        writer.Write(content);
-        writer.Flush();
+        await writer.WriteAsync(content);
+        await writer.FlushAsync();
         stream.Position = 0;
         IFormFile file = new FormFile(stream, 0, stream.Length, "id_from_form", fileName);
         Exception caughtException = null;
         
         //Act
-        storage.Import(file)
+        _storage.Import(file)
             .Subscribe(
                 _ => { },
                 ex => caughtException = ex,
@@ -90,11 +89,11 @@ public class UserStorageJsonTest
         };
 
         //Act
-        var result = await storage.Export(users);
+        var result = await _storage.Export(users);
 
         //Assert
         var formFile = new FormFile(result, 0, result.Length, "something", "test.json"  );
-        var secondResult = await storage.Import(formFile).ToList();
+        var secondResult = await _storage.Import(formFile).ToList();
         ClassicAssert.IsInstanceOf<FileStream>(result);
         ClassicAssert.AreEqual(users[0].Id, secondResult[0].Id);
         ClassicAssert.AreEqual(users[0].Dni, secondResult[0].Dni);

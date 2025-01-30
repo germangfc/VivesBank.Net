@@ -1,24 +1,22 @@
 ﻿using System.Reactive.Linq;
 using Newtonsoft.Json;
-using VivesBankApi.Rest.Users.Exceptions;
-using VivesBankApi.Rest.Users.Models;
 using Path = System.IO.Path;
 
-namespace VivesBankApi.Rest.Users.Storage;
+namespace VivesBankApi.Utils.GenericStorage.JSON;
 
-public class UserStorageJson : IUserStorageJson
+public class GenericStorageJson<T> : IGenericStorageJson<T> where T : class
 {
-    private readonly ILogger<UserStorageJson> _logger;
+    private readonly ILogger<GenericStorageJson<T>> _logger;
     
-    public UserStorageJson(ILogger<UserStorageJson> logger)
+    public GenericStorageJson(ILogger<GenericStorageJson<T>> logger)
     {
         _logger = logger;
     }
     
-    public IObservable<User> Import(IFormFile fileStream)
+    public IObservable<T> Import(IFormFile fileStream)
     {
-        _logger.LogInformation("Importing Users from a JSON file");
-        return Observable.Create<User>(async (observer, cancellationToken) =>
+        _logger.LogInformation($"Importing {typeof(T).Name} from a JSON file");
+        return Observable.Create<T>(async (observer, cancellationToken) =>
         {
             try
             {
@@ -38,23 +36,23 @@ public class UserStorageJson : IUserStorageJson
                 {
                     if (jsonReader.TokenType == JsonToken.StartObject)
                     {
-                        var obj = serializer.Deserialize<User>(jsonReader);
+                        var obj = serializer.Deserialize<T>(jsonReader);
                         observer.OnNext(obj);
                     }
                 }
                 observer.OnCompleted();
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 observer.OnError(ex);
             }
         });
     }
 
-
-    public async Task<FileStream> Export(List<User> users)
+    public async Task<FileStream> Export(List<T> entities)
     {
-        _logger.LogInformation("Exporting users to a Json file");
-        var json = JsonConvert.SerializeObject(users, Formatting.Indented);
+        _logger.LogInformation($"Exporting {typeof(T).Name} to a JSON file");
+        var json = JsonConvert.SerializeObject(entities, Formatting.Indented);
         var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json");
         await File.WriteAllTextAsync(tempFilePath, json);
         return new FileStream(tempFilePath, FileMode.Open);
