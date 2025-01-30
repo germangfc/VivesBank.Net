@@ -8,6 +8,7 @@ using NUnit.Framework.Legacy;
 using VivesBankApi.Rest.Clients.Controller;
 using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
+using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.JSON;
 using VivesBankApi.Utils.GenericStorage.JSON;
@@ -26,7 +27,7 @@ public class ClientControllerTest
     {
         _service = new Mock<IClientService>();
         _storage = new ClientStorageJson(
-            NullLogger<GenericStorageJson<ClientResponse>>.Instance
+            NullLogger<GenericStorageJson<Client>>.Instance
         );
         _logger = new Mock<ILogger<ClientController>>();
         _clientController = new ClientController(_service.Object, _logger.Object, _storage);
@@ -188,6 +189,11 @@ public class ClientControllerTest
         IFormFile file = new FormFile(fileResult.FileStream, 0, fileResult.FileStream.Length, "id_from_form", "test.json");
         var returnedClient = await _storage.Import(file).ToList();
         ClassicAssert.AreEqual(returnedClient[0].Id, client.Id);
-        ClassicAssert.AreEqual(returnedClient[0].Fullname, client.Fullname);
+        ClassicAssert.AreEqual(returnedClient[0].FullName, client.Fullname);
+    }
+    
+    [Test]
+    public async Task ExportMeData_Returns_500_WhenFileDoesNotExist(){
+        
     }
 }

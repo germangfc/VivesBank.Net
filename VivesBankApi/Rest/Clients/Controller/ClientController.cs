@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Clients.Dto;
+using VivesBankApi.Rest.Clients.Mappers;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.Config;
 using VivesBankApi.Rest.Clients.storage.JSON;
@@ -112,15 +113,16 @@ public class ClientController : ControllerBase
     public async Task<IActionResult> GetMeDataAsClient()
     {
         _logger.LogInformation("Exporting client data as a JSON file");
-        var data = await _clientService.GettingMyClientData();
         try
         {
-            var fileStream = await _storage.ExportOnlyMeData(data);
+            var user = await _clientService.GettingMyClientData();
+            var fileStream = await _storage.ExportOnlyMeData(user.FromDtoResponse());
             return File(fileStream, "application/json", "user.json");
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            return StatusCode(500);
+            _logger.LogError($"Error exporting client: {ex.Message}");
+            return StatusCode(500, new { message = "Error exporting client", details = ex.Message });
         }
     }
     
