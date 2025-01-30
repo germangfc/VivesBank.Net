@@ -77,6 +77,14 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=dd5777c8_002Dfdc2_002D4351_002Db379_002D28be58fff23a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CurrencyApiServiceTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\Users\samue\RiderProjects\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=deed2812_002D3ede_002D4064_002D954b_002D9111e9163b6c/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="CreateClientAsync_ShouldReturn_Token" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.CreateClientAsync_ShouldReturn_Token&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.CreateClientAsync_ShouldThrowException_WhenUserIsNotAuthenticated&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.CreateClientAsync_ShouldReturn_UserNotFoundException&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.CreateClientAsync_ShouldReturn_ClientAlreadyExistsException&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e10460f2_002D18b9_002D47b2_002Dbc10_002D228e6f6a461b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetCreditCardByIdAdminAsyncNotFound #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::VivesBankApi.Tests.CreditCard.CreditCardServiceTests&lt;/TestId&gt;&#xD;
@@ -93,15 +101,6 @@
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f2fd869c_002Db915_002D48e8_002Da3c0_002Dfb269cb1f480/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GetAllClientsAsync_ReturnsPagedClients" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetAllClientsAsync_ReturnsPagedClients&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetMyClientData_ShouldReturn_ClientResponse&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetMyClientData_ShouldReturn_UserNotFoundException&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetMyClientData_ShouldReturn_ClientNotFoundException&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.UpdateMyClientData_ShouldReturn_ClientResponse&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.UpdateMyClientData_ShouldReturn_ClientNotfoundException&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.UpdateMeAsync_ShouldReturnBadRequest_WhenFullNameIsInvalid&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.DeleteMeAsClient_ShouldLogicDeleteClient&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.DeleteMeAsClient_ShouldReturn_ClientNotfoundException&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.DeleteMeAsClient_ShouldReturn_UserNotFoundException&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
