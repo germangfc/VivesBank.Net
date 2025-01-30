@@ -280,7 +280,16 @@ public class AccountService : IAccountsService
                     if (jsonReader.TokenType == JsonToken.StartObject)
                     {
                         var account = serializer.Deserialize<Account>(jsonReader);
-                        observer.OnNext(account);
+                    
+                        if (account != null)
+                        {
+                            _logger.LogInformation($"Deserialized Account: {account.Id}"); 
+                            observer.OnNext(account);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Failed to deserialize an account.");
+                        }
                     }
                 }
 
@@ -293,6 +302,7 @@ public class AccountService : IAccountsService
             }
         });
     }
+
 
     
     public async Task<FileStream> Export(List<Account> entities)

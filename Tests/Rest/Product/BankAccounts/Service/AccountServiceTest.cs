@@ -1,10 +1,11 @@
-﻿using System.Text.Json;
+﻿using System.Reactive.Linq;
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
-using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
@@ -22,33 +23,35 @@ namespace Tests.Rest.Product.BankAccounts.Service;
 [TestOf(typeof(AccountService))]
 public class AccountServiceTest
 {
+    private Mock<IAccountsRepository> _accountRepository;
+    private Mock<IClientRepository> _clientRepository;
+    private Mock<IProductRepository> _productRepository;
+    private Mock<IIbanGenerator> _ibanGenerator;
+    private Mock<ILogger<AccountService>> _logger;
+    private Mock<IDatabase> _cache;
+    private Mock<IConnectionMultiplexer> _connectionMultiplexer;
+    private Mock<IHttpContextAccessor> _httpContextAccessor;
+    private Mock<IUserService> _userService;
+    private Mock<IWebsocketHandler> _websocketHandler;
+    private AccountService _accountService;
+
     [SetUp]
     public void Setup()
     {
-        connectionMultiplexer = new Mock<IConnectionMultiplexer>();
+        _connectionMultiplexer = new Mock<IConnectionMultiplexer>();
         _cache = new Mock<IDatabase>();
-        connectionMultiplexer.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
+        _connectionMultiplexer.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
         _accountRepository = new Mock<IAccountsRepository>();
         _clientRepository = new Mock<IClientRepository>();
         _productRepository = new Mock<IProductRepository>();
         _ibanGenerator = new Mock<IIbanGenerator>();
         _websocketHandler = new Mock<IWebsocketHandler>();
         _logger = new Mock<ILogger<AccountService>>();
-        
-        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object, connectionMultiplexer.Object, _httpContextAccessor.Object, _userService.Object,_websocketHandler.Object);
-
+        _httpContextAccessor = new Mock<IHttpContextAccessor>();
+        _userService = new Mock<IUserService>();
+            
+        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object, _connectionMultiplexer.Object, _httpContextAccessor.Object, _userService.Object, _websocketHandler.Object);
     }
-    private Mock<IAccountsRepository> _accountRepository;
-    private Mock<IClientRepository> _clientRepository;
-    private Mock<IProductRepository> _productRepository;
-    private Mock<IIbanGenerator> _ibanGenerator;
-    private Mock<ILogger<AccountService>> _logger;
-    private AccountService _accountService;
-    private Mock<IDatabase> _cache;
-    private Mock<IConnectionMultiplexer> connectionMultiplexer;
-    private Mock<IHttpContextAccessor> _httpContextAccessor;
-    private Mock<IUserService> _userService;
-    private Mock<IWebsocketHandler> _websocketHandler;
     
     private readonly Account account = new Account
     {
@@ -294,5 +297,91 @@ public class AccountServiceTest
         _accountRepository.Verify(r => r.GetByIdAsync(accountId), Times.Once);
         _accountRepository.Verify(r => r.UpdateAsync(It.Is<Account>(a => a.IsDeleted == true)), Times.Once);
     }
+
+    [Test]
+    public async Task ImportJson()
+    {
+        var fileContent = "[{\"Id\": 1}, {\"Id\": 2}]";
+        var mockFile = new Mock<IFormFile>();
+        var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
+        mockFile.Setup(f => f.OpenReadStream()).Returns(stream);
+
+        var mockLogger = new Mock<ILogger<AccountService>>();
+        var mockIbanGenerator = new Mock<IIbanGenerator>();
+        var mockClientRepository = new Mock<IClientRepository>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockAccountsRepository = new Mock<IAccountsRepository>();
+        var mockConnectionMultiplexer = new Mock<IConnectionMultiplexer>();
+        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        var mockUserService = new Mock<IUserService>();
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>();
+
+        var importClass = new AccountService(
+            mockLogger.Object,
+            mockIbanGenerator.Object,
+            mockClientRepository.Object,
+            mockProductRepository.Object,
+            mockAccountsRepository.Object,
+            mockConnectionMultiplexer.Object,
+            mockHttpContextAccessor.Object,
+            mockUserService.Object,
+            mockWebsocketHandler.Object
+        );
+
+        var result = importClass.Import(mockFile.Object);
+        var accounts = new List<Account>();
+        result.Subscribe(account => accounts.Add(account));
+
+        await Task.Delay(100);
+
+        ClassicAssert.AreEqual("1", accounts[0].Id);
+        ClassicAssert.AreEqual("2", accounts[1].Id);
+    }
+
     
+    [Test]
+    public async Task ExportJson()
+    {
+        var accounts = new List<Account>
+        {
+            new Account { Id = "1", ClientId = "C1", ProductId = "P1", AccountType = AccountType.STANDARD, IBAN = "IBAN1", Balance = 1000 },
+            new Account { Id = "2", ClientId = "C2", ProductId = "P2", AccountType = AccountType.SAVING, IBAN = "IBAN2", Balance = 2000 }
+        };
+
+        var loggerMock = new Mock<ILogger<AccountService>>();
+        var ibanGeneratorMock = new Mock<IIbanGenerator>();
+        var clientRepositoryMock = new Mock<IClientRepository>();
+        var productRepositoryMock = new Mock<IProductRepository>();
+        var accountRepositoryMock = new Mock<IAccountsRepository>();
+        var connectionMultiplexerMock = new Mock<IConnectionMultiplexer>();
+        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        var userServiceMock = new Mock<IUserService>();
+        var websocketHandlerMock = new Mock<IWebsocketHandler>();
+
+        var accountService = new AccountService(
+            loggerMock.Object, 
+            ibanGeneratorMock.Object, 
+            clientRepositoryMock.Object, 
+            productRepositoryMock.Object, 
+            accountRepositoryMock.Object, 
+            connectionMultiplexerMock.Object, 
+            httpContextAccessorMock.Object, 
+            userServiceMock.Object, 
+            websocketHandlerMock.Object
+        );
+
+        var directoryPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads", "Json");
+        var fileName = "BankAccountInSystem-" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") + ".json";
+        var filePath = System.IO.Path.Combine(directoryPath, fileName);
+
+        var fileStream = await accountService.Export(accounts);
+
+        Assert.That(fileStream, Is.InstanceOf<FileStream>());
+        Assert.That(File.Exists(filePath), Is.True);
+        Assert.That(filePath, Does.Contain(fileName));
+
+        fileStream.Close();
+        File.Delete(filePath); 
+    }
+
 }

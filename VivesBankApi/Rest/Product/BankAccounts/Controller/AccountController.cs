@@ -110,8 +110,6 @@ public class AccountController : ControllerBase
         }
     }
     
-    [HttpPost("import")]
-    [Consumes("multipart/form-data")]
     public async Task<IActionResult> ImportAccountsFromJson([Required] IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -125,12 +123,26 @@ public class AccountController : ControllerBase
             var accounts = new List<Account>();
             _logger.LogInformation("Importing accounts from the uploaded file.");
 
-            await _accountsService.Import(file).ForEachAsync(account =>
-            {
-                accounts.Add(account);
-            });
+            var observable = _accountsService.Import(file);
+            var tcs = new TaskCompletionSource<bool>(); 
+            observable.Subscribe(
+                account =>
+                {
+                    accounts.Add(account); 
+                },
+                ex =>
+                {
+                    _logger.LogError($"Error during import: {ex.Message}");
+                    tcs.SetException(ex); 
+                },
+                () =>
+                {
+                    _logger.LogInformation($"Successfully imported {accounts.Count} accounts.");
+                    tcs.SetResult(true); 
+                });
 
-            _logger.LogInformation($"Successfully imported {accounts.Count} accounts.");
+            await tcs.Task; 
+
             return Ok(accounts);
         }
         catch (Exception ex)
@@ -139,6 +151,7 @@ public class AccountController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+
 
     
     [HttpPost("export")]
