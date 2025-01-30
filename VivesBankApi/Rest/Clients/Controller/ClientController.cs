@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Clients.Dto;
-using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Service;
-using VivesBankApi.Rest.Clients.storage;
 using VivesBankApi.Rest.Clients.storage.Config;
+using VivesBankApi.Rest.Clients.storage.JSON;
 using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Clients.Controller;
@@ -13,10 +12,13 @@ namespace VivesBankApi.Rest.Clients.Controller;
 public class ClientController : ControllerBase
 {
     private readonly IClientService _clientService;
+    private readonly IClientStorageJson _storage;
     private ILogger _logger;
-    public ClientController(IClientService clientService, ILogger<ClientController> logger)
+    
+    public ClientController(IClientService clientService, ILogger<ClientController> logger, IClientStorageJson storage)
     {
         _clientService = clientService;
+        _storage = storage;
         _logger = logger;
     }
 
@@ -105,6 +107,23 @@ public class ClientController : ControllerBase
         return Ok(client);
     }
     
+    [HttpGet("me/export")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> GetMeDataAsClient()
+    {
+        _logger.LogInformation("Exporting client data as a JSON file");
+        var data = await _clientService.GettingMyClientData();
+        try
+        {
+            var fileStream = await _storage.ExportOnlyMeData(data);
+            return File(fileStream, "application/json", "user.json");
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500);
+        }
+    }
+    
     
     [HttpDelete("{id}")]
     [Authorize("AdminPolicy")]
@@ -127,20 +146,6 @@ public class ClientController : ControllerBase
     [Authorize("ClientPolicy")]
     public async Task<IActionResult> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
     {
-        _logger.LogInformation($"Request to update DNI photo for client with ID: {clientId}");
-        
-        if (file == null || file.Length == 0)
-        {
-            return BadRequest("No file was provided or the file is empty.");
-        }
-
-        var fileName = await _clientService.UpdateClientDniPhotoAsync(clientId, file);
-        return Ok(new { message = "DNI photo updated successfully", fileName });
-    }
-    
-    [HttpPatch("{clientId}/profile")]
-    public async Task<IActionResult> UpdateClientPhotoAsync(string clientId, IFormFile file)
-    {
         _logger.LogInformation($"Request to update profile photo for client with ID: {clientId}");
 
         if (file == null || file.Length == 0)
@@ -151,6 +156,7 @@ public class ClientController : ControllerBase
         var fileName = await _clientService.UpdateClientPhotoAsync(clientId, file);
         return Ok(new { message = "Profile photo updated successfully", fileName });
     }
+    
 
     [HttpGet("photo/{fileName}")]
     [Authorize("AdminPolicy")]
@@ -174,5 +180,50 @@ public class ClientController : ControllerBase
 
         return File(fileStream, mimeType, fileName);
     }
+    
+    [HttpGet("ftp/{fileName}")]
+    public async Task<IActionResult> GetFileFromFtpAsync(string fileName)
+    {
+        _logger.LogInformation($"Request to get file with file name: {fileName}");
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return BadRequest(new { message = "File name must be provided." });
+        }
+
+        var fileStream = await _clientService.GetFileFromFtpAsync(fileName);
+        if (fileStream == null)
+        {
+            return NotFound(new { message = $"File with name {fileName} not found." });
+        }
+
+        var fileExtension = Path.GetExtension(fileName)?.ToLower();
+        var mimeType = MimeTypes.GetMimeType(fileExtension);
+
+        fileStream.Seek(0, SeekOrigin.Begin);
+
+        return File(fileStream, mimeType, fileName);
+    }
+
+    [HttpDelete("dni/{fileName}")]
+    public async Task<IActionResult> DeleteFileAsync(string fileName)
+    {
+        _logger.LogInformation($"Request to delete file with file name: {fileName}");
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return BadRequest(new { message = "File name must be provided." });
+        }
+
+        bool isDeleted = await _clientService.DeleteFileFromFtpAsync(fileName);
+
+        if (!isDeleted)
+        {
+            return NotFound(new { message = $"File with name {fileName} not found." });
+        }
+
+        return Ok(new { message = $"File with name {fileName} deleted successfully." });
+    }
+    
     
 }

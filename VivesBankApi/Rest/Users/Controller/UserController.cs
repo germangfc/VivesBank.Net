@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Middleware.Jwt;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
-using VivesBankApi.Rest.Users.Mapper;
-using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using LoginRequest = VivesBankApi.Rest.Users.Dtos.LoginRequest;
 
@@ -37,12 +34,17 @@ public class UserController : ControllerBase
         {
             return Unauthorized(e.Message);
         }
-        
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+ 
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var user = await _userService.LoginUser(request);
         if (user == null) return Unauthorized("Invalid username or password");
         var token = _jwtGenerator.GenerateJwtToken(user);
@@ -73,7 +75,7 @@ public class UserController : ControllerBase
             Empty = pagedList.Count == 0,
             First = pagedList.IsFirstPage,
             Last = pagedList.IsLastPage,
-            SortBy = "username",
+            SortBy = "dni",
             Direction = direction
         };
     }
@@ -93,7 +95,6 @@ public class UserController : ControllerBase
         var result = await _userService.GettingMyUserData();
         return Ok(result);
     }
-    
     
     
     [HttpGet("username/{username}")]
@@ -137,6 +138,10 @@ public class UserController : ControllerBase
     [Authorize(Policy = "AdminOrUserPolicy")]
     public async Task<IActionResult> ChangePassword(UpdatePasswordRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         await _userService.UpdateMyPassword(request);
         return NoContent();
     }

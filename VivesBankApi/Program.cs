@@ -42,6 +42,7 @@
     using Quartz;
     using Quartz.Impl;
     using Quartz.Spi;
+    using VivesBankApi.Rest.Clients.storage.JSON;
     using VivesBankApi.Rest.Movimientos.Jobs;
 
     Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
@@ -279,7 +280,6 @@
 
     /**************** INYECCION DE DEPENDENCIAS **************/
     // REPOSITORIO Y SERVICIOS
-
     // MOVIMIENTO
         myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>(); 
         myBuilder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
@@ -307,6 +307,7 @@
         myBuilder.Services.AddScoped<IClientService, ClientService>();
         myBuilder.Services.AddScoped<FileStorageConfig>();
         myBuilder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
+        myBuilder.Services.AddScoped<IClientStorageJson, ClientStorageJson>();
         
     // USUARIO
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();

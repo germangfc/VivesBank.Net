@@ -5,7 +5,10 @@ using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
+using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Service;
+using VivesBankApi.WebSocket.Model;
+using VivesBankApi.WebSocket.Service;
 
 namespace VivesBankApi.Rest.Movimientos.Jobs;
 
@@ -17,7 +20,8 @@ public class DomiciliacionScheduler(
     IAccountsService accountService,
     IUserService userService,
     IClientService clientService,
-    ILogger<DomiciliacionScheduler> logger
+    ILogger<DomiciliacionScheduler> logger,
+    IWebsocketHandler websocketHandler
 ) :IJob
 {
     public async Task Execute(IJobExecutionContext context)
@@ -73,6 +77,9 @@ public class DomiciliacionScheduler(
         await movimientoRepository.AddMovimientoAsync(movimiento);
 
         // Notificar la domiciliación
+        var cliente = await clientService.GetClientByIdAsync(domiciliacion.ClienteGuid);
+        var user = await userService.GetUserByIdAsync(cliente.UserId);
+        await EnviarNotificacionExecuteAsync(user, movimiento);
         
     }
     private bool RequiereEjecucion(Domiciliacion domiciliacion, DateTime ahora)
@@ -85,5 +92,16 @@ public class DomiciliacionScheduler(
             case Periodicidad.ANUAL:   return domiciliacion.UltimaEjecucion.AddYears(1) < ahora;
             default: return false;                
         }
+    }
+    
+    public async Task EnviarNotificacionExecuteAsync<T>(UserResponse userResponse,T t)
+    {
+        var notificacion = new Notification<T>
+        {
+            Type = Notification<T>.NotificationType.Execute.ToString(),
+            CreatedAt = DateTime.Now,
+            Data = t
+        };
+        await websocketHandler.NotifyUserAsync(userResponse.Id, notificacion);
     }
 }

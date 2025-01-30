@@ -34,8 +34,7 @@ public static class AccountMappers
     {
         return new Account
         {
-            ClientId = createRequest.ClientId,
-            ProductId = createRequest.ProductName, // Luego en el servicio le cambio el nombre por el id del producto
+            ProductId = createRequest.ProductName, 
             AccountType = createRequest.AccountType,
         };
     }

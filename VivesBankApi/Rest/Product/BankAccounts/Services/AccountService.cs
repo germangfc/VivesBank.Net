@@ -1,5 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using System.Security.Claims;
+using Newtonsoft.Json;
 using StackExchange.Redis;
+using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Movimientos.Validators;
 using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
@@ -8,7 +10,13 @@ using VivesBankApi.Rest.Product.BankAccounts.Mappers;
 using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
+using VivesBankApi.Rest.Users.Dtos;
+using VivesBankApi.Rest.Users.Exceptions;
+using VivesBankApi.Rest.Users.Models;
+using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.IbanGenerator;
+using VivesBankApi.WebSocket.Model;
+using VivesBankApi.WebSocket.Service;
 
 namespace VivesBankApi.Rest.Product.BankAccounts.Services;
 
@@ -20,8 +28,11 @@ public class AccountService : IAccountsService
     private readonly IProductRepository _productRepository;
     private readonly IIbanGenerator _ibanGenerator;
     private readonly IDatabase _cache;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUserService _userService;
+    private readonly IWebsocketHandler _websocketHandler;
     
-    public AccountService(ILogger<AccountService> logger, IIbanGenerator ibanGenerator,IClientRepository clientRepository,IProductRepository productRepository ,IAccountsRepository accountsRepository, IConnectionMultiplexer connection)
+    public AccountService(ILogger<AccountService> logger, IIbanGenerator ibanGenerator,IClientRepository clientRepository,IProductRepository productRepository ,IAccountsRepository accountsRepository, IConnectionMultiplexer connection, IHttpContextAccessor httpContextAccessor, IUserService userService, IWebsocketHandler websocketHandler)
     {
         _logger = logger;
         _ibanGenerator = ibanGenerator;
@@ -29,6 +40,9 @@ public class AccountService : IAccountsService
         _clientRepository = clientRepository;
         _productRepository = productRepository;
         _cache = connection.GetDatabase();
+        _httpContextAccessor = httpContextAccessor;
+        _userService = userService;
+        _websocketHandler = websocketHandler;
     }
     public async Task<PageResponse<AccountResponse>> GetAccountsAsync(int pageNumber = 0, int pageSize = 10, string sortBy = "id", string direction = "asc")
     {
@@ -56,12 +70,6 @@ public class AccountService : IAccountsService
         return response;
     }
 
-
-    public Task<List<AccountResponse>> GetAccountsAsync()
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task<AccountResponse> GetAccountByIdAsync(string id)
     {
         _logger.LogInformation($"Getting account by id: {id}");
@@ -76,6 +84,17 @@ public class AccountService : IAccountsService
         var res = await _accountsRepository.getAccountByClientIdAsync(clientId);
         if (res == null) throw new AccountsExceptions.AccountNotFoundException(clientId);
         return res.Select(a => a.toResponse()).ToList();
+    }
+
+    public async Task<List<AccountResponse>> GetMyAccountsAsClientAsync()
+    {
+        _logger.LogInformation("Getting my accounts as client");
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userForFound = await _userService.GetUserByIdAsync(id) ?? throw new UserNotFoundException(id);
+        var client = await _clientRepository.getByUserIdAsync(id) ?? throw new ClientExceptions.ClientNotFoundException(id);
+        var accounts = await _accountsRepository.getAccountByClientIdAsync(client.Id);
+        return accounts.Select(a => a.toResponse()).ToList();
     }
     public async Task<List<AccountCompleteResponse>> GetCompleteAccountByClientIdAsync(string clientId)
     {
@@ -102,20 +121,42 @@ public class AccountService : IAccountsService
 
     public async Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request)
     {
-        _logger.LogInformation($"Creating account for Client {request.ClientId}");
-        if (await _clientRepository.GetByIdAsync(request.ClientId) == null)
-            throw new AccountsExceptions.AccountNotCreatedException();
+        _logger.LogInformation($"Creating account for Client registered on the system");
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userForFound = await _userService.GetUserByIdAsync(id) ?? throw new UserNotFoundException(id);
+        var client = await _clientRepository.getByUserIdAsync(id) ?? throw new ClientExceptions.ClientNotFoundException(id);
         var product = await _productRepository.GetByNameAsync(request.ProductName);
         if(product == null)
             throw new AccountsExceptions.AccountNotCreatedException();
         var productId = product.Id;
         var Iban = await _ibanGenerator.GenerateUniqueIbanAsync();
         var account = request.fromDtoRequest();
+        account.ClientId = client.Id;
         account.ProductId = productId;
         account.IBAN = Iban;
         account.Balance = 0;
         await _accountsRepository.AddAsync(account);
+        await EnviarNotificacionCreateAsync(userForFound, account.toResponse());
         return account.toResponse();
+    }
+    
+    public async Task DeleteMyAccountAsync(String iban)
+    {
+        _logger.LogInformation("Deleting my account with iban: " +iban);
+        var user = _httpContextAccessor.HttpContext!.User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userForFound = await _userService.GetUserByIdAsync(id) ?? throw new UserNotFoundException(id);
+        var client = await _clientRepository.getByUserIdAsync(id) ?? throw new ClientExceptions.ClientNotFoundException(id);
+        var accountToDelete = await _accountsRepository.getAccountByIbanAsync(iban) ?? throw new AccountsExceptions.AccountNotFoundException(iban);
+        if(accountToDelete.ClientId!= client.Id)
+            throw new AccountsExceptions.AccountNotDeletedException(iban);
+        if (accountToDelete.Balance > 0) throw new AccountsExceptions(iban);
+        accountToDelete.IsDeleted = true;
+        await _accountsRepository.UpdateAsync(accountToDelete);
+        await EnviarNotificacionDeleteAsync(userForFound, accountToDelete.toResponse());
+        await _cache.KeyDeleteAsync(id);
+        await _cache.KeyDeleteAsync("account:" + accountToDelete.IBAN);
     }
 
     public async Task<AccountCompleteResponse> UpdateAccountAsync(string id, UpdateAccountRequest request)
@@ -192,5 +233,25 @@ public class AccountService : IAccountsService
             return account;
         }
         return null;
+    }
+    
+    public async Task EnviarNotificacionCreateAsync<T>(UserResponse user, T t)
+    {
+        var notificacion = new Notification<T>
+        {
+            Type = Notification<T>.NotificationType.Create.ToString(),
+            CreatedAt = DateTime.Now,
+            Data = t
+        };
+        await _websocketHandler.NotifyUserAsync(user.Id, notificacion);
+    }public async Task EnviarNotificacionDeleteAsync<T>(UserResponse user, T t)
+    {
+        var notificacion = new Notification<T>
+        {
+            Type = Notification<T>.NotificationType.Delete.ToString(),
+            CreatedAt = DateTime.Now,
+            Data = t
+        };
+        await _websocketHandler.NotifyUserAsync(user.Id, notificacion);
     }
 }

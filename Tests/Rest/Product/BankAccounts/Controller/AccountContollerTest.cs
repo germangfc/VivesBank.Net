@@ -162,7 +162,6 @@ public class AccountContollerTest
     {
         var request = new CreateAccountRequest
         {
-            ClientId = "Q5hsVJ2-oQ",
             ProductName = "guay",
             AccountType = AccountType.STANDARD
         };
@@ -171,9 +170,6 @@ public class AccountContollerTest
             AccountType = AccountType.STANDARD,
             IBAN = "ES9121000418450200051332"
         };
-        
-        _mockAccountsService.Setup(service => service.CreateAccountAsync(It.Is<CreateAccountRequest>(r =>r.ClientId == request.ClientId)))
-           .ReturnsAsync(response);
         
         var result = await _accountController.CreateAccount(request);
         

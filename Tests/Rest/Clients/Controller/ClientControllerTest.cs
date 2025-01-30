@@ -1,17 +1,23 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Reactive.Linq;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework.Legacy;
 using VivesBankApi.Rest.Clients.Controller;
 using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Service;
+using VivesBankApi.Rest.Clients.storage.JSON;
+using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace Tests.Rest.Clients.Controller;
 
 public class ClientControllerTest
 {
     private Mock<IClientService> _service;
+    private ClientStorageJson _storage;
     private Mock<ILogger<ClientController>> _logger;
     private ClientController _clientController;
 
@@ -19,8 +25,11 @@ public class ClientControllerTest
     public void Setup()
     {
         _service = new Mock<IClientService>();
+        _storage = new ClientStorageJson(
+            NullLogger<GenericStorageJson<ClientResponse>>.Instance
+        );
         _logger = new Mock<ILogger<ClientController>>();
-        _clientController = new ClientController(_service.Object, _logger.Object);
+        _clientController = new ClientController(_service.Object, _logger.Object, _storage);
     }
     
     [Test]
@@ -159,5 +168,26 @@ public class ClientControllerTest
 
         // Assert
         ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
+    }
+
+    [Test]
+    public async Task ExportMeData_ReturnsJsonFile_WhenExporting()
+    {
+        // Arrange
+        var client = new ClientResponse { Id = "1", Fullname = "Test Client 1" };
+        _service.Setup(s => s.GettingMyClientData()).ReturnsAsync(client);
+        
+        // Act
+        var result = await _clientController.GetMeDataAsClient();
+
+        // Assert
+        ClassicAssert.IsInstanceOf<FileStreamResult>(result);
+        var fileResult = result as FileStreamResult;
+        ClassicAssert.NotNull(fileResult);
+        ClassicAssert.AreEqual("application/json", fileResult.ContentType);
+        IFormFile file = new FormFile(fileResult.FileStream, 0, fileResult.FileStream.Length, "id_from_form", "test.json");
+        var returnedClient = await _storage.Import(file).ToList();
+        ClassicAssert.AreEqual(returnedClient[0].Id, client.Id);
+        ClassicAssert.AreEqual(returnedClient[0].Fullname, client.Fullname);
     }
 }
