@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
+using System.Reactive.Linq;
+using System.Xml;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson.IO;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Service;
 using KeyNotFoundException = System.Collections.Generic.KeyNotFoundException;
+using Newtonsoft.Json;
 
 namespace VivesBankApi.Rest.Product.CreditCard.Controller;
 
@@ -94,4 +98,78 @@ public class CreditCardController : ControllerBase
             return NotFound();
         }
     }
+    
+    [HttpPost("import")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> ImportCreditCardsFromJson([Required] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
+
+        try
+        {
+            var creditCards = new List<Models.CreditCard>();
+
+            await _creditCardService.Import(file).ForEachAsync(creditCard =>
+            {
+                creditCards.Add(creditCard);
+            });
+
+            return Ok(creditCards); 
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error importing credit cards: {ex.Message}");
+            return StatusCode(500, new { message = "Error importing credit cards", details = ex.Message });
+        }
+    }
+    
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportCreditCardsToJson([FromQuery] bool asFile = true)
+    {
+        try
+        {
+            int pageNumber = 1; 
+            int pageSize = 100; 
+            string fullName = ""; 
+            bool? isDeleted = false; 
+            string direction = "asc"; 
+
+            var creditCardsAdminResponse = await _creditCardService.GetAllCreditCardAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction);
+
+            if (creditCardsAdminResponse == null || !creditCardsAdminResponse.Any())
+            {
+                _logger.LogWarning("No credit cards found.");
+                return Ok(new { message = "No credit cards found" });
+            }
+
+            var creditCards = creditCardsAdminResponse.Select(card => new Models.CreditCard
+            {
+                Id = card.Id,
+                AccountId = card.AccountId,
+                CardNumber = card.CardNumber,
+                ExpirationDate = DateOnly.Parse(card.ExpirationDate), 
+                CreatedAt = card.CreatedAt,
+                UpdatedAt = card.UpdatedAt,
+                IsDeleted = false
+            }).ToList();
+
+            if (!asFile)
+            {
+                return Ok(creditCards); 
+            }
+
+            var fileStream = await _creditCardService.Export(creditCards);
+
+            return File(fileStream, "application/json", "creditcards.json");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error exporting credit cards: {ex.Message}");
+            return StatusCode(500, new { message = "Error exporting credit cards", details = ex.Message });
+        }
+    }
+
 }

@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Reactive.Linq;
+using System.Security.Claims;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Exceptions;
@@ -255,5 +256,65 @@ public class AccountService : IAccountsService
             Data = t
         };
         await _websocketHandler.NotifyUserAsync(user.Id, notificacion);
+    }
+
+    public IObservable<Account> Import(IFormFile fileStream)
+    {
+        _logger.LogInformation("Starting to import accounts from JSON file.");
+
+        return Observable.Create<Account>(async (observer, cancellationToken) =>
+        {
+            try
+            {
+                using var stream = fileStream.OpenReadStream();
+                using var streamReader = new StreamReader(stream);
+                using var jsonReader = new JsonTextReader(streamReader) { SupportMultipleContent = true };
+
+                var serializer = new JsonSerializer
+                {
+                    MissingMemberHandling = MissingMemberHandling.Error
+                };
+
+                while (await jsonReader.ReadAsync(cancellationToken))
+                {
+                    if (jsonReader.TokenType == JsonToken.StartObject)
+                    {
+                        var account = serializer.Deserialize<Account>(jsonReader);
+                        observer.OnNext(account);
+                    }
+                }
+
+                observer.OnCompleted();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while processing the JSON file: {ex.Message}");
+                observer.OnError(ex);
+            }
+        });
+    }
+
+    
+    public async Task<FileStream> Export(List<Account> entities)
+    {
+        _logger.LogInformation("Exporting Accounts to JSON file...");
+
+        var json = JsonConvert.SerializeObject(entities, Formatting.Indented);
+
+        var directoryPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads", "Json");
+
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        var fileName = "BankAccountInSystem-" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") + ".json";
+        var filePath = System.IO.Path.Combine(directoryPath, fileName);
+
+        await File.WriteAllTextAsync(filePath, json);
+
+        _logger.LogInformation($"File written to: {filePath}");
+
+        return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 }

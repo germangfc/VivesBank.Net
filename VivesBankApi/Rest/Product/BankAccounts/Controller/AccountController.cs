@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Reactive.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
+using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 
@@ -107,4 +109,72 @@ public class AccountController : ControllerBase
             return NotFound();
         }
     }
+    
+    [HttpPost("import")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> ImportAccountsFromJson([Required] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            _logger.LogError("No file uploaded or file is empty.");
+            return BadRequest("No file uploaded.");
+        }
+
+        try
+        {
+            var accounts = new List<Account>();
+            _logger.LogInformation("Importing accounts from the uploaded file.");
+
+            await _accountsService.Import(file).ForEachAsync(account =>
+            {
+                accounts.Add(account);
+            });
+
+            _logger.LogInformation($"Successfully imported {accounts.Count} accounts.");
+            return Ok(accounts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error importing accounts: {ex.Message}");
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportAccountsToJson()
+    {
+        try
+        {
+            var accountResponses = await _accountsService.GetAccountsAsync();
+
+            if (accountResponses == null || !accountResponses.Content.Any())
+            {
+                return NoContent(); 
+            }
+
+            var accounts = accountResponses.Content.Select(ar => new Account
+            {
+                Id = ar.Id,
+                ProductId = ar.productID, 
+                ClientId = ar.clientID,
+                IBAN = ar.IBAN,
+                AccountType = ar.AccountType,
+                Balance = 0,
+                CreatedAt = DateTime.UtcNow, 
+                UpdatedAt = DateTime.UtcNow, 
+                IsDeleted = false, 
+                TarjetaId = null
+            }).ToList();
+
+            var fileStream = await _accountsService.Export(accounts);
+
+            return File(fileStream, "application/json", "accounts.json");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error while exporting accounts", details = ex.Message });
+        }
+    }
+
 }

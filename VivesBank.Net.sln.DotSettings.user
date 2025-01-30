@@ -29,6 +29,11 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3d8e25e5_002D18fe_002D4edf_002D80e8_002D35b31fa62b6f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="AccountsRepositoryTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=485a46b0_002Dfb4d_002D42c2_002Daa12_002Df19f9e4a2115/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="ClientRepositoryTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Repository.ClientRepositoryTest&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=57ace027_002Dc220_002D48d1_002Dbe7e_002Df3cf7a11a8de/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="RegisterUser_Should_ReturnUser" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
