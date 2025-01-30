@@ -40,4 +40,17 @@ public static class CreditCardMapper
         };
     }
 
+    public static CreditCard toCreditCard(this CreditCardClientResponse clientResponse)
+    {
+        return new CreditCard
+        {
+            Id = clientResponse.Id,
+            Pin = clientResponse.Pin,
+            Cvc = clientResponse.Cvc,
+            AccountId = clientResponse.AccountId,
+            CardNumber = clientResponse.CardNumber,
+            ExpirationDate = DateOnly.Parse(clientResponse.ExpirationDate)
+        };
+    }
+
 }

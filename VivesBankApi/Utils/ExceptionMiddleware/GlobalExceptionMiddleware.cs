@@ -131,6 +131,12 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     logger.LogWarning(exception, exception.Message);
                     break;
                 
+                case ClientExceptions.ClientNotAllowedToAccessAccount:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                
                 case ClientExceptions.ClientNotFoundException:
                     statusCode = HttpStatusCode.NotFound;
                     errorResponse = new { message = exception.Message };

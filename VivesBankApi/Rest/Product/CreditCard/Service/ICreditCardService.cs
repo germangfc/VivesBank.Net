@@ -10,9 +10,10 @@ public interface ICreditCardService
         bool? isDeleted,
         string direction);
     //Task<List<CreditCardClientResponse>> GetAllCreditCardClientAsync();
+    Task<List<CreditCardClientResponse?>> GetMyCreditCardsAsync();
     Task<CreditCardAdminResponse?> GetCreditCardByIdAdminAsync(string id);
     Task<CreditCardAdminResponse?> GetCreditCardByCardNumber(string cardNumber);
     Task<CreditCardClientResponse> CreateCreditCardAsync(CreditCardRequest createRequest);
-    Task<CreditCardClientResponse> UpdateCreditCardAsync(String cardId, CreditCardUpdateRequest updateRequest);
+    Task<CreditCardClientResponse> UpdateCreditCardAsync(String cardNumber, CreditCardUpdateRequest updateRequest);
     Task DeleteCreditCardAsync(String cardId);
 }
