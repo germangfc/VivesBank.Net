@@ -9,9 +9,10 @@ public static class CreditCardMapper
         return new CreditCardAdminResponse
         {
             Id = creditCard.Id,
-            
             CardNumber = creditCard.CardNumber,
+            AccountId = creditCard.AccountId,
             ExpirationDate = creditCard.ExpirationDate.ToString(),
+            IsDeleted = creditCard.IsDeleted
         };
     }
 
@@ -37,6 +38,7 @@ public static class CreditCardMapper
             AccountId = creditCard.AccountId,
             CardNumber = creditCard.CardNumber,
             ExpirationDate = creditCard.ExpirationDate.ToString(),
+            IsDeleted = creditCard.IsDeleted
         };
     }
 
