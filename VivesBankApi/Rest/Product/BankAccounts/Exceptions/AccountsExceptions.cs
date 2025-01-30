@@ -10,6 +10,12 @@ public class AccountsExceptions(String message) : Exception(message)
         : AccountsExceptions($"Account couldnt be created, check that te client and the product exists");
 
     public class AccountIbanNotGeneratedException() : AccountsExceptions($"Iban Couldnt be created after 1000 tries");
+
+    public class AccountNotDeletedException(String iban)
+        : AccountsExceptions($"Account could not be deleted because you don´t own it.");
+
+    public class AccountWithBalanceException(String iban)
+        : AccountsExceptions($"Account with {iban} cannot be deleted because it has money on it.");
     
     public class AccountUnknownIban(String Iban) : AccountsExceptions($"Unknown Iban {Iban}");
 

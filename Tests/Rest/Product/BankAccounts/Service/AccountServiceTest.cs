@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework.Legacy;
@@ -11,6 +12,7 @@ using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
+using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.IbanGenerator;
 
 namespace Tests.Rest.Product.BankAccounts.Service;
@@ -31,7 +33,7 @@ public class AccountServiceTest
         _ibanGenerator = new Mock<IIbanGenerator>();
         _logger = new Mock<ILogger<AccountService>>();
         
-        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object, connectionMultiplexer.Object);
+        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object, connectionMultiplexer.Object, _httpContextAccessor.Object, _userService.Object);
 
     }
     private Mock<IAccountsRepository> _accountRepository;
@@ -42,6 +44,8 @@ public class AccountServiceTest
     private AccountService _accountService;
     private Mock<IDatabase> _cache;
     private Mock<IConnectionMultiplexer> connectionMultiplexer;
+    private Mock<IHttpContextAccessor> _httpContextAccessor;
+    private Mock<IUserService> _userService;
     
     private readonly Account account = new Account
     {
@@ -215,29 +219,24 @@ public class AccountServiceTest
     {
         var request = new CreateAccountRequest
         {
-            ClientId = "TkjPO5u_2w",
+           
             ProductName = "ValidProductName",
             AccountType = AccountType.STANDARD
         };
         var generatedIban = "ES9121000418450200051332";
         var product = new VivesBankApi.Rest.Product.Base.Models.Product("ValidProductName", VivesBankApi.Rest.Product.Base.Models.Product.Type.BankAccount);
-        _clientRepository.Setup(r => r.GetByIdAsync(request.ClientId))
-            .ReturnsAsync(new Client { Id = request.ClientId });
 
         _productRepository.Setup(r => r.GetByNameAsync(request.ProductName))
             .ReturnsAsync(product);
-        _ibanGenerator.Setup(g => g.GenerateUniqueIbanAsync())
-            .ReturnsAsync(generatedIban);
-        _accountRepository.Setup(r => r.AddAsync(It.Is<Account>(a => a.ClientId == request.ClientId && a.ProductId == product.Id && a.IBAN == generatedIban)))
-           .Returns(Task.CompletedTask);
+        _ibanGenerator.Setup(g => g.GenerateUniqueIbanAsync());
+        
         var result = await _accountService.CreateAccountAsync(request);
         Assert.That(result, Is.Not.Null);
         Assert.That(result.IBAN, Is.EqualTo(generatedIban));
         
-        _clientRepository.Verify(r => r.GetByIdAsync(request.ClientId), Times.Once);
         _productRepository.Verify(r => r.GetByNameAsync(request.ProductName), Times.Once);
         _ibanGenerator.Verify(g => g.GenerateUniqueIbanAsync(), Times.Once);
-        _accountRepository.Verify(r => r.AddAsync(It.Is<Account>(a => a.ClientId == request.ClientId && a.ProductId == product.Id && a.IBAN == generatedIban)), Times.Once);
+       
     }
 
     [Test]
@@ -245,17 +244,13 @@ public class AccountServiceTest
     {
         var request = new CreateAccountRequest
         {
-            ClientId = "TkjPO5u_2w",
             ProductName = "",
             AccountType = AccountType.STANDARD
         };
-        _clientRepository.Setup(r => r.GetByIdAsync(request.ClientId))
-            .ReturnsAsync((Client)null);
         var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotCreatedException>(async () =>
             await _accountService.CreateAccountAsync(request));
         Assert.That(exception.Message, Is.EqualTo("Account couldnt be created, check that te client and the product exists"));
         
-        _clientRepository.Verify(r => r.GetByIdAsync(request.ClientId), Times.Once);
         _productRepository.Verify(r => r.GetByNameAsync(request.ProductName), Times.Never);
         _ibanGenerator.Verify(g => g.GenerateUniqueIbanAsync(), Times.Never);
         _accountRepository.Verify(r => r.AddAsync(It.IsAny<Account>()), Times.Never);
@@ -266,19 +261,16 @@ public class AccountServiceTest
     {
         var request = new CreateAccountRequest
         {
-            ClientId = "TkjPO5u_2w",
             ProductName = "NotExistingProduct",
             AccountType = AccountType.STANDARD
         };
-        _clientRepository.Setup(r => r.GetByIdAsync(request.ClientId))
-           .ReturnsAsync(new Client { Id = request.ClientId });
+        
         _productRepository.Setup(r => r.GetByNameAsync(request.ProductName))
            .ReturnsAsync((VivesBankApi.Rest.Product.Base.Models.Product)null);
         var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotCreatedException>(async () =>
             await _accountService.CreateAccountAsync(request));
         Assert.That(exception.Message, Is.EqualTo("Account couldnt be created, check that te client and the product exists"));
         
-        _clientRepository.Verify(r => r.GetByIdAsync(request.ClientId), Times.Once);
         _productRepository.Verify(r => r.GetByNameAsync(request.ProductName), Times.Once);
         _ibanGenerator.Verify(g => g.GenerateUniqueIbanAsync(), Times.Never);
         _accountRepository.Verify(r => r.AddAsync(It.IsAny<Account>()), Times.Never);

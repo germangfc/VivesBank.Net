@@ -3,7 +3,6 @@
 public class CreditCardUpdateRequest
 {
     public String Pin { get; set; }
-    public string CardNumber { get; set; }
     
     
 }

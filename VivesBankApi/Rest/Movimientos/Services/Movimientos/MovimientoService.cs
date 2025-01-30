@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Exceptions;
@@ -14,6 +16,8 @@ using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
+using VivesBankApi.WebSocket.Model;
+using VivesBankApi.WebSocket.Service;
 using JsonConvert = Newtonsoft.Json.JsonConvert;
 
 namespace VivesBankApi.Rest.Movimientos.Services.Movimientos;
@@ -27,6 +31,7 @@ public class MovimientoService(
     ICreditCardService creditCardService,
     ILogger<MovimientoService> logger, 
     IOptions<ApiConfig> apiConfig,
+    IWebsocketHandler websocketHandler,
     IConnectionMultiplexer connection)
     : IMovimientoService
 {
@@ -85,6 +90,7 @@ public class MovimientoService(
         return deletedMovimiento;
     }
 
+    [Authorize]
     public async Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion)
     {
         logger.LogInformation($"Adding domiciliacion {domiciliacion}");
@@ -116,7 +122,7 @@ public class MovimientoService(
         domiciliacion.ClienteGuid = client.Id;
     
         // Notificación al cliente
-        
+         await EnviarNotificacionCreacionAsync(user, domiciliacion);
         // Retornar respuesta
         return await domiciliacionRepository.AddDomiciliacionAsync(domiciliacion);
 
@@ -161,7 +167,7 @@ public class MovimientoService(
         var movimientoSaved = await movimientoRepository.AddMovimientoAsync(newMovimiento);
         
         // Notificar al cliente
-        
+        EnviarNotificacionCreacionAsync(user, movimientoSaved);
         // Devolver el movimiento guardado
         return movimientoSaved;
     }
@@ -211,7 +217,7 @@ public class MovimientoService(
         var movimientoSaved = await movimientoRepository.AddMovimientoAsync(newMovimiento);
 
         // Notificar al cliente
-
+        EnviarNotificacionCreacionAsync(user, movimientoSaved);
         // Retornar respuesta
         return movimientoSaved;
 
@@ -238,34 +244,48 @@ public class MovimientoService(
 
         // Validar que la cuenta es de ese cliente
         if (!originAccount.clientID.Equals(originClient.Id)) throw new AccountsExceptions.AccountUnknownIban(transferencia.IbanOrigen);
-
-        // Validar que la cuenta destino existe
-        var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanDestino);
-        if (destinationAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanDestino);
-
+        
         // Validar saldo suficiente en cuenta origen
         var newBalance = originAccount.Balance - transferencia.Cantidad; 
         if (newBalance < 0) throw new TransferInsufficientBalance(transferencia.IbanOrigen);
 
+        // Movimiento aux Para poder usrlo fuera del try y catch
+        Movimiento destinationMovementAux = new Movimiento();
+        try
+        {
+        // Validar que la cuenta destino existe
+        var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanDestino);
+        
+        if (destinationAccount != null)
+        {
+            // sumar a la cuenta destino
+            destinationAccount.Balance += transferencia.Cantidad;
+            // await accountsService.UpdateAccountAsync(clientDestinationAccount.Id, new UpdateAccountRequest { Balance = clientDestinationAccount.Balance });
+            
+            // crear el movimiento al cliente destino
+            logger.LogInformation("Creating destination movement");
+            Movimiento newDestinationMovement = new Movimiento
+            {
+                ClienteGuid = destinationAccount.clientID,
+                Transferencia = transferencia
+            };
+            
+            // Guardar el movimiento destino
+            logger.LogInformation("Saving destination movement");
+            await movimientoRepository.AddMovimientoAsync(newDestinationMovement);
+            // Notificar al cliente destino
+            await EnviarNotificacionCreacionAsync(user, newDestinationMovement);
+            // sacar el movimiento destino al auxiliar
+            destinationMovementAux = newDestinationMovement;
+        }
+        }
+        catch (AccountsExceptions.AccountNotFoundByIban ex)
+        {
+            logger.LogError($"{ex.Message}");
+        }
         // restar de la cuenta origen
         originAccount.Balance = newBalance;
-//        await accountsService.UpdateAccountAsync(clientOriginAccount.Id, new UpdateAccountRequest { Balance = clientOriginAccount.Balance });
-    
-        // sumar a la cuenta destino
-        destinationAccount.Balance += transferencia.Cantidad;
-//        await accountsService.UpdateAccountAsync(clientDestinationAccount.Id, new UpdateAccountRequest { Balance = clientDestinationAccount.Balance });
-        
-        // crear el movimiento al cliente destino
-        logger.LogInformation("Creating destination movement");
-        Movimiento newDestinationMovement = new Movimiento
-        {
-            ClienteGuid = destinationAccount.clientID,
-            Transferencia = transferencia
-        };
-        
-        // Guardar el movimiento destino
-        logger.LogInformation("Saving destination movement");
-        await movimientoRepository.AddMovimientoAsync(newDestinationMovement);
+        // await accountsService.UpdateAccountAsync(clientOriginAccount.Id, new UpdateAccountRequest { Balance = clientOriginAccount.Balance });
 
         // crear el movimiento al cliente origen
         logger.LogInformation("Creating origin movement");
@@ -278,18 +298,18 @@ public class MovimientoService(
                 IbanDestino = transferencia.IbanDestino,
                 Cantidad = decimal.Negate(transferencia.Cantidad),
                 NombreBeneficiario = transferencia.NombreBeneficiario,
-                MovimientoDestino = newDestinationMovement.Id!
+                MovimientoDestino = destinationMovementAux.Id
             }
         };
         
         // Guardar el movimiento origen
         var originSavedMovement = await movimientoRepository.AddMovimientoAsync(newOriginMovement);
 
-        // Notificar al cliente origen y destino
+        // Notificar al cliente origen
+        await EnviarNotificacionCreacionAsync(user, newOriginMovement);
         
         // Retornar respuesta
         return originSavedMovement;
-
     }
 
     public async Task<Movimiento> RevocarTransferencia(User user, string movimientoTransferenciaGuid)
@@ -344,7 +364,7 @@ public class MovimientoService(
         await movimientoRepository.UpdateMovimientoAsync(originalDestinationMovement.Id, originalDestinationMovement);
         
         // Notificar la revocación de la transferencia
-        
+        await EnviarNotificacionDeleteAsync(user, originalMovement);
         // Retornar respuesta
         return originalMovement;
     }
@@ -385,4 +405,27 @@ public class MovimientoService(
         return null;
     }
     
+    public async Task EnviarNotificacionCreacionAsync<T>(User user, T t)
+    {
+        var notificacion = new Notification<T>
+        {
+            Type = Notification<T>.NotificationType.Create.ToString(),
+            CreatedAt = DateTime.Now,
+            Data = t
+        };
+
+        await websocketHandler.NotifyUserAsync(user.Id, notificacion);
+    }
+
+    public async Task EnviarNotificacionDeleteAsync<T>(User user, T t)
+    {
+        var notificacion = new Notification<T>
+        {
+            Type = Notification<T>.NotificationType.Delete.ToString(),
+            CreatedAt = DateTime.Now,
+            Data = t
+        };
+
+        await websocketHandler.NotifyUserAsync(user.Id, notificacion);
+    }
 }

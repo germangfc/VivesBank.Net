@@ -1,5 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
+using Castle.Core.Configuration;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using NUnit.Framework.Legacy;
@@ -9,7 +11,6 @@ using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.storage.Config;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Models;
-using VivesBankApi.Rest.Users.Service;
 using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace Tests.Rest.Clients.Service;
@@ -32,6 +33,7 @@ public class ClientServiceTests
     private readonly Mock<IUserService> _userServiceMock;
     private readonly Mock<ILogger<ClientService>> _loggerMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private readonly Mock<IConfiguration> _configurationMock;
     private readonly ClientService _clientService;
     private readonly FileStorageConfig _fileStorageConfig;
     private readonly Mock<IJwtGenerator> _jwtGenerator;
@@ -41,6 +43,7 @@ public class ClientServiceTests
         _connection = new Mock<IConnectionMultiplexer>();
         _cache = new Mock<IDatabase>();
         _connection.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_cache.Object);
+
         _clientRepositoryMock = new Mock<IClientRepository>();
         _userServiceMock = new Mock<IUserService>();
         _loggerMock = new Mock<ILogger<ClientService>>();
@@ -360,4 +363,5 @@ public class ClientServiceTests
         // Assert
         _clientRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<Client>(c => c.IsDeleted == true)), Times.Once);
     }
+    
 }

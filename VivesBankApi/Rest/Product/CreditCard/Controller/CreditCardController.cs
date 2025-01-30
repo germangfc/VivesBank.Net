@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Service;
@@ -21,14 +22,20 @@ public class CreditCardController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<CreditCardAdminResponse>>> GetAllCardsAdminAsync()
+    [Authorize("AdminPolicy")]
+    public async Task<ActionResult<List<CreditCardAdminResponse>>> GetAllCardsAdminAsync([FromQuery ]int pageNumber = 0, 
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string fullName = "",
+        [FromQuery] bool? isDeleted = null,
+        [FromQuery] string direction = "asc")
     {
         _logger.LogInformation("Getting all credit cards");
-        var cards = await _creditCardService.GetAllCreditCardAdminAsync();
+        var cards = await _creditCardService.GetAllCreditCardAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction);
         return Ok(cards);
     }
     
     [HttpGet("{cardId}")]
+    [Authorize("AdminPolicy")]
     public async Task<ActionResult<CreditCardAdminResponse?>> GetCardByIdAdminAsync(string cardId)
     {
         _logger.LogInformation($"Getting card with id {cardId}");
@@ -36,7 +43,17 @@ public class CreditCardController : ControllerBase
         return Ok(card);
     }
 
+    [HttpGet("me")]
+    [Authorize("ClientPolicy")]
+    public async Task<ActionResult<List<CreditCardClientResponse>>> GetMyCardsAsync()
+    {
+        _logger.LogInformation("Getting my credit cards");
+        var cards = await _creditCardService.GetMyCreditCardsAsync();
+        return Ok(cards);
+    }
+
     [HttpPost]
+    [Authorize("ClientPolicy")]
     public async Task<ActionResult<CreditCardClientResponse>> CreateCardAsync(CreditCardRequest createRequest)
     {
         _logger.LogInformation($"Creating card: {createRequest}");
@@ -44,34 +61,36 @@ public class CreditCardController : ControllerBase
         return CreatedAtAction(nameof(GetCardByIdAdminAsync), new { cardId = card.Id }, card);
     }
 
-    [HttpPut("{cardId}")]
-    public async Task<ActionResult<CreditCardClientResponse>> UpdateCardAsync(string cardId,
+    [HttpPut("{number}")]
+    [Authorize("ClientPolicy")]
+    public async Task<ActionResult<CreditCardClientResponse>> UpdateCardAsync(string number,
         CreditCardUpdateRequest updateRequest)
     {
-        _logger.LogInformation($"Updating card with id {cardId}");
-        var card = await _creditCardService.UpdateCreditCardAsync(cardId, updateRequest);
+        _logger.LogInformation($"Updating card with id {number}");
+        var card = await _creditCardService.UpdateCreditCardAsync(number, updateRequest);
         
         if (card == null) 
         {
             return NotFound(); 
         }
-        
-        return CreatedAtAction(nameof(GetCardByIdAdminAsync), new { cardId = card.Id }, card);
+
+        return Ok(card);
     }
 
-    [HttpDelete("{cardId}")]
-    public async Task<IActionResult> DeleteCardAsync(string cardId)
+    [HttpDelete("{cardnumber}")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> DeleteCardAsync(string cardnumber)
     {
-        _logger.LogInformation($"Deleting card with id {cardId}");
+        _logger.LogInformation($"Deleting card with id {cardnumber}");
         
         try
         {
-            await _creditCardService.DeleteCreditCardAsync(cardId);
+            await _creditCardService.DeleteCreditCardAsync(cardnumber);
             return NoContent();
         }
         catch (KeyNotFoundException)
         {
-            _logger.LogWarning($"Card with id {cardId} not found."); 
+            _logger.LogWarning($"Card with id {cardnumber} not found."); 
             return NotFound();
         }
     }
