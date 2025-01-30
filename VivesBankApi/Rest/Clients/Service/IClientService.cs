@@ -26,14 +26,13 @@ public interface IClientService
     Task<string> UpdateClientPhotoAsync(string clientId, IFormFile file);
     
     Task<FileStream> GetFileAsync(string fileName);
-    Task<bool> DeleteFileAsync(string fileName);
 
     Task<FileStream> GettingMyProfilePhotoAsync();
+    Task<string> UpdateMyProfilePhotoAsync(IFormFile file);
 
     //Funciones para storage remoto FTP
     Task<string> SaveFileToFtpAsync(IFormFile file, string dni);
     Task<FileStream> GetFileFromFtpAsync(string fileName);
     Task<string> UpdateClientPhotoDniAsync(string userId, IFormFile file);
-    Task<bool> DeleteFileFromFtpAsync(string fileName);
-
+    Task<FileStream> GettingMyDniPhotoFromFtpAsync();
 }

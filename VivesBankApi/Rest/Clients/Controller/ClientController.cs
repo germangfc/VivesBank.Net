@@ -124,20 +124,19 @@ public class ClientController : ControllerBase
     
     
     [HttpPatch("{clientId}/dni")]
-    [Authorize("ClientPolicy")]
-    public async Task<IActionResult> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
+    public async Task<IActionResult> UpdateClientDniPhotoFtpAsync(string clientId, IFormFile file)
     {
-        _logger.LogInformation($"Request to update profile photo for client with ID: {clientId}");
+        _logger.LogInformation($"Request to update DNI photo for client with ID: {clientId}");
 
         if (file == null || file.Length == 0)
         {
             return BadRequest("No file was provided or the file is empty.");
         }
 
-        var fileName = await _clientService.UpdateClientPhotoAsync(clientId, file);
-        return Ok(new { message = "Profile photo updated successfully", fileName });
+        var fileName = await _clientService.UpdateClientPhotoDniAsync(clientId, file);
+        return Ok(new { message = "DNI photo updated successfully", fileName });
     }
-    
+
 
     [HttpGet("photo/{fileName}")]
     [Authorize("AdminPolicy")]
@@ -185,26 +184,7 @@ public class ClientController : ControllerBase
 
         return File(fileStream, mimeType, fileName);
     }
-
-    [HttpDelete("dni/{fileName}")]
-    public async Task<IActionResult> DeleteFileAsync(string fileName)
-    {
-        _logger.LogInformation($"Request to delete file with file name: {fileName}");
-
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            return BadRequest(new { message = "File name must be provided." });
-        }
-
-        bool isDeleted = await _clientService.DeleteFileFromFtpAsync(fileName);
-
-        if (!isDeleted)
-        {
-            return NotFound(new { message = $"File with name {fileName} not found." });
-        }
-
-        return Ok(new { message = $"File with name {fileName} deleted successfully." });
-    }
+    
     
     [HttpGet("me-photo")]
     [Authorize("ClientPolicy")]
@@ -217,8 +197,41 @@ public class ClientController : ControllerBase
     }
 
 
+    [HttpPatch("me-photo")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> UpdateMyProfilePhotoAsync(IFormFile file)
+    {
+        _logger.LogInformation("Request to update my profile photo.");
 
+        if (file == null || file.Length == 0)
+        {
+            _logger.LogWarning("No file provided.");
+            return BadRequest("No file provided.");
+        }
 
+        var newFileName = await _clientService.UpdateMyProfilePhotoAsync(file);
+        _logger.LogInformation($"Profile photo updated successfully: {newFileName}");
+
+        return Ok(new { message = "Profile photo updated successfully", fileName = newFileName });
+    }
+
+    [HttpGet("me-dni-photo")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> GetMyDniPhotoFromFtpAsync()
+    {
+        _logger.LogInformation("Request to get my DNI photo from FTP.");
+
+        // Llamamos al servicio para obtener la foto del DNI del cliente desde el FTP
+        var fileStream = await _clientService.GettingMyDniPhotoFromFtpAsync();
+
+        // Determinamos el MIME type según la extensión del archivo
+        var mimeType = MimeTypes.GetMimeType(Path.GetExtension(fileStream.Name));
+
+        _logger.LogInformation($"Returning DNI photo from FTP: {Path.GetFileName(fileStream.Name)} with MIME type: {mimeType}");
+
+        // Devolvemos el archivo con el MIME type
+        return File(fileStream, mimeType, Path.GetFileName(fileStream.Name));
+    }
 
     
 
