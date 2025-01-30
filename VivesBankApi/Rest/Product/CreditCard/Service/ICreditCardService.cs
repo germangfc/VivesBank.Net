@@ -1,8 +1,9 @@
 ﻿using VivesBankApi.Rest.Product.CreditCard.Dto;
+using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace VivesBankApi.Rest.Product.CreditCard.Service;
 
-public interface ICreditCardService
+public interface ICreditCardService : IGenericStorageJson<Models.CreditCard>
 {
     Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync();
     //Task<List<CreditCardClientResponse>> GetAllCreditCardClientAsync();

@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Reactive.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
 using VivesBankApi.Rest.Product.Service;
@@ -85,6 +89,65 @@ public class ProductController : ControllerBase
         return NoContent();
     }
     
-    
+    [HttpPost("csv")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> LoadProduct([Required] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
 
+        using (var stream = file.OpenReadStream())
+        {
+            var products = _productService.LoadCsv(stream);
+            return Ok(products);
+        }
+    }
+    
+    [HttpPost("import")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> ImportProductsFromJson([Required] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
+
+        try
+        {
+            var products = await _productService.Import(file).ToList();
+            return Ok(products);
+        }
+        catch (System.Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportProductsToJson()
+    {
+        try
+        {
+            var productResponses = await _productService.GetAllProductsAsync();
+
+            if (productResponses == null || !productResponses.Any())
+            {
+                return NoContent();
+            }
+
+            var products = productResponses.Select(pr => pr.FromDtoResponse()).ToList();
+
+            var fileStream = await _productService.Export(products);
+
+            return File(fileStream, "application/json", "products.json");
+        }
+        catch (System.Exception ex)
+        {
+            _logger.LogError($"Error exporting products: {ex.Message}");
+            return StatusCode(500, new { message = "Error exporting products", details = ex.Message });
+        }
+    }
 }

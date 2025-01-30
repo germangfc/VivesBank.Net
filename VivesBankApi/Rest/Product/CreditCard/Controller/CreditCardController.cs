@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Reactive.Linq;
+using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Service;
@@ -73,6 +76,69 @@ public class CreditCardController : ControllerBase
         {
             _logger.LogWarning($"Card with id {cardId} not found."); 
             return NotFound();
+        }
+    }
+    
+    [HttpPost("import")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> ImportCreditCardsFromJson([Required] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
+
+        try
+        {
+            var creditCards = new List<Models.CreditCard>();
+
+            await _creditCardService.Import(file).ForEachAsync(creditCard =>
+            {
+                creditCards.Add(creditCard);
+            });
+
+            return Ok(creditCards); 
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error importing credit cards: {ex.Message}");
+            return StatusCode(500, new { message = "Error importing credit cards", details = ex.Message });
+        }
+    }
+    
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportCreditCardsToJson()
+    {
+        try
+        {
+            var creditCardsAdminResponse = await _creditCardService.GetAllCreditCardAdminAsync();
+
+            if (creditCardsAdminResponse == null || !creditCardsAdminResponse.Any())
+            {
+                return NotFound(new { message = "No credit cards found to export." });
+            }
+
+            var creditCards = creditCardsAdminResponse.Select(card => new Models.CreditCard
+            {
+                Id = card.Id,
+                AccountId = card.AccountId,
+                CardNumber = card.CardNumber,
+                ExpirationDate = DateOnly.Parse(card.ExpirationDate), 
+                CreatedAt = card.CreatedAt,
+                UpdatedAt = card.UpdatedAt,
+                IsDeleted = false 
+            }).ToList();
+
+
+
+            var fileStream = await _creditCardService.Export(creditCards);
+
+            return File(fileStream, "application/json", "creditcards.json");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error exporting credit cards: {ex.Message}");
+            return StatusCode(500, new { message = "Error exporting credit cards", details = ex.Message });
         }
     }
 }

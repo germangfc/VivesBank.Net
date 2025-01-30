@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
@@ -123,5 +124,65 @@ public class CreditCardService : ICreditCardService
         _logger.LogInformation($"Removing card by Id: {cardId} ");
         _cache.KeyDeleteAsync(cardId);
         return _creditCardRepository.DeleteAsync(cardId);
+    }
+
+    public IObservable<Models.CreditCard> Import(IFormFile fileStream)
+    {
+        _logger.LogInformation("Starting to import credit cards from JSON file.");
+
+        return Observable.Create<Models.CreditCard>(async (observer, cancellationToken) =>
+        {
+            try
+            {
+                using var stream = fileStream.OpenReadStream();
+                using var streamReader = new StreamReader(stream);
+                using var jsonReader = new JsonTextReader(streamReader) { SupportMultipleContent = true };
+
+                var serializer = new JsonSerializer
+                {
+                    MissingMemberHandling = MissingMemberHandling.Error
+                };
+
+                while (await jsonReader.ReadAsync(cancellationToken))
+                {
+                    if (jsonReader.TokenType == JsonToken.StartObject)
+                    {
+                        // Deserializar el objeto CreditCard
+                        var creditCard = serializer.Deserialize<Models.CreditCard>(jsonReader);
+                        observer.OnNext(creditCard);
+                    }
+                }
+
+                observer.OnCompleted();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while processing the JSON file: {ex.Message}");
+                observer.OnError(ex);
+            }
+        });
+    }
+
+
+    public async Task<FileStream> Export(List<Models.CreditCard> entities)
+    {
+        _logger.LogInformation("Exporting Credit Cards to JSON file...");
+
+        var json = JsonConvert.SerializeObject(entities, Formatting.Indented);
+
+        var directoryPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads", "Json");
+
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        var fileName = "CreditCardInSystem-" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") + ".json";
+        var filePath = System.IO.Path.Combine(directoryPath, fileName);
+        await File.WriteAllTextAsync(filePath, json);
+
+        _logger.LogInformation($"File written to: {filePath}");
+
+        return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 }

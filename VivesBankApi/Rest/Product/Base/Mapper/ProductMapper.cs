@@ -2,7 +2,6 @@
 using VivesBankApi.Rest.Product.Base.Exception;
 using VivesBankApi.Rest.Product.Base.Models;
 
-
 public static class ProductMapper
 {
     public static ProductResponse ToDtoResponse(this Product product)
@@ -26,7 +25,6 @@ public static class ProductMapper
 
         if (Enum.TryParse<Product.Type>(createRequest.Type.Trim(), true, out var productType))
         {
-            
             var product = new Product(createRequest.Name, productType)
             {
                 CreatedAt = DateTime.UtcNow, 
@@ -44,4 +42,24 @@ public static class ProductMapper
         }
     }
 
+    public static Product FromDtoResponse(this ProductResponse productResponse)
+    {
+        if (Enum.TryParse<Product.Type>(productResponse.Type, true, out var productType))
+        {
+            return new Product(productResponse.Name, productType)
+            {
+                Id = productResponse.Id,
+                CreatedAt = DateTime.Parse(productResponse.CreatedAt),
+                UpdatedAt = DateTime.Parse(productResponse.UpdatedAt),
+                IsDeleted = false 
+            };
+        }
+        else
+        {
+            throw new ProductException.ProductInvalidTypeException(
+                $"Invalid Type: {productResponse.Type}. Valid values are: {string.Join(", ", Enum.GetNames(typeof(Product.Type)))}"
+            );
+        }
+    }
 }
+
