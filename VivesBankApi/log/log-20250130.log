@@ -14,3 +14,7 @@ ORDER BY "MigrationId";
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
+[2025-01-30 11:47:17.413] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (59ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
