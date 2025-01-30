@@ -48,6 +48,11 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6a9e7222_002D1184_002D433d_002Daa08_002De2e85fb2ece1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetByIdAsync" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7321daa0_002D38af_002D4f99_002Dbeb6_002De4db39aa35f8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetMyClientData_ShouldReturn_ClientResponse" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetMyClientData_ShouldReturn_ClientResponse&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=89e2e8bd_002Df955_002D4024_002D8ef5_002D7c4efcbc5555/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetCreditCardByIdAdminAsyncNotFound" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::VivesBankApi.Tests.CreditCard.CreditCardServiceTests.GetCreditCardByIdAdminAsyncNotFound&lt;/TestId&gt;&#xD;
@@ -86,8 +91,11 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=ecfbf0da_002D7857_002D4259_002D9b70_002Daad183a4f6e0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\Users\raulf\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f2fd869c_002Db915_002D48e8_002Da3c0_002Dfb269cb1f480/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetAllClientsAsync_ReturnsPagedClients" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f2fd869c_002Db915_002D48e8_002Da3c0_002Dfb269cb1f480/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GetAllClientsAsync_ReturnsPagedClients" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetAllClientsAsync_ReturnsPagedClients&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetMyClientData_ShouldReturn_ClientResponse&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetMyClientData_ShouldReturn_UserNotFoundException&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetMyClientData_ShouldReturn_ClientNotFoundException&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
