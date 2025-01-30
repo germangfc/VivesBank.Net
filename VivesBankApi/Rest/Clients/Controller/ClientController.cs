@@ -63,6 +63,10 @@ public class ClientController : ControllerBase
     [Authorize("ClientPolicy")]
     public async Task<ActionResult<ClientResponse>> GetMyClientData()
     {
+        if (!User.Identity.IsAuthenticated)
+        {
+            return Unauthorized();
+        }
         _logger.LogInformation("Getting my client data");
         return await _clientService.GettingMyClientData();
     }

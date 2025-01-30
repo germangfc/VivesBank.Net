@@ -1,4 +1,5 @@
 ﻿using System.Reactive.Linq;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -104,6 +105,53 @@ public class ClientControllerTest
 
         // Assert
         ClassicAssert.Null(result.Value);
+    }
+
+    [Test]
+    public async Task GetMyClientData_WhenUserIsAuthenticated()
+    {
+        var expectedClient = new ClientResponse { Fullname = "cholo", Address = "simeone" };
+        _service.Setup(s => s.GettingMyClientData()).ReturnsAsync(expectedClient);
+
+        // Act
+        var result = await _clientController.GetMyClientData();
+
+        // Assert
+        Assert.That(result.Value, Is.EqualTo(expectedClient));
+    }
+
+    [Test]
+    public async Task GetMyClientData_WhenUserIsNotAuthenticated()
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity()); // Usuario vacío (no autenticado)
+
+        _clientController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+
+        // Act
+        var result = await _clientController.GetMyClientData();
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<UnauthorizedResult>());
+    }
+
+    [Test]
+    public async Task GetMyClientData_whenUserIsUnAuthorized()
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Role, "Admin") }));
+
+        _clientController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+        
+        var result = await _clientController.GetMyClientData();
+        
+        Assert.That(result.Result, Is.InstanceOf<UnauthorizedResult>());
     }
     
     [Test]
