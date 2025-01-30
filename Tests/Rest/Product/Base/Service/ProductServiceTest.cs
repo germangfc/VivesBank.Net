@@ -11,6 +11,7 @@ using VivesBankApi.Rest.Product.Base.Models;
 using VivesBankApi.Rest.Product.Base.Repository;
 using VivesBankApi.Rest.Product.Base.Validators;
 using VivesBankApi.Rest.Product.Service;
+using VivesBankApi.WebSocket.Service;
 
 [TestFixture]
 [TestOf(typeof(ProductService))]
@@ -23,10 +24,12 @@ public class ProductServiceTest
     private ProductValidator _productValidator;
     private Mock<IDatabase> _cache;
     private Mock<IConnectionMultiplexer> connection;
+    private Mock<IWebsocketHandler> _websocketHandler;
     
     [OneTimeSetUp]
     public async Task Setup()
     {
+        _websocketHandler = new Mock<IWebsocketHandler>();
         connection = new Mock<IConnectionMultiplexer>();
         _cache = new Mock<IDatabase>();
         connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
@@ -48,7 +51,7 @@ public class ProductServiceTest
         await _dbContext.Database.EnsureCreatedAsync();
 
         _repository = new ProductRepository(_dbContext, NullLogger<ProductRepository>.Instance);
-        _productService = new ProductService(NullLogger<ProductService>.Instance, _repository, _productValidator, connection.Object);
+        _productService = new ProductService(NullLogger<ProductService>.Instance, _repository, _productValidator, connection.Object, _websocketHandler.Object);
     }
     
     [TearDown]

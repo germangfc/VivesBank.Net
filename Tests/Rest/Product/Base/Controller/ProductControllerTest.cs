@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using StackExchange.Redis;
@@ -17,61 +18,23 @@ using VivesBankApi.Rest.Product.Service;
 [TestOf(typeof(ProductController))]
 public class ProductControllerTests
 {
-    private Mock<IDatabase> _cache;
-    private Mock<IConnectionMultiplexer> connection;
-    private PostgreSqlContainer _postgreSqlContainer;
-    private BancoDbContext _dbContext;
-    private ProductRepository _repository;
-    private ProductService _service;
+
+    private Mock<IProductService> _productService;
+    private Mock<ILogger<ProductController>> _logger;
     private ProductController _controller;
-    private ProductValidator _productValidator;
-
-    [OneTimeSetUp]
-    public async Task Setup()
+    
+    [SetUp]
+    public void SetUp()
     {
-        _cache = new Mock<IDatabase>();
-        connection = new Mock<IConnectionMultiplexer>();
-        connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
-        _postgreSqlContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:15-alpine")
-            .WithDatabase("testdb")
-            .WithUsername("testuser")
-            .WithPassword("testpassword")
-            .WithPortBinding(5432, true)
-            .Build();
-
-        await _postgreSqlContainer.StartAsync();
-
-        var options = new DbContextOptionsBuilder<BancoDbContext>()
-            .UseNpgsql(_postgreSqlContainer.GetConnectionString())
-            .Options;
-
-        _dbContext = new BancoDbContext(options);
-        await _dbContext.Database.EnsureCreatedAsync();
-
-        _repository = new ProductRepository(_dbContext, NullLogger<ProductRepository>.Instance);
-        _service = new ProductService(NullLogger<ProductService>.Instance, _repository, _productValidator, connection.Object);
-        _controller = new ProductController(_service, NullLogger<ProductController>.Instance);
+        _productService = new Mock<IProductService>();
+        _logger = new Mock<ILogger<ProductController>>();
+        _controller = new ProductController(_productService.Object, _logger.Object);
     }
-
-    [OneTimeTearDown]
-    public async Task Teardown()
-    {
-        if (_dbContext != null) await _dbContext.DisposeAsync();
-        if (_postgreSqlContainer != null)
-        {
-            await _postgreSqlContainer.StopAsync();
-            await _postgreSqlContainer.DisposeAsync();
-        }
-    }
-
     [Test]
     public async Task GetAllProducts()
     {
         var product = new Product("Product 1", Product.Type.BankAccount);
-        _dbContext.Products.Add(product);
-        await _dbContext.SaveChangesAsync();
-
+        
         var result = await _controller.GetAllProductsAsync();
 
         Assert.That(result, Is.InstanceOf<ActionResult<List<ProductResponse>>>());
@@ -87,8 +50,6 @@ public class ProductControllerTests
     public async Task GetProductById()
     {
         var product = new Product("Product 3", Product.Type.BankAccount);
-        _dbContext.Products.Add(product);
-        await _dbContext.SaveChangesAsync();
 
         var result = await _controller.GetProductByIdAsync(product.Id);
 

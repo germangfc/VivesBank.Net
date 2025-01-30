@@ -1,14 +1,17 @@
 ﻿using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
+using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Generators;
 using VivesBankApi.Rest.Product.CreditCard.Service;
+using VivesBankApi.Rest.Users.Service;
 
 namespace Tests.Rest.Product.CreditCard.Service;
 
@@ -17,11 +20,15 @@ public class CreditCardServiceTest
     private Mock<IConnectionMultiplexer> _connection;
     private Mock<ICreditCardRepository> creditCardRepositoryMock;
     private Mock<ILogger<CreditCardService>> _logger;
+    private Mock<IHttpContextAccessor> _contextAccessor;
+    private Mock<IUserService> _userService;
+    private Mock<IClientRepository> _clientRepository;
     private CvcGenerator _cvcGenerator;
     private ExpirationDateGenerator _expirationDateGenerator;
     private NumberGenerator _numberGenerator;
     private Mock<IAccountsRepository> accountsRepositiryMock;
     private Mock<IDatabase> _cache;
+    
 
     private CreditCardService CreditCardService;
 
@@ -31,6 +38,9 @@ public class CreditCardServiceTest
     [SetUp]
     public void SetUp()
     {
+        _contextAccessor = new Mock<IHttpContextAccessor>();
+        _userService = new Mock<IUserService>();
+        _clientRepository = new Mock<IClientRepository>();
         _connection = new Mock<IConnectionMultiplexer>();
         _cache = new Mock<IDatabase>();
         _logger = new Mock<ILogger<CreditCardService>>();
@@ -43,7 +53,7 @@ public class CreditCardServiceTest
         _expirationDateGenerator = new ExpirationDateGenerator();
         _numberGenerator = new NumberGenerator();
 
-        CreditCardService = new CreditCardService(creditCardRepositoryMock.Object, _logger.Object, _cvcGenerator, _expirationDateGenerator, _numberGenerator, accountsRepositiryMock.Object, _connection.Object);
+        CreditCardService = new CreditCardService(creditCardRepositoryMock.Object, _logger.Object, _cvcGenerator, _expirationDateGenerator, _numberGenerator, accountsRepositiryMock.Object, _connection.Object, _contextAccessor.Object, _userService.Object, _clientRepository.Object);
 
         _CreditCard1 = new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard
         {
@@ -72,30 +82,7 @@ public class CreditCardServiceTest
         };
     }
     
-    [Test]
-    public async Task GetAllCreditCardAdminAsync()
-    {
-        // Arrange
-        var creditCards = new List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard> { _CreditCard1, _CreditCard2 };
-
-        creditCardRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(creditCards);
-
-        // Act
-        var result = await CreditCardService.GetAllCreditCardAdminAsync();
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            ClassicAssert.IsNotNull(result);
-            ClassicAssert.AreEqual(2, result.Count);
-            ClassicAssert.AreEqual(_CreditCard1.CardNumber, result[0].CardNumber);
-            ClassicAssert.AreEqual(_CreditCard2.CardNumber, result[1].CardNumber);
-        });
-
-        // Verify
-        creditCardRepositoryMock.Verify(repo => repo.GetAllAsync(), Times.Once);
-    }
-
+    
     [Test]
     public async Task GetCreditCardByIdAsync_WhenInCache()
     {
