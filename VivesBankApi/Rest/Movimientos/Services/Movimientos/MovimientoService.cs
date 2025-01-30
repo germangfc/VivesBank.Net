@@ -16,6 +16,8 @@ using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Service;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
+using VivesBankApi.Rest.Users.Exceptions;
+using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
@@ -255,7 +257,7 @@ public class MovimientoService(
         if (!IbanValidator.ValidateIban(transferencia.IbanOrigen)) throw new InvalidSourceIbanException(transferencia.IbanOrigen);
 
         // Validar que el cliente existe
-        var originClient = await clientService.GetClientByIdAsync(user.Id);
+        var originClient = await clientService.GetClientByUserIdAsync(user.Id);
         if (originClient is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
         
         // Validar que la cuenta origen existe
@@ -305,8 +307,15 @@ public class MovimientoService(
                     // Guardar el movimiento destino
                     logger.LogInformation("Saving destination movement");
                     await movimientoRepository.AddMovimientoAsync(newDestinationMovement);
+                    
                     // Notificar al cliente destino
-                    await EnviarNotificacionCreacionAsync(user, newDestinationMovement);
+                    var destinationClient = await clientService.GetClientByIdAsync(destinationAccount.ClientID);
+                    if (destinationClient is null) throw new ClientExceptions.ClientNotFoundException(destinationAccount.ClientID);
+                    var destinationUser = await userService.GetUserByIdAsync(destinationClient.UserId);
+                    if (destinationUser is null) throw new UserNotFoundException(destinationClient.UserId);
+
+                    await EnviarNotificacionCreacionAsync(destinationUser.ToUser(), newDestinationMovement);
+
                     // sacar el movimiento destino al auxiliar
                     destinationMovementAux = newDestinationMovement;
                 }
