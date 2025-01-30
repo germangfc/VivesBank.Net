@@ -1,0 +1,16 @@
+[2025-01-30 11:23:42.178] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (62ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 11:27:46.975] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (60ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 11:34:37.549] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (52ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 11:42:08.862] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (69ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";

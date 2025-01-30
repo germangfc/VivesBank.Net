@@ -205,6 +205,20 @@ public class ClientController : ControllerBase
 
         return Ok(new { message = $"File with name {fileName} deleted successfully." });
     }
+    
+    [HttpGet("me-photo")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> GetMyProfilePhotoAsync()
+    {
+        _logger.LogInformation("Request to get my profile photo.");
+        var fileStream = await _clientService.GettingMyProfilePhotoAsync();
+        var mimeType = MimeTypes.GetMimeType(Path.GetExtension(fileStream.Name));
+        return File(fileStream, mimeType, Path.GetFileName(fileStream.Name));
+    }
+
+
+
+
 
     
 

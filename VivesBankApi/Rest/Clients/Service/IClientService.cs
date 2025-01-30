@@ -28,6 +28,8 @@ public interface IClientService
     Task<FileStream> GetFileAsync(string fileName);
     Task<bool> DeleteFileAsync(string fileName);
 
+    Task<FileStream> GettingMyProfilePhotoAsync();
+
     //Funciones para storage remoto FTP
     Task<string> SaveFileToFtpAsync(IFormFile file, string dni);
     Task<FileStream> GetFileFromFtpAsync(string fileName);
