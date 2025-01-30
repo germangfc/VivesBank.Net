@@ -111,7 +111,7 @@ public class ClientController : ControllerBase
     [Authorize("ClientPolicy")]
     public async Task<IActionResult> GetMeDataAsClient()
     {
-        _logger.LogInformation("Getting my client data");
+        _logger.LogInformation("Exporting client data as a JSON file");
         var data = await _clientService.GettingMyClientData();
         try
         {
