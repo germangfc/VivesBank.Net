@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework.Legacy;
 using VivesBankApi.Rest.Clients.Controller;
 using VivesBankApi.Rest.Clients.Dto;
@@ -152,6 +153,29 @@ public class ClientControllerTest
         var result = await _clientController.GetMyClientData();
         
         Assert.That(result.Result, Is.InstanceOf<UnauthorizedResult>());
+    }
+
+    [Test]
+    public async Task CreateClientAsUser_ShouldReturnToken()
+    {
+        var request = new ClientRequest { FullName = "Test Client", Address = "Test Address" };
+        var token = "test_token";
+
+        _service.Setup(s => s.CreateClientAsync(request)).ReturnsAsync(token);
+
+        // Act
+        var result = await _clientController.CreateClientAsUser(request);
+
+        // Assert
+        ClassicAssert.NotNull(result);
+        ClassicAssert.IsInstanceOf<OkObjectResult>(result);
+
+        var okResult = result as OkObjectResult;
+        ClassicAssert.NotNull(okResult.Value);
+        var responseObject = JObject.FromObject(okResult.Value);
+        string returnedToken = responseObject["client"]?.ToString();
+
+        ClassicAssert.AreEqual(token, returnedToken);
     }
     
     [Test]
