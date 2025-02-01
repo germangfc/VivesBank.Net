@@ -14,6 +14,7 @@ using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
 using VivesBankApi.Rest.Product.Base.Models;
 using VivesBankApi.Rest.Product.Base.Repository;
+using VivesBankApi.Rest.Product.Base.Service;
 using VivesBankApi.Rest.Product.Base.Validators;
 using VivesBankApi.Rest.Product.Service;
 using VivesBankApi.WebSocket.Service;

@@ -2,6 +2,7 @@
 using System;
 using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
+using VivesBankApi.Rest.Product.Base.Mapper;
 using VivesBankApi.Rest.Product.Base.Models;
 
 [TestFixture]

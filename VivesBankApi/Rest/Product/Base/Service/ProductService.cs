@@ -187,7 +187,7 @@ public class ProductService : IProductService
 
             return products;
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
             Console.WriteLine($"Error processing CSV file: {ex.Message}");
             return new List<Base.Models.Product>(); 
@@ -225,7 +225,7 @@ public class ProductService : IProductService
 
                 observer.OnCompleted();
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 observer.OnError(ex);
             }

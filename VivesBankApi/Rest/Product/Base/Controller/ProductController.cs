@@ -6,6 +6,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
+using VivesBankApi.Rest.Product.Base.Mapper;
 using VivesBankApi.Rest.Product.Service;
 
 namespace VivesBankApi.Rest.Product.Base.Controller;
