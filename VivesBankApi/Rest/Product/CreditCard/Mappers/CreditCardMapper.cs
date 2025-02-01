@@ -2,6 +2,9 @@
 using VivesBankApi.Rest.Product.CreditCard.Models;
 
 
+namespace VivesBankApi.Rest.Product.CreditCard.Mappers;
+
+using Models;
 public static class CreditCardMapper
 {
     public static CreditCardAdminResponse ToAdminResponse(this CreditCard creditCard)
