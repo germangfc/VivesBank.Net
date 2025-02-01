@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Reactive.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework.Legacy;
@@ -13,6 +14,8 @@ using System.Threading.Tasks;
 using VivesBankApi.Rest.Product.CreditCard.Controller;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Service;
+
+using VivesBankApi.Rest.Product.CreditCard.Models;
 
 [TestFixture]
 public class CreditCardControllerTest
@@ -31,20 +34,43 @@ public class CreditCardControllerTest
     }
 
     [Test]
-    public async Task GetAllCardsAdminAsyncReturnsOk()
+    public async Task GetAllCreditCardAdminAsync_ReturnsMappedCreditCardAdminResponse()
     {
-        var cards = new List<CreditCardAdminResponse>
-        {
-            new() { Id = "1", CardNumber = "1234" },
-            new() { Id = "2", CardNumber = "5678" }
-        };
-        
-        var result = await _controller.GetAllCardsAdminAsync();
+        // Arrange
+        int pageNumber = 1;
+        int pageSize = 10;
+        string fullName = "John Doe";
+        bool? isDeleted = false;
+        string direction = "asc";
 
+        var cardsFromRepo = new PagedList<CreditCardAdminResponse>(
+            new List<CreditCardAdminResponse>
+            {
+                new CreditCardAdminResponse { Id = "1", CardNumber = "1234567890123456"},
+                new CreditCardAdminResponse { Id = "2", CardNumber = "9876543210987654"}
+            },
+            1,
+            pageNumber,
+            pageSize
+        );
+
+        _mockService
+            .Setup(servie => servie.GetAllCreditCardAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction))
+            .ReturnsAsync(cardsFromRepo);
+
+        // Act
+        var result = await _controller.GetAllCardsAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction);
+
+        // Assert
         var okResult = result.Result as OkObjectResult;
         ClassicAssert.IsNotNull(okResult);
-        ClassicAssert.AreEqual(200, okResult.StatusCode);
-        ClassicAssert.AreEqual(cards, okResult.Value);
+        var creditCardResponse = okResult.Value as List<CreditCardAdminResponse>;
+        ClassicAssert.IsNotNull(creditCardResponse);
+    
+        // Example assertions
+        var firstCard = creditCardResponse.First();
+        ClassicAssert.AreEqual("1234567890123456", firstCard.CardNumber);
+        ClassicAssert.False(firstCard.IsDeleted);
     }
 
     [Test]
@@ -126,32 +152,128 @@ public class CreditCardControllerTest
     public async Task ImportCreditCardsFromJson_WhenValidFile_ReturnsOkResult()
     {
         // Arrange
-        var mockFile = new Mock<IFormFile>();
+        var credicCards = new List<CreditCard>
+        {
+            new CreditCard { Id = "1", CardNumber = "1234567890123456", Pin = "123" }
+        };
+        _mockService.Setup(s => s.Import(It.IsAny<IFormFile>()))
+        .Returns(Observable.Create<CreditCard>(observer =>
+        {
+            foreach (var card in credicCards)
+            {
+                observer.OnNext(card);  
+            }
+            observer.OnCompleted();
+            return () => { };
+        }));
 
-        var fileContent = "[{\"Id\": \"1\", \"AccountId\": \"1\", \"CardNumber\": \"1234567890123456\", \"Pin\": \"123\", \"Cvc\": \"123\", \"ExpirationDate\": \"2025-12-31\", \"CreatedAt\": \"2023-01-01T00:00:00\", \"UpdatedAt\": \"2023-01-01T00:00:00\", \"IsDeleted\": false}]";
-        var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
-
-        mockFile.Setup(f => f.OpenReadStream()).Returns(fileStream);
-        mockFile.Setup(f => f.Length).Returns(fileStream.Length);
-        mockFile.Setup(f => f.FileName).Returns("creditcards.json");
-        mockFile.Setup(f => f.ContentType).Returns("application/json");
-
-        var creditCardServiceMock = new Mock<ICreditCardService>();
-        var loggerMock = new Mock<ILogger<CreditCardController>>();
-
-        var controller = new CreditCardController(creditCardServiceMock.Object, loggerMock.Object);
-
-        var result = await controller.ImportCreditCardsFromJson(mockFile.Object);
-
-        ClassicAssert.IsInstanceOf<OkObjectResult>(result);  
-
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(_ => _.Length).Returns(10);
+        var result = await _controller.ImportCreditCardsFromJson(fileMock.Object);
+        
+        // Assert
+        ClassicAssert.IsInstanceOf<ObjectResult>(result);  
         var okResult = result as OkObjectResult;
         ClassicAssert.IsNotNull(okResult);
-        var creditCards = okResult.Value as List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>;
+        var creditCards = okResult.Value as List<CreditCard>;
         ClassicAssert.IsNotNull(creditCards);
         ClassicAssert.AreEqual(1, creditCards.Count);
         ClassicAssert.AreEqual("1", creditCards[0].Id);
         ClassicAssert.AreEqual("1234567890123456", creditCards[0].CardNumber);
         ClassicAssert.AreEqual("123", creditCards[0].Pin);
+    }
+
+    [Test]
+    public async Task ImportCreditCardsFromJson_WhenInvalidFile_ReturnsBadRequestResult()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(_ => _.Length).Returns(0);
+
+        // Act
+        var result = await _controller.ImportCreditCardsFromJson(fileMock.Object);
+
+        // Assert
+        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result);
+    }
+    
+    [Test]
+    public async Task ExportCreditCardsToJson_ReturnsFile_WhenAsFileIsTrue()
+    {
+        // Arrange
+        var creditCardsAdminResponse = new List<CreditCardAdminResponse>
+        {
+            new CreditCardAdminResponse { Id = "1", CardNumber = "1234567890123456", ExpirationDate = "2025-12-31" },
+            new CreditCardAdminResponse { Id = "2", CardNumber = "9876543210987654", ExpirationDate = "2026-01-01" }
+        };
+
+        _mockService.Setup(s => s.GetAllCreditCardAdminAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<bool?>(),
+                It.IsAny<string>()))
+            .ReturnsAsync(creditCardsAdminResponse);
+        
+        var fileStream = new FileStream("dummyPath", FileMode.OpenOrCreate);
+        _mockService.Setup(s => s.Export(It.IsAny<List<CreditCard>>()))
+            .ReturnsAsync(fileStream);
+
+        // Act
+        var result = await _controller.ExportCreditCardsToJson(asFile: true);
+
+        // Assert
+        ClassicAssert.IsInstanceOf<FileStreamResult>(result);
+        var fileResult = result as FileStreamResult;
+        ClassicAssert.NotNull(fileResult);
+        ClassicAssert.AreEqual("application/json", fileResult.ContentType);
+        ClassicAssert.AreEqual("creditcards.json", fileResult.FileDownloadName);
+    }
+    
+    public async Task ExportCreditCardsToJson_ReturnsOk_WhenNoCreditCardsFound()
+    {
+        // Arrange
+        _mockService.Setup(s => s.GetAllCreditCardAdminAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<bool?>(),
+                It.IsAny<string>()))
+            .ReturnsAsync(new List<CreditCardAdminResponse>()); // Empty list of credit cards
+        
+        // Act
+        var result = await _controller.ExportCreditCardsToJson(asFile: true);
+
+        // Assert
+        ClassicAssert.IsInstanceOf<OkObjectResult>(result);
+        var okResult = result as OkObjectResult;
+        ClassicAssert.AreEqual("No credit cards found", ((dynamic)okResult.Value).message);
+    }
+
+    [Test]
+    public async Task ExportCreditCardsToJson_ReturnsJson_WhenAsFileIsFalse()
+    {
+        // Arrange
+        var creditCardsAdminResponse = new List<CreditCardAdminResponse>
+        {
+            new CreditCardAdminResponse { Id = "1", CardNumber = "1234567890123456", ExpirationDate = "2025-12-31" }
+        };
+
+        _mockService.Setup(s => s.GetAllCreditCardAdminAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<bool?>(),
+                It.IsAny<string>()))
+            .ReturnsAsync(creditCardsAdminResponse);
+        
+        // Act
+        var result = await _controller.ExportCreditCardsToJson(asFile: false);
+
+        // Assert
+        ClassicAssert.IsInstanceOf<OkObjectResult>(result);
+        var okResult = result as OkObjectResult;
+        ClassicAssert.IsInstanceOf<List<CreditCard>>(okResult.Value);
+        ClassicAssert.AreEqual(1, ((List<CreditCard>)okResult.Value).Count);
     }
 }
