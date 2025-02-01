@@ -1,7 +1,11 @@
-﻿using System.Text.Json;
+﻿using System.Reactive.Linq;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 using VivesBankApi.Database;
@@ -25,6 +29,7 @@ public class ProductServiceTest
     private Mock<IDatabase> _cache;
     private Mock<IConnectionMultiplexer> connection;
     private Mock<IWebsocketHandler> _websocketHandler;
+    
     
     [OneTimeSetUp]
     public async Task Setup()
@@ -206,5 +211,6 @@ public class ProductServiceTest
         Assert.That(ex.Message, Is.EqualTo($"The product with the ID {nonExistentProductId} was not found"));
         _cache.Verify(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once());
     }
-
+    
+    
 }

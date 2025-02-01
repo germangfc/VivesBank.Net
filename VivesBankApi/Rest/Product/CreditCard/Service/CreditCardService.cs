@@ -246,6 +246,11 @@ public class CreditCardService : ICreditCardService
 
     public async Task<FileStream> Export(List<Models.CreditCard> entities)
     {
+        if (entities == null || !entities.Any())
+        {
+            throw new ArgumentException("Cannot export an empty list of credit cards.");
+        }
+
         _logger.LogInformation("Exporting Credit Cards to JSON file...");
 
         var json = JsonConvert.SerializeObject(entities, Formatting.Indented); 
@@ -263,4 +268,5 @@ public class CreditCardService : ICreditCardService
 
         return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
+
 }

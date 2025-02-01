@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Reactive.Linq;
+using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -270,5 +271,90 @@ public class CreditCardServiceTest
         // Assert
         _cache.Verify(db => db.KeyDeleteAsync(creditCardId, It.IsAny<CommandFlags>()), Times.Once);
         creditCardRepositoryMock.Verify(repo => repo.DeleteAsync(creditCardId), Times.Once);
+    }
+    
+    [Test]
+    public async Task Import_WhenFileIsValid_ReturnsCreditCards()
+    {
+        var mockFile = new Mock<IFormFile>();
+        var mockStream = new MemoryStream();
+        var writer = new StreamWriter(mockStream);
+        writer.Write("[{\"Id\":\"1\",\"AccountId\":\"1\",\"CardNumber\":\"1234567890123456\",\"Pin\":\"123\",\"Cvc\":\"123\",\"ExpirationDate\":\"2028-02-01\",\"CreatedAt\":\"2022-01-01\",\"UpdatedAt\":\"2022-01-01\",\"IsDeleted\":false}]");
+        writer.Flush();
+        mockStream.Position = 0;
+
+        mockFile.Setup(f => f.OpenReadStream()).Returns(mockStream);
+        mockFile.Setup(f => f.Length).Returns(mockStream.Length);
+
+        var result = CreditCardService.Import(mockFile.Object);
+
+        var creditCardList = await result.ToList();  
+        ClassicAssert.IsNotNull(creditCardList);
+        ClassicAssert.AreEqual(1, creditCardList.Count);
+
+        var creditCard = creditCardList.FirstOrDefault();
+        ClassicAssert.AreEqual("1", creditCard?.Id);
+        ClassicAssert.AreEqual("1", creditCard?.AccountId);
+        ClassicAssert.AreEqual("1234567890123456", creditCard?.CardNumber);
+        ClassicAssert.AreEqual("123", creditCard?.Pin);
+        ClassicAssert.AreEqual("123", creditCard?.Cvc);
+        ClassicAssert.AreEqual(DateOnly.FromDateTime(DateTime.Now.AddYears(3)), creditCard?.ExpirationDate);
+    }
+    
+    [Test]
+    public async Task ExportWhenValidListExportsToJsonFile()
+    {
+        var creditCard1 = new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard
+        {
+            Id = "1",
+            CardNumber = "1234567890123456",
+            Pin = "123",
+            Cvc = "123",
+            ExpirationDate = DateOnly.FromDateTime(DateTime.Now.AddYears(3)),
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now,
+            IsDeleted = false
+        };
+
+        var creditCard2 = new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard
+        {
+            Id = "2",
+            CardNumber = "9876543210987654",
+            Pin = "321",
+            Cvc = "321",
+            ExpirationDate = DateOnly.FromDateTime(DateTime.Now.AddYears(2)),
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now,
+            IsDeleted = false
+        };
+
+        var creditCardList = new List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard> { creditCard1, creditCard2 };
+
+        var fileStream = await CreditCardService.Export(creditCardList);
+
+        Assert.That(fileStream, Is.Not.Null);
+        Assert.That(fileStream.CanRead, Is.True);
+
+        var filePath = fileStream.Name;
+        Assert.That(File.Exists(filePath), Is.True);
+
+        var fileContent = await File.ReadAllTextAsync(filePath);
+        Assert.That(fileContent, Does.Contain(creditCard1.CardNumber));
+        Assert.That(fileContent, Does.Contain(creditCard2.CardNumber));
+
+        fileStream.Close();
+        File.Delete(filePath);
+    }
+    
+    [Test]
+    public async Task Export_WhenEmptyList_ThrowsArgumentException()
+    {
+        var emptyCreditCardList = new List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>();
+
+        var ex = Assert.ThrowsAsync<ArgumentException>(
+            async () => await CreditCardService.Export(emptyCreditCardList)
+        );
+
+        Assert.That(ex.Message, Is.EqualTo("Cannot export an empty list of credit cards."));
     }
 }
