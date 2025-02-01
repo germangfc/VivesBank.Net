@@ -808,3 +808,66 @@ ORDER BY "MigrationId";
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
+[2025-01-30 17:02:58.704] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (60ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 17:24:24.813] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (61ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 17:26:25.578] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error getting file from FTP
+FileStorageExceptions: File not found: defaultDni.png
+   at VivesBankApi.Rest.Clients.Service.ClientService.GetFileFromFtpAsync(String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 412
+[2025-01-30 17:26:25.617] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+FileStorageExceptions: File not found: defaultDni.png
+   at VivesBankApi.Rest.Clients.Service.ClientService.GetFileFromFtpAsync(String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 412
+   at VivesBankApi.Rest.Clients.Controller.ClientController.GetFileFromFtpAsync(String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 194
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
+[2025-01-30 17:43:29.536] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (57ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 17:45:16.186] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error getting file from FTP
+FileStorageExceptions: File not found: defaultDni.png
+   at VivesBankApi.Rest.Clients.Service.ClientService.GetFileFromFtpAsync(String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 412
+[2025-01-30 17:45:16.221] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+FileStorageExceptions: File not found: defaultDni.png
+   at VivesBankApi.Rest.Clients.Service.ClientService.GetFileFromFtpAsync(String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 412
+   at VivesBankApi.Rest.Clients.Service.ClientService.GettingMyDniPhotoFromFtpAsync() in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 456
+   at VivesBankApi.Rest.Clients.Controller.ClientController.GetMyDniPhotoFromFtpAsync() in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 244
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
+[2025-01-30 18:17:55.850] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (48ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 18:27:15.502] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (67ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 18:32:27.145] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (71ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 18:42:11.483] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (94ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";

@@ -34,5 +34,6 @@ public interface IClientService
     Task<string> SaveFileToFtpAsync(IFormFile file, string dni);
     Task<FileStream> GetFileFromFtpAsync(string fileName);
     Task<string> UpdateClientPhotoDniAsync(string userId, IFormFile file);
+    Task<string> UpdateMyPhotoDniAsync(IFormFile file);
     Task<FileStream> GettingMyDniPhotoFromFtpAsync();
 }

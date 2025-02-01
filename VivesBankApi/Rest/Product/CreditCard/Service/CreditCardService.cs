@@ -10,6 +10,7 @@ using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Generators;
+using VivesBankApi.Rest.Product.CreditCard.Mappers;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Service;

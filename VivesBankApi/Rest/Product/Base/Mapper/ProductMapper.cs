@@ -1,7 +1,12 @@
 ﻿using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
-using VivesBankApi.Rest.Product.Base.Models;
 
+<<<<<<< HEAD
+=======
+namespace VivesBankApi.Rest.Product.Base.Mapper;
+using Models;
+
+>>>>>>> rraul10/develop
 public static class ProductMapper
 {
     public static ProductResponse ToDtoResponse(this Product product)
