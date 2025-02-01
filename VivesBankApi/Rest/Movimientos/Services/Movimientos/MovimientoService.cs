@@ -267,89 +267,68 @@ public class MovimientoService(
         // Validar que la cuenta es de ese cliente
         if (!originAccount.ClientID.Equals(originClient.Id)) throw new AccountsExceptions.AccountUnknownIban(transferencia.IbanOrigen);
 
-        // Validar que la cuenta destino existe
-//        var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanDestino);
-//        if (destinationAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(transferencia.IbanDestino);
-
         // Validar saldo suficiente en cuenta origen
         var newBalanceOrigin = originAccount.Balance - transferencia.Cantidad; 
         if (newBalanceOrigin < 0) throw new TransferInsufficientBalance(transferencia.IbanOrigen);
 
-        // Movimiento aux Para poder usarlo fuera del try y catch
+        // Movimiento auxiliar para poder usarlo fuera del try-catch
+        // Se asocia posteriormente al movimiento origen para gestionar una posible revocación de la transferencia
         Movimiento destinationMovementAux = new Movimiento();
         try
         { 
             // Validar que la cuenta destino existe
             var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(transferencia.IbanDestino);
             
+            // La cuenta destino se actualiza solo si es de un cliente del banco
             if (destinationAccount != null)
+            {
+                // Sumar a la cuenta destino
+                var newBalanceDestination = destinationAccount.Balance + transferencia.Cantidad;
+                var updateAccountRequestDestination = destinationAccount.toUpdateAccountRequest();
+                updateAccountRequestDestination.Balance = newBalanceDestination;
+                var updatedAccountDestination = await accountsService.UpdateAccountAsync(destinationAccount.Id, updateAccountRequestDestination);
+                logger.LogInformation($"New balance destination account after Transfer: {updatedAccountDestination.Balance}");
+
+                // Crear el movimiento del ingreso al cliente destino
+                logger.LogInformation("Creating destination movement");
+                var nowDest = DateTime.UtcNow;
+                Movimiento newDestinationMovement = new Movimiento
                 {
-                    // sumar a la cuenta destino
-                //    destinationAccount.Balance += transferencia.Cantidad;
-                    var newBalanceDestination = destinationAccount.Balance + transferencia.Cantidad;
-                    var updateAccountRequestDestination = destinationAccount.toUpdateAccountRequest();
-                    updateAccountRequestDestination.Balance = newBalanceDestination;
-                    var updatedAccountDestination = await accountsService.UpdateAccountAsync(destinationAccount.Id, updateAccountRequestDestination);
-                    logger.LogInformation($"New balance destination account after Transfer: {updatedAccountDestination.Balance}");
+                    ClienteGuid = destinationAccount.ClientID,
+                    Transferencia = transferencia,
+                    CreatedAt = nowDest,
+                    UpdatedAt = nowDest,
+                    IsDeleted = false
+                };
+                
+                // Guardar el movimiento destino
+                logger.LogInformation("Saving destination movement");
+                await movimientoRepository.AddMovimientoAsync(newDestinationMovement);
+                
+                // Notificar al cliente destino
+                var destinationClient = await clientService.GetClientByIdAsync(destinationAccount.ClientID);
+                if (destinationClient is null) throw new ClientExceptions.ClientNotFoundException(destinationAccount.ClientID);
+                var destinationUser = await userService.GetUserByIdAsync(destinationClient.UserId);
+                if (destinationUser is null) throw new UserNotFoundException(destinationClient.UserId);
 
-                    // crear el movimiento al cliente destino
-                    logger.LogInformation("Creating destination movement");
-                    var nowDest = DateTime.UtcNow;
-                    Movimiento newDestinationMovement = new Movimiento
-                    {
-                        ClienteGuid = destinationAccount.ClientID,
-                        Transferencia = transferencia,
-                        CreatedAt = nowDest,
-                        UpdatedAt = nowDest,
-                        IsDeleted = false
-                    };
-                    
-                    // Guardar el movimiento destino
-                    logger.LogInformation("Saving destination movement");
-                    await movimientoRepository.AddMovimientoAsync(newDestinationMovement);
-                    
-                    // Notificar al cliente destino
-                    var destinationClient = await clientService.GetClientByIdAsync(destinationAccount.ClientID);
-                    if (destinationClient is null) throw new ClientExceptions.ClientNotFoundException(destinationAccount.ClientID);
-                    var destinationUser = await userService.GetUserByIdAsync(destinationClient.UserId);
-                    if (destinationUser is null) throw new UserNotFoundException(destinationClient.UserId);
+                await EnviarNotificacionCreacionAsync(destinationUser.ToUser(), newDestinationMovement);
 
-                    await EnviarNotificacionCreacionAsync(destinationUser.ToUser(), newDestinationMovement);
-
-                    // sacar el movimiento destino al auxiliar
-                    destinationMovementAux = newDestinationMovement;
-                }
+                // sacar el movimiento destino al auxiliar
+                destinationMovementAux = newDestinationMovement;
+            }
         }
         catch (AccountsExceptions.AccountNotFoundByIban ex)
         {
             logger.LogError($"{ex.Message}");
         }
-        // restar de la cuenta origen
+        
+        // Restar de la cuenta origen
          var updateAccountRequestOrigin = originAccount.toUpdateAccountRequest();
          updateAccountRequestOrigin.Balance = newBalanceOrigin;
          var updatedAccountOrigin = await accountsService.UpdateAccountAsync(originAccount.Id, updateAccountRequestOrigin);
          logger.LogInformation($"New balance origin account after Transfer: {updatedAccountOrigin.Balance}");
 
- //       originAccount.Balance = newBalanceOrigin;
-// ok cambiar nuevo update       await accountsService.UpdateAccountAsync(clientOriginAccount.Id, new UpdateAccountRequest { Balance = clientOriginAccount.Balance });
-    
-        // sumar a la cuenta destino
-//        destinationAccount.Balance += transferencia.Cantidad;
-//        await accountsService.UpdateAccountAsync(clientDestinationAccount.Id, new UpdateAccountRequest { Balance = clientDestinationAccount.Balance });
-        
-        // crear el movimiento al cliente destino
-//        logger.LogInformation("Creating destination movement");
-//        Movimiento newDestinationMovement = new Movimiento
-//        {
-//            ClienteGuid = destinationAccount.ClientID,
-//            Transferencia = transferencia
-//        };
-        
-//        // Guardar el movimiento destino
-//        logger.LogInformation("Saving destination movement");
-//        await movimientoRepository.AddMovimientoAsync(newDestinationMovement);
-
-        // crear el movimiento al cliente origen
+        // Crear el movimiento al cliente origen
         logger.LogInformation("Creating origin movement");
         var now = DateTime.UtcNow;
         Movimiento newOriginMovement = new Movimiento
