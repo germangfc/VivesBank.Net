@@ -588,7 +588,7 @@ public async Task<FileStream> GetFileFromFtpAsync(string fileName)
         _logger.LogInformation($"Profile photo found: {filePath}");
         return new FileStream(filePath, FileMode.Open, FileAccess.Read);
     }
-
+    
     
     public async Task EnviarNotificacionUpdateAsync<T>(T t)
     {

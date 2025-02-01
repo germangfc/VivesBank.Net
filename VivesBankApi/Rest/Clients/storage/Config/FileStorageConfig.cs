@@ -6,4 +6,5 @@ public class FileStorageConfig
     public long MaxFileSize { get; set; } = 10 * 1024 * 1024;
     public List<string> AllowedFileTypes { get; set; } = [".jpg", ".jpeg", ".png"];
     public bool RemoveAll { get; set; } = false;
+    public string SomeProperty { get; set; }
 }
