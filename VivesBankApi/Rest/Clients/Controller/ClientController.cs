@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Rest.Clients.Dto;
+using VivesBankApi.Rest.Clients.Mappers;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.Config;
 using VivesBankApi.Rest.Clients.storage.JSON;
@@ -63,6 +64,10 @@ public class ClientController : ControllerBase
     [Authorize("ClientPolicy")]
     public async Task<ActionResult<ClientResponse>> GetMyClientData()
     {
+        if (!User.Identity.IsAuthenticated)
+        {
+            return Unauthorized();
+        }
         _logger.LogInformation("Getting my client data");
         return await _clientService.GettingMyClientData();
     }
@@ -95,7 +100,7 @@ public class ClientController : ControllerBase
     
     [HttpPut("me")]
     [Authorize("ClientPolicy")]
-    public async Task<ActionResult<ClientResponse>> UpdateMeAsClient(ClientUpdateRequest request)
+    public async Task<ActionResult<ClientResponse>> UpdateMeAsClient([FromBody] ClientUpdateRequest request)
     {
         _logger.LogInformation($"Updating client registered on the system");
         if (!ModelState.IsValid)
@@ -112,15 +117,16 @@ public class ClientController : ControllerBase
     public async Task<IActionResult> GetMeDataAsClient()
     {
         _logger.LogInformation("Exporting client data as a JSON file");
-        var data = await _clientService.GettingMyClientData();
         try
         {
-            var fileStream = await _storage.ExportOnlyMeData(data);
+            var user = await _clientService.GettingMyClientData();
+            var fileStream = await _storage.ExportOnlyMeData(user.FromDtoResponse());
             return File(fileStream, "application/json", "user.json");
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            return StatusCode(500);
+            _logger.LogError($"Error exporting client: {ex.Message}");
+            return StatusCode(500, new { message = "Error exporting client", details = ex.Message });
         }
     }
     
@@ -143,20 +149,19 @@ public class ClientController : ControllerBase
     
     
     [HttpPatch("{clientId}/dni")]
-    [Authorize("ClientPolicy")]
-    public async Task<IActionResult> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
+    public async Task<IActionResult> UpdateClientDniPhotoFtpAsync(string clientId, IFormFile file)
     {
-        _logger.LogInformation($"Request to update profile photo for client with ID: {clientId}");
+        _logger.LogInformation($"Request to update DNI photo for client with ID: {clientId}");
 
         if (file == null || file.Length == 0)
         {
             return BadRequest("No file was provided or the file is empty.");
         }
 
-        var fileName = await _clientService.UpdateClientPhotoAsync(clientId, file);
-        return Ok(new { message = "Profile photo updated successfully", fileName });
+        var fileName = await _clientService.UpdateClientPhotoDniAsync(clientId, file);
+        return Ok(new { message = "DNI photo updated successfully", fileName });
     }
-    
+
 
     [HttpGet("photo/{fileName}")]
     [Authorize("AdminPolicy")]
@@ -182,6 +187,7 @@ public class ClientController : ControllerBase
     }
     
     [HttpGet("ftp/{fileName}")]
+    [Authorize("AdminPolicy")]
     public async Task<IActionResult> GetFileFromFtpAsync(string fileName)
     {
         _logger.LogInformation($"Request to get file with file name: {fileName}");
@@ -204,26 +210,71 @@ public class ClientController : ControllerBase
 
         return File(fileStream, mimeType, fileName);
     }
-
-    [HttpDelete("dni/{fileName}")]
-    public async Task<IActionResult> DeleteFileAsync(string fileName)
+    
+    
+    [HttpGet("me-photo")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> GetMyProfilePhotoAsync()
     {
-        _logger.LogInformation($"Request to delete file with file name: {fileName}");
-
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            return BadRequest(new { message = "File name must be provided." });
-        }
-
-        bool isDeleted = await _clientService.DeleteFileFromFtpAsync(fileName);
-
-        if (!isDeleted)
-        {
-            return NotFound(new { message = $"File with name {fileName} not found." });
-        }
-
-        return Ok(new { message = $"File with name {fileName} deleted successfully." });
+        _logger.LogInformation("Request to get my profile photo.");
+        var fileStream = await _clientService.GettingMyProfilePhotoAsync();
+        var mimeType = MimeTypes.GetMimeType(Path.GetExtension(fileStream.Name));
+        return File(fileStream, mimeType, Path.GetFileName(fileStream.Name));
     }
+
+
+    [HttpPatch("me-photo")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> UpdateMyProfilePhotoAsync(IFormFile file)
+    {
+        _logger.LogInformation("Request to update my profile photo.");
+
+        if (file == null || file.Length == 0)
+        {
+            _logger.LogWarning("No file provided.");
+            return BadRequest("No file provided.");
+        }
+
+        var newFileName = await _clientService.UpdateMyProfilePhotoAsync(file);
+        _logger.LogInformation($"Profile photo updated successfully: {newFileName}");
+
+        return Ok(new { message = "Profile photo updated successfully", fileName = newFileName });
+    }
+    
+    [HttpPatch("me-dni-photo")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> UpdateMyDniPhotoAsync(IFormFile file)
+    {
+        _logger.LogInformation("Request to update my DNI photo.");
+
+        if (file == null || file.Length == 0)
+        {
+            _logger.LogWarning("No file provided.");
+            return BadRequest("No file provided.");
+        }
+
+        var newFileName = await _clientService.UpdateMyPhotoDniAsync(file);
+        _logger.LogInformation($"DNI photo updated successfully: {newFileName}");
+
+        return Ok(new { message = "DNI photo updated successfully", fileName = newFileName });
+    }
+
+
+    [HttpGet("me-dni-photo")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> GetMyDniPhotoFromFtpAsync()
+    {
+        _logger.LogInformation("Request to get my DNI photo from FTP.");
+
+        var fileStream = await _clientService.GettingMyDniPhotoFromFtpAsync();
+
+        var mimeType = MimeTypes.GetMimeType(Path.GetExtension(fileStream.Name));
+
+        _logger.LogInformation($"Returning DNI photo from FTP: {Path.GetFileName(fileStream.Name)} with MIME type: {mimeType}");
+        return File(fileStream, mimeType, Path.GetFileName(fileStream.Name));
+    }
+    
+    
     
     
 }

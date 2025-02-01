@@ -114,8 +114,7 @@ public class ClientService : IClientService
         var existingClient = await _clientRepository.getByUserIdAsync(id);
         if (existingClient != null)
             throw new ClientExceptions.ClientAlreadyExistsException(id);
-    
-        // Actualiza el rol del usuario
+        
         var userUpdate = new UserUpdateRequest
         {
             Role = Role.Client.ToString(),
@@ -123,15 +122,12 @@ public class ClientService : IClientService
     
         var client = request.FromDtoRequest();
         client.UserId = id;
-    
-        // Actualiza el usuario
+        
         await _userService.UpdateUserAsync(id, userUpdate);
-    
-        // Agrega el cliente
+        
         await _clientRepository.AddAsync(client);
-
-        // Obtén el usuario actualizado antes de generar el token
-        var updatedUser = await _userService.GetUserByIdAsync(id); // Obtén la última versión del usuario
+        
+        var updatedUser = await _userService.GetUserByIdAsync(id);
         _logger.LogDebug($"Updating user for client rol: {updatedUser.Role}");
         return _jwtGenerator.GenerateJwtToken(updatedUser.ToUser());
     }
@@ -378,7 +374,17 @@ public class ClientService : IClientService
             throw;
         }
     }
-    
+
+    public Task<FileStream> GettingMyProfilePhotoAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> UpdateMyProfilePhotoAsync(IFormFile file)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<string> SaveFileToFtpAsync(IFormFile file, string fileName)
     {
         try
@@ -542,9 +548,17 @@ public class ClientService : IClientService
         }
     }
 
+    public Task<string> UpdateMyPhotoDniAsync(IFormFile file)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<FileStream> GettingMyDniPhotoFromFtpAsync()
+    {
+        throw new NotImplementedException();
+    }
 
 
-    
     public async Task EnviarNotificacionUpdateAsync<T>(T t)
     {
         var user = _httpContextAccessor.HttpContext!.User;

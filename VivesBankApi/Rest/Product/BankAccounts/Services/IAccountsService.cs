@@ -1,8 +1,10 @@
 ﻿using VivesBankApi.Rest.Product.BankAccounts.Dto;
+using VivesBankApi.Rest.Product.BankAccounts.Models;
+using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace VivesBankApi.Rest.Product.BankAccounts.Services;
 
-public interface IAccountsService
+public interface IAccountsService : IGenericStorageJson<Account>
 {
     Task<PageResponse<AccountResponse>> GetAccountsAsync(int pageNumber = 0, int pageSize = 10, string sortBy = "id", string direction = "asc");
     Task<AccountResponse> GetAccountByIdAsync(string id);

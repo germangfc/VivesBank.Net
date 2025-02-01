@@ -399,7 +399,7 @@ public class MovimientoServiceTest
         // Act & Assert
         Assert.ThrowsAsync<NotImplementedException>(async () => 
             await _movimientoService.AddPagoConTarjetaAsync(new User(), new PagoConTarjeta()));
-    }*/
+    }
 
     [Test]
     public async Task AddTransferenciaAsyncNotImplementedException()

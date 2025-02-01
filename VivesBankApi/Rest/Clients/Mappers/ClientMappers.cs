@@ -52,4 +52,21 @@ public static class ClientMappers
         }
         return updatedClient;
     }
+
+    public static Client FromDtoResponse(this ClientResponse response)
+    {
+        return new Client
+        {
+            Id = response.Id,
+            FullName = response.Fullname,
+            UserId = response.UserId,
+            Adress = response.Address,
+            Photo = response.Photo,
+            PhotoDni = response.DniPhoto,
+            AccountsIds = response.Accounts,
+            CreatedAt = response.CreatedAt,
+            UpdatedAt = response.UpdatedAt,
+            IsDeleted = response.IsDeleted
+        };
+    }
 }

@@ -1,14 +1,18 @@
-﻿using System.Text.Json;
+﻿using System.Reactive.Linq;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
+using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Generators;
 using VivesBankApi.Rest.Product.CreditCard.Service;
+using VivesBankApi.Rest.Users.Service;
 
 namespace Tests.Rest.Product.CreditCard.Service;
 
@@ -17,11 +21,15 @@ public class CreditCardServiceTest
     private Mock<IConnectionMultiplexer> _connection;
     private Mock<ICreditCardRepository> creditCardRepositoryMock;
     private Mock<ILogger<CreditCardService>> _logger;
+    private Mock<IHttpContextAccessor> _contextAccessor;
+    private Mock<IUserService> _userService;
+    private Mock<IClientRepository> _clientRepository;
     private CvcGenerator _cvcGenerator;
     private ExpirationDateGenerator _expirationDateGenerator;
     private NumberGenerator _numberGenerator;
     private Mock<IAccountsRepository> accountsRepositiryMock;
     private Mock<IDatabase> _cache;
+    
 
     private CreditCardService CreditCardService;
 
@@ -31,6 +39,9 @@ public class CreditCardServiceTest
     [SetUp]
     public void SetUp()
     {
+        _contextAccessor = new Mock<IHttpContextAccessor>();
+        _userService = new Mock<IUserService>();
+        _clientRepository = new Mock<IClientRepository>();
         _connection = new Mock<IConnectionMultiplexer>();
         _cache = new Mock<IDatabase>();
         _logger = new Mock<ILogger<CreditCardService>>();
@@ -43,7 +54,7 @@ public class CreditCardServiceTest
         _expirationDateGenerator = new ExpirationDateGenerator();
         _numberGenerator = new NumberGenerator();
 
-        CreditCardService = new CreditCardService(creditCardRepositoryMock.Object, _logger.Object, _cvcGenerator, _expirationDateGenerator, _numberGenerator, accountsRepositiryMock.Object, _connection.Object);
+        CreditCardService = new CreditCardService(creditCardRepositoryMock.Object, _logger.Object, _cvcGenerator, _expirationDateGenerator, _numberGenerator, accountsRepositiryMock.Object, _connection.Object, _contextAccessor.Object, _userService.Object, _clientRepository.Object);
 
         _CreditCard1 = new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard
         {
@@ -72,30 +83,7 @@ public class CreditCardServiceTest
         };
     }
     
-    [Test]
-    public async Task GetAllCreditCardAdminAsync()
-    {
-        // Arrange
-        var creditCards = new List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard> { _CreditCard1, _CreditCard2 };
-
-        creditCardRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(creditCards);
-
-        // Act
-        var result = await CreditCardService.GetAllCreditCardAdminAsync();
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            ClassicAssert.IsNotNull(result);
-            ClassicAssert.AreEqual(2, result.Count);
-            ClassicAssert.AreEqual(_CreditCard1.CardNumber, result[0].CardNumber);
-            ClassicAssert.AreEqual(_CreditCard2.CardNumber, result[1].CardNumber);
-        });
-
-        // Verify
-        creditCardRepositoryMock.Verify(repo => repo.GetAllAsync(), Times.Once);
-    }
-
+    
     [Test]
     public async Task GetCreditCardByIdAsync_WhenInCache()
     {
@@ -283,5 +271,90 @@ public class CreditCardServiceTest
         // Assert
         _cache.Verify(db => db.KeyDeleteAsync(creditCardId, It.IsAny<CommandFlags>()), Times.Once);
         creditCardRepositoryMock.Verify(repo => repo.DeleteAsync(creditCardId), Times.Once);
+    }
+    
+    [Test]
+    public async Task Import_WhenFileIsValid_ReturnsCreditCards()
+    {
+        var mockFile = new Mock<IFormFile>();
+        var mockStream = new MemoryStream();
+        var writer = new StreamWriter(mockStream);
+        writer.Write("[{\"Id\":\"1\",\"AccountId\":\"1\",\"CardNumber\":\"1234567890123456\",\"Pin\":\"123\",\"Cvc\":\"123\",\"ExpirationDate\":\"2028-02-01\",\"CreatedAt\":\"2022-01-01\",\"UpdatedAt\":\"2022-01-01\",\"IsDeleted\":false}]");
+        writer.Flush();
+        mockStream.Position = 0;
+
+        mockFile.Setup(f => f.OpenReadStream()).Returns(mockStream);
+        mockFile.Setup(f => f.Length).Returns(mockStream.Length);
+
+        var result = CreditCardService.Import(mockFile.Object);
+
+        var creditCardList = await result.ToList();  
+        ClassicAssert.IsNotNull(creditCardList);
+        ClassicAssert.AreEqual(1, creditCardList.Count);
+
+        var creditCard = creditCardList.FirstOrDefault();
+        ClassicAssert.AreEqual("1", creditCard?.Id);
+        ClassicAssert.AreEqual("1", creditCard?.AccountId);
+        ClassicAssert.AreEqual("1234567890123456", creditCard?.CardNumber);
+        ClassicAssert.AreEqual("123", creditCard?.Pin);
+        ClassicAssert.AreEqual("123", creditCard?.Cvc);
+        ClassicAssert.AreEqual(DateOnly.FromDateTime(DateTime.Now.AddYears(3)), creditCard?.ExpirationDate);
+    }
+    
+    [Test]
+    public async Task ExportWhenValidListExportsToJsonFile()
+    {
+        var creditCard1 = new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard
+        {
+            Id = "1",
+            CardNumber = "1234567890123456",
+            Pin = "123",
+            Cvc = "123",
+            ExpirationDate = DateOnly.FromDateTime(DateTime.Now.AddYears(3)),
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now,
+            IsDeleted = false
+        };
+
+        var creditCard2 = new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard
+        {
+            Id = "2",
+            CardNumber = "9876543210987654",
+            Pin = "321",
+            Cvc = "321",
+            ExpirationDate = DateOnly.FromDateTime(DateTime.Now.AddYears(2)),
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now,
+            IsDeleted = false
+        };
+
+        var creditCardList = new List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard> { creditCard1, creditCard2 };
+
+        var fileStream = await CreditCardService.Export(creditCardList);
+
+        Assert.That(fileStream, Is.Not.Null);
+        Assert.That(fileStream.CanRead, Is.True);
+
+        var filePath = fileStream.Name;
+        Assert.That(File.Exists(filePath), Is.True);
+
+        var fileContent = await File.ReadAllTextAsync(filePath);
+        Assert.That(fileContent, Does.Contain(creditCard1.CardNumber));
+        Assert.That(fileContent, Does.Contain(creditCard2.CardNumber));
+
+        fileStream.Close();
+        File.Delete(filePath);
+    }
+    
+    [Test]
+    public async Task Export_WhenEmptyList_ThrowsArgumentException()
+    {
+        var emptyCreditCardList = new List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>();
+
+        var ex = Assert.ThrowsAsync<ArgumentException>(
+            async () => await CreditCardService.Export(emptyCreditCardList)
+        );
+
+        Assert.That(ex.Message, Is.EqualTo("Cannot export an empty list of credit cards."));
     }
 }
