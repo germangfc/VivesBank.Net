@@ -367,7 +367,17 @@ public class ClientService : IClientService
             throw;
         }
     }
-    
+
+    public Task<FileStream> GettingMyProfilePhotoAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> UpdateMyProfilePhotoAsync(IFormFile file)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<string> SaveFileToFtpAsync(IFormFile file, string fileName)
     {
         try
@@ -531,9 +541,17 @@ public class ClientService : IClientService
         }
     }
 
+    public Task<string> UpdateMyPhotoDniAsync(IFormFile file)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<FileStream> GettingMyDniPhotoFromFtpAsync()
+    {
+        throw new NotImplementedException();
+    }
 
 
-    
     public async Task EnviarNotificacionUpdateAsync<T>(T t)
     {
         var user = _httpContextAccessor.HttpContext!.User;

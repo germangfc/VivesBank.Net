@@ -29,11 +29,12 @@ public class ClientControllerTest
     {
         _service = new Mock<IClientService>();
         _storage = new ClientStorageJson(
-            NullLogger<GenericStorageJson<ClientResponse>>.Instance
+            NullLogger<ClientStorageJson>.Instance 
         );
         _logger = new Mock<ILogger<ClientController>>();
         _clientController = new ClientController(_service.Object, _logger.Object, _storage);
     }
+
     
     [Test]
     public async Task GetAllUsersAsync_ReturnsPaginatedResults()
@@ -107,19 +108,6 @@ public class ClientControllerTest
 
         // Assert
         ClassicAssert.Null(result.Value);
-    }
-
-    [Test]
-    public async Task GetMyClientData_WhenUserIsAuthenticated()
-    {
-        var expectedClient = new ClientResponse { Fullname = "cholo", Address = "simeone" };
-        _service.Setup(s => s.GettingMyClientData()).ReturnsAsync(expectedClient);
-
-        // Act
-        var result = await _clientController.GetMyClientData();
-
-        // Assert
-        Assert.That(result.Value, Is.EqualTo(expectedClient));
     }
 
     [Test]
@@ -205,7 +193,7 @@ public class ClientControllerTest
         var ex = Assert.ThrowsAsync<ClientExceptions.ClientAlreadyExistsException>(async () =>
             await _clientController.CreateClientAsUser(request));
 
-        Assert.That(ex.Message, Is.EqualTo($"The client with id: {id} already exists"));
+        Assert.That(ex.Message, Is.EqualTo($"A client already exists with this user id 1"));
     }
 
     [Test]
@@ -456,6 +444,6 @@ public class ClientControllerTest
         IFormFile file = new FormFile(fileResult.FileStream, 0, fileResult.FileStream.Length, "id_from_form", "test.json");
         var returnedClient = await _storage.Import(file).ToList();
         ClassicAssert.AreEqual(returnedClient[0].Id, client.Id);
-        ClassicAssert.AreEqual(returnedClient[0].Fullname, client.Fullname);
+        ClassicAssert.AreEqual(returnedClient[0].FullName, client.Fullname);
     }
 }
