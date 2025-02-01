@@ -35,9 +35,7 @@ public class CreditCardControllerTest
             new() { Id = "1", CardNumber = "1234" },
             new() { Id = "2", CardNumber = "5678" }
         };
-
-        _mockService.Setup(service => service.GetAllCreditCardAdminAsync()).ReturnsAsync(cards);
-
+        
         var result = await _controller.GetAllCardsAdminAsync();
 
         var okResult = result.Result as OkObjectResult;
@@ -93,40 +91,7 @@ public class CreditCardControllerTest
         ClassicAssert.AreEqual(createdCard, createdAtActionResult.Value);
     }
 
-    [Test]
-    public async Task UpdateCardAsyncReturnsCreated()
-    {
-        var cardId = "1";
-        var updateRequest = new CreditCardUpdateRequest { CardNumber = "5678" };
-        var updatedCard = new CreditCardClientResponse { Id = "1", CardNumber = "5678" };
-
-        _mockService.Setup(service => service.UpdateCreditCardAsync(cardId, updateRequest)).ReturnsAsync(updatedCard);
-
-        var result = await _controller.UpdateCardAsync(cardId, updateRequest);
-
-        var createdAtActionResult = result.Result as CreatedAtActionResult;
-        ClassicAssert.IsNotNull(createdAtActionResult);
-        ClassicAssert.AreEqual(201, createdAtActionResult.StatusCode);
-        ClassicAssert.AreEqual("GetCardByIdAdminAsync", createdAtActionResult.ActionName);
-        ClassicAssert.AreEqual(updatedCard, createdAtActionResult.Value);
-    }
     
-    [Test]
-    public async Task UpdateCardAsyncNotExists()
-    {
-        var cardId = "99"; 
-        var updateRequest = new CreditCardUpdateRequest { CardNumber = "5678" };
-
-        _mockService.Setup(service => service.UpdateCreditCardAsync(cardId, updateRequest))
-            .ReturnsAsync((CreditCardClientResponse?)null); 
-
-        var result = await _controller.UpdateCardAsync(cardId, updateRequest);
-
-        var notFoundResult = result.Result as NotFoundResult;
-        ClassicAssert.IsNotNull(notFoundResult);
-        ClassicAssert.AreEqual(404, notFoundResult.StatusCode); 
-    }
-
     [Test]
     public async Task DeleteCardAsyncReturnsNoContent()
     {

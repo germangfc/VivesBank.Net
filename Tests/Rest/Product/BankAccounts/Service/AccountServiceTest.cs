@@ -14,6 +14,7 @@ using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.IbanGenerator;
+using VivesBankApi.WebSocket.Service;
 
 namespace Tests.Rest.Product.BankAccounts.Service;
 
@@ -31,9 +32,10 @@ public class AccountServiceTest
         _clientRepository = new Mock<IClientRepository>();
         _productRepository = new Mock<IProductRepository>();
         _ibanGenerator = new Mock<IIbanGenerator>();
+        _websocketHandler = new Mock<IWebsocketHandler>();
         _logger = new Mock<ILogger<AccountService>>();
         
-        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object, connectionMultiplexer.Object, _httpContextAccessor.Object, _userService.Object);
+        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object, connectionMultiplexer.Object, _httpContextAccessor.Object, _userService.Object,_websocketHandler.Object);
 
     }
     private Mock<IAccountsRepository> _accountRepository;
@@ -46,6 +48,7 @@ public class AccountServiceTest
     private Mock<IConnectionMultiplexer> connectionMultiplexer;
     private Mock<IHttpContextAccessor> _httpContextAccessor;
     private Mock<IUserService> _userService;
+    private Mock<IWebsocketHandler> _websocketHandler;
     
     private readonly Account account = new Account
     {

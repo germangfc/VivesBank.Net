@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using Castle.Core.Configuration;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
@@ -11,6 +11,9 @@ using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.storage.Config;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Models;
+using VivesBankApi.Rest.Users.Service;
+using VivesBankApi.WebSocket.Service;
+using IConfiguration = Castle.Core.Configuration.IConfiguration;
 using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace Tests.Rest.Clients.Service;
@@ -35,8 +38,10 @@ public class ClientServiceTests
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly ClientService _clientService;
-    private readonly FileStorageConfig _fileStorageConfig;
     private readonly Mock<IJwtGenerator> _jwtGenerator;
+    private readonly Mock<IWebsocketHandler> _websocketHandler;
+    private readonly FileStorageConfig _fileStorageConfig;
+    private readonly FileStorageRemoteConfig _fileStorageRemoteConfig;
     
     public ClientServiceTests()
     {
@@ -48,9 +53,41 @@ public class ClientServiceTests
         _userServiceMock = new Mock<IUserService>();
         _loggerMock = new Mock<ILogger<ClientService>>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        _websocketHandler = new Mock<IWebsocketHandler>();
         _jwtGenerator = new Mock<IJwtGenerator>();
-        _clientService = new ClientService(_loggerMock.Object, _userServiceMock.Object, _clientRepositoryMock.Object, _connection.Object, _httpContextAccessorMock.Object, _fileStorageConfig, _jwtGenerator.Object);
+        
+        var inMemorySettings = new Dictionary<string, string>
+        {
+            { "FileStorageRemoteConfig:FtpHost", "127.0.0.1" },
+            { "FileStorageRemoteConfig:FtpPort", "21" },
+            { "FileStorageRemoteConfig:FtpUsername", "myuser" },
+            { "FileStorageRemoteConfig:FtpPassword", "mypass" },
+            { "FileStorageRemoteConfig:FtpDirectory", "/home/vsftpd" },
+            { "FileStorageRemoteConfig:AllowedFileTypes:0", ".jpg" },
+            { "FileStorageRemoteConfig:AllowedFileTypes:1", ".png" },
+            { "FileStorageRemoteConfig:AllowedFileTypes:2", ".jpeg" },
+            { "FileStorageRemoteConfig:MaxFileSize", "10485760" } 
+        };
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings)
+            .Build();
+        
+        _fileStorageConfig = new FileStorageConfig(); 
+        
+        _clientService = new ClientService(
+            _loggerMock.Object,
+            _userServiceMock.Object,
+            _clientRepositoryMock.Object,
+            _connection.Object,
+            _httpContextAccessorMock.Object,
+            _fileStorageConfig,
+            _websocketHandler.Object,
+            _jwtGenerator.Object,
+            configuration  
+        );
     }
+    
     
     [TearDown]
     public void TearDown()

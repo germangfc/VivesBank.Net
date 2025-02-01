@@ -12,9 +12,10 @@ public static class CreditCardMapper
         return new CreditCardAdminResponse
         {
             Id = creditCard.Id,
-            
             CardNumber = creditCard.CardNumber,
+            AccountId = creditCard.AccountId,
             ExpirationDate = creditCard.ExpirationDate.ToString(),
+            IsDeleted = creditCard.IsDeleted
         };
     }
 
@@ -40,6 +41,20 @@ public static class CreditCardMapper
             AccountId = creditCard.AccountId,
             CardNumber = creditCard.CardNumber,
             ExpirationDate = creditCard.ExpirationDate.ToString(),
+            IsDeleted = creditCard.IsDeleted
+        };
+    }
+
+    public static CreditCard toCreditCard(this CreditCardClientResponse clientResponse)
+    {
+        return new CreditCard
+        {
+            Id = clientResponse.Id,
+            Pin = clientResponse.Pin,
+            Cvc = clientResponse.Cvc,
+            AccountId = clientResponse.AccountId,
+            CardNumber = clientResponse.CardNumber,
+            ExpirationDate = DateOnly.Parse(clientResponse.ExpirationDate)
         };
     }
 
