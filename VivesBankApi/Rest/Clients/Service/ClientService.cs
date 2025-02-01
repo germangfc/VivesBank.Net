@@ -483,7 +483,7 @@ public async Task<FileStream> GetFileFromFtpAsync(string fileName)
         }
     }
 
-    
+    //
     public async Task<string> UpdateClientPhotoDniAsync(string clientId, IFormFile file)
     {
         _logger.LogInformation($"Request to update DNI photo for client: {clientId}");
