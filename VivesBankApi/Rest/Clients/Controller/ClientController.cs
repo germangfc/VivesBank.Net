@@ -64,6 +64,10 @@ public class ClientController : ControllerBase
     [Authorize("ClientPolicy")]
     public async Task<ActionResult<ClientResponse>> GetMyClientData()
     {
+        if (!User.Identity.IsAuthenticated)
+        {
+            return Unauthorized();
+        }
         _logger.LogInformation("Getting my client data");
         return await _clientService.GettingMyClientData();
     }
@@ -96,7 +100,7 @@ public class ClientController : ControllerBase
     
     [HttpPut("me")]
     [Authorize("ClientPolicy")]
-    public async Task<ActionResult<ClientResponse>> UpdateMeAsClient(ClientUpdateRequest request)
+    public async Task<ActionResult<ClientResponse>> UpdateMeAsClient([FromBody] ClientUpdateRequest request)
     {
         _logger.LogInformation($"Updating client registered on the system");
         if (!ModelState.IsValid)

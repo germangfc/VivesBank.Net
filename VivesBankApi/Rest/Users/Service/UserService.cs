@@ -177,13 +177,11 @@ public class UserService : IUserService
     
     private async Task<User?> GetByUsernameAsync(string username)
     {
-        // Try to get from cache first
         var cachedUser = await _cache.StringGetAsync("users:" + username.Trim().ToUpper());
         if (!cachedUser.IsNullOrEmpty)
         {
             return JsonConvert.DeserializeObject<User>(cachedUser);
         }
-        // If not in cache, get from DB and cache it
         User? user = await _userRepository.GetByUsernameAsync(username);
         if (user != null)
         {
@@ -236,8 +234,4 @@ public class UserService : IUserService
         await _userRepository.AddAsync(newUser);
         return newUser;
     }
-    
-    
-
-    
 }

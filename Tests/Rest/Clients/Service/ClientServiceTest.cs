@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices.JavaScript;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -10,6 +12,7 @@ using VivesBankApi.Middleware.Jwt;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.storage.Config;
 using VivesBankApi.Rest.Users.Dtos;
+using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.WebSocket.Service;
@@ -89,9 +92,21 @@ public class ClientServiceTests
     }
     
     
+    [SetUp]
+    public void Setup()
+    {
+        _httpContextAccessorMock.Reset();
+        _userServiceMock.Reset();
+        _clientRepositoryMock.Reset();
+        _cache.Reset();
+    }
+    
     [TearDown]
     public void TearDown()
     {
+        _httpContextAccessorMock.Reset();
+        _userServiceMock.Reset();
+        _clientRepositoryMock.Reset();
         _cache.Reset();
     }
 
@@ -164,6 +179,81 @@ public class ClientServiceTests
         _clientRepositoryMock.Verify(repo =>
             repo.GetAllClientsPagedAsync(pageNumber, pageSize, fullName, isDeleted, direction), Times.Once);
     }
+
+    [Test]
+    public async Task GetMyClientData_ShouldReturn_ClientResponse()
+    {
+        var userId = "user1";
+        var clientId = "client1";
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
+
+        var user = new UserResponse { Id = userId };
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync(user);
+
+        var client = new Client { Id = clientId, UserId = userId };
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(userId)).ReturnsAsync(client);
+
+        var result = await _clientService.GettingMyClientData();
+        ClassicAssert.NotNull(result);
+        ClassicAssert.AreEqual(clientId, result.Id);
+        ClassicAssert.AreEqual(userId, result.UserId);
+        
+        _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
+        _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(userId), Times.Once);
+    }
+    
+    [Test]
+    public async Task GetMyClientData_ShouldReturn_UserNotFoundException()
+    {
+        var userId = "user1";
+        var clientId = "client1";
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
+
+        var user = new UserResponse { Id = userId };
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ThrowsAsync(new UserNotFoundException(userId));
+        
+       var result = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.GettingMyClientData());
+       
+       ClassicAssert.AreEqual($"The user with id: {userId} was not found", result.Message);
+       
+       _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
+       _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task GetMyClientData_ShouldReturn_ClientNotFoundException()
+    {
+        var userId = "user1";
+        var clientId = "client1";
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
+
+        var user = new UserResponse { Id = userId };
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync(user);
+
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(userId)).ThrowsAsync(new ClientExceptions.ClientNotFoundException(clientId));
+
+       var result = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.GettingMyClientData());
+       
+       ClassicAssert.AreEqual($"Client not found by id {clientId}", result.Message);
+       
+       _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
+       _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(userId), Times.Once);
+    }
     
     [Test]
     public async Task GetClientByIdAsync_ReturnsClient()
@@ -220,9 +310,9 @@ public class ClientServiceTests
     }
 
     [Test]
-    public async Task CreateClientAsync_ShouldReturn()
+    public async Task CreateClientAsync_ShouldReturn_Token()
     {
-        // Arrange
+        
         var userId = "validId";
         var request = new ClientRequest
         {
@@ -232,41 +322,103 @@ public class ClientServiceTests
         var user = new User
         {
             Id = userId,
+            Dni = "12345678Z",
             Password = "calamarDelNorte123",
             Role = Role.User
         };
+        var userUpdateRequest = new UserUpdateRequest { Role = Role.Client.ToString() };
+        
         var client = new Client { Id = "client-id", UserId = userId };
 
-        // Simula el contexto HTTP con el usuario autenticado
         var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
         {
             new Claim(ClaimTypes.NameIdentifier, userId)
-        }, "mock"));
-        var mockHttpContext = new DefaultHttpContext { User = claims };
-        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(mockHttpContext);
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
 
-        // Configura los mocks del repositorio
-        var userResponse = new UserResponse
-        {
-            Id = "random",
-            Dni = user.Dni,
-            Role = Role.User.ToString(),
-            CreatedAt = DateTime.UtcNow,
-        };
-        _userServiceMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync(userResponse);
-        _clientRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<Client>())).Callback<Client>(c =>
-        {
-            c.Id = client.Id;
-            c.UserId = client.UserId;
-        });
+        var userFound = new UserResponse { Id = userId };
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync(user.ToUserResponse());
 
-        // Act
+        _clientRepositoryMock.Setup(c => c.getByUserIdAsync(userId)).ReturnsAsync((Client)null);
+        
+        _userServiceMock.Setup(x => x.UpdateUserAsync(userId, userUpdateRequest))
+            .ReturnsAsync(new UserResponse { Id = userId, Role = Role.Client.ToString() });
+        _clientRepositoryMock.Setup(x => x.AddAsync(It.IsAny<Client>()))
+            .Returns(Task.CompletedTask);
+        
+        var jwtToken = "generatedJwtToken";
+        _jwtGenerator.Setup(x => x.GenerateJwtToken(It.IsAny<User>()))
+            .Returns(jwtToken);
+        
         var result = await _clientService.CreateClientAsync(request);
-
-        // Assert
-        _clientRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Client>()), Times.Once);
-        ClassicAssert.NotNull(result);
+        
+        ClassicAssert.AreEqual(jwtToken, result);
+        _userServiceMock.Verify(x => x.UpdateUserAsync(userId, It.IsAny<UserUpdateRequest>()), Times.Once);
+        _clientRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Client>()), Times.Once);
     }
+    
+    [Test]
+    public async Task CreateClientAsync_ShouldReturn_UserNotFoundException()
+    {
+        
+        var userId = "user1";
+        var clientId = "client1";
+        var request = new ClientRequest
+        {
+            FullName = "John Doe",
+            Address = "Address 1",
+        };
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
+
+        var user = new UserResponse { Id = userId };
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ThrowsAsync(new UserNotFoundException(userId));
+        
+        var result = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.CreateClientAsync(request));
+       
+        ClassicAssert.AreEqual($"The user with id: {userId} was not found", result.Message);
+       
+        _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
+        _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task CreateClientAsync_ShouldReturn_ClientAlreadyExistsException()
+    {
+        
+        var userId = "user1";
+        var clientId = "client1";
+        var request = new ClientRequest
+        {
+            FullName = "John Doe",
+            Address = "Address 1",
+        };
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
+
+        var user = new UserResponse { Id = userId };
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync(user);
+
+        var existingClient = new Client { UserId = userId };
+        _clientRepositoryMock.Setup(c => c.getByUserIdAsync(userId)).ReturnsAsync(existingClient);
+        
+        var result = Assert.ThrowsAsync<ClientExceptions.ClientAlreadyExistsException>(() => _clientService.CreateClientAsync(request));
+        
+        ClassicAssert.AreEqual($"A client already exists with this user id {userId}", result.Message);
+        
+        _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
+        _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(userId), Times.Once);
+    }
+
 
     [Test]
     public async Task CreateClient_WithAExistingUser_ShouldReturnException()
@@ -376,6 +528,66 @@ public class ClientServiceTests
     }
 
     [Test]
+    public async Task UpdateMyClientData_ShouldReturn_ClientResponse()
+    {
+        var userId = "user1";
+        var clientId = "client1";
+        var request = new ClientUpdateRequest
+        {
+            FullName = "Simeone",
+            Address = "Calderon",
+        };
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
+        
+        var user = new UserResponse { Id = userId };
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync(user);
+
+        var client = new Client { Id = clientId, UserId = userId, FullName = "guliano", Adress = "wanda"};
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(userId)).ReturnsAsync(client);
+        
+        var result = await _clientService.UpdateMeAsync(request);
+        
+        ClassicAssert.NotNull(result);
+        ClassicAssert.AreEqual("Calderon", result.Address);
+        ClassicAssert.AreEqual("Simeone", result.Fullname);
+
+        
+        _clientRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<Client>(c => c.Adress =="Calderon"&& c.FullName == "Simeone")), Times.Once);
+    }
+
+    [Test]
+    public void UpdateMyClientData_ShouldReturn_ClientNotfoundException()
+    {
+        // Arrange
+        var userId = "user1";
+        var clientId = "client1";
+        var request = new ClientUpdateRequest
+        {
+            FullName = "Simeone",
+            Address = "Calderon",
+        };
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
+        
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync(new UserResponse { Id = userId });
+
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(userId)).ReturnsAsync((Client)null);
+        
+        var result = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.UpdateMeAsync(request));
+        
+        ClassicAssert.AreEqual($"Client not found by id {userId}", result.Message);
+        _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(userId), Times.Once);
+    }
+    [Test]
     public void LogicDeleteClientAsync_ThrowsClientNotFoundException_WhenClientDoesNotExist()
     {
         // Arrange
@@ -399,6 +611,70 @@ public class ClientServiceTests
 
         // Assert
         _clientRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<Client>(c => c.IsDeleted == true)), Times.Once);
+    }
+
+    [Test]
+    public async Task DeleteMeAsClient_ShouldLogicDeleteClient()
+    {
+        var userId = "user1";
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
+
+        var user = new UserResponse { Id = userId };
+        var client = new Client { Id = "client1", UserId = userId, IsDeleted = false };
+
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync(user);
+        _clientRepositoryMock.Setup(c => c.getByUserIdAsync(userId)).ReturnsAsync(client);
+        
+        await _clientService.DeleteMe();
+        
+        ClassicAssert.IsTrue(client.IsDeleted);
+        _clientRepositoryMock.Verify(c => c.UpdateAsync(client), Times.Once); 
+        _userServiceMock.Verify(u => u.DeleteUserAsync(userId,  true), Times.Once);
+    }
+
+    [Test]
+    public void DeleteMeAsClient_ShouldReturn_ClientNotfoundException()
+    {
+        var userId = "user1";
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
+
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync(new UserResponse { Id = userId });
+        _clientRepositoryMock.Setup(c => c.getByUserIdAsync(userId)).ReturnsAsync((Client)null);
+        
+        var result = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.DeleteMe());
+        
+        ClassicAssert.AreEqual($"Client not found by id {userId}", result.Message);
+        _clientRepositoryMock.Verify(c => c.getByUserIdAsync(userId), Times.Once);
+    }
+
+    [Test]
+    public void DeleteMeAsClient_ShouldReturn_UserNotFoundException()
+    {
+        var userId = "user1";
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
+
+        var user = new UserResponse { Id = userId };
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync(user);
+        _clientRepositoryMock.Setup(c => c.getByUserIdAsync(userId)).ReturnsAsync(new Client { Id = "client1", UserId = userId, IsDeleted = false });
+        
+        _userServiceMock.Setup(u => u.DeleteUserAsync(userId, true)).ThrowsAsync(new UserNotFoundException(userId));
+        
+        var result =  Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.DeleteMe());
     }
     
 }

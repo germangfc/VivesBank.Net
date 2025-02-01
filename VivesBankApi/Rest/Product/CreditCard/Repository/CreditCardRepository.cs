@@ -57,7 +57,7 @@ public class CreditCardRepository : GenericRepository<BancoDbContext, CreditCard
         };
 
         
-        query = query.Skip(pageNumber * pageSize).Take(pageSize);
+        query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
         
         var creditCards = await EntityFrameworkQueryableExtensions.ToListAsync(query);
         

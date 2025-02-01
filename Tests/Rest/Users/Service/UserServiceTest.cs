@@ -936,34 +936,5 @@ public async Task DeleteMeAsync_UserNotFound()
     userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Never);
     _cache.Verify(cache => cache.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Never);
 }
-    
-    
-    /*
-    [Test]
-    public async Task GenerateJwtToken()
-    {
-        var token = userService.GenerateJwtToken(_user1);
-        
-        ClassicAssert.IsNotNull(token);
-        ClassicAssert.IsInstanceOf<string>(token); 
-        
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var validationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = "TestIssuer",
-            ValidAudience = "TestAudience",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("UnaClaveDe256BitsQueDebeSerSeguraParaLaFirmaJWT"))
-        };
 
-        SecurityToken validatedToken;
-        var principal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
-
-        ClassicAssert.IsNotNull(validatedToken);
-        ClassicAssert.AreEqual("1", principal.FindFirst("UserId")?.Value);
-    }
-    */
 }

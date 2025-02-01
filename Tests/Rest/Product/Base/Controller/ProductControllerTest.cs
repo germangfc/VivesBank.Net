@@ -1,11 +1,18 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Reactive.Linq;
+using System.Text;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MongoDB.Bson.IO;
 using Moq;
+using NUnit.Framework.Legacy;
 using VivesBankApi.Rest.Product.Base.Controller;
 using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Models;
 using VivesBankApi.Rest.Product.Service;
+using Newtonsoft.Json;
+
 
 
 [TestFixture]
@@ -301,4 +308,126 @@ public class ProductControllerTests
         Assert.That(result, Is.InstanceOf<NotFoundResult>());
         _productService.Verify(service => service.DeleteProductAsync(productId), Times.Once);
     }
+    
+    [Test]
+    public async Task LoadProduct_WhenValidCsvUploaded_ReturnsOkResult()
+    {
+        // Arrange
+        var mockProductService = new Mock<IProductService>();
+        var mockLogger = new Mock<ILogger<ProductController>>();
+        var controller = new ProductController(mockProductService.Object, mockLogger.Object);
+
+        var csvContent = "Id,Name,Type,CreatedAt,UpdatedAt,IsDeleted\n1,Test Product,Physical,2024-01-01,2024-02-01,false";
+        var bytes = Encoding.UTF8.GetBytes(csvContent);
+        var file = new FormFile(new MemoryStream(bytes), 0, bytes.Length, "file", "products.csv");
+
+        var fakeProducts = new List<Product>
+        {
+            new Product("Test Product", Product.Type.BankAccount)
+            {
+                Id = "1",
+                CreatedAt = DateTime.Parse("2024-01-01"),
+                UpdatedAt = DateTime.Parse("2024-02-01"),
+                IsDeleted = false
+            }
+        };
+
+        mockProductService.Setup(service => service.LoadCsv(It.IsAny<Stream>())).Returns(fakeProducts);
+
+        // Act
+        var result = await controller.LoadProduct(file);
+
+        // Assert
+        var okResult = result as OkObjectResult;
+        ClassicAssert.IsNotNull(okResult);
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+        var returnedProducts = okResult.Value as List<Product>;
+        ClassicAssert.IsNotNull(returnedProducts);
+        ClassicAssert.AreEqual(fakeProducts.Count, returnedProducts.Count);
+    }
+    
+    [Test]
+    public async Task ImportProductsFromJson_WhenValidJsonUploaded_ReturnsOkResult()
+    {
+        var mockProductService = new Mock<IProductService>();
+        var mockLogger = new Mock<ILogger<ProductController>>();
+        var controller = new ProductController(mockProductService.Object, mockLogger.Object);
+
+        var jsonContent = "[{\"Id\":\"1\",\"Name\":\"Test Product\",\"Type\":\"Physical\",\"CreatedAt\":\"2024-01-01\",\"UpdatedAt\":\"2024-02-01\",\"IsDeleted\":false}]";
+        var bytes = Encoding.UTF8.GetBytes(jsonContent);
+        var file = new FormFile(new MemoryStream(bytes), 0, bytes.Length, "file", "products.json");
+
+        var fakeProducts = new List<Product>
+        {
+            new Product("Test Product", Product.Type.BankAccount)
+            {
+                Id = "1",
+                CreatedAt = DateTime.Parse("2024-01-01"),
+                UpdatedAt = DateTime.Parse("2024-02-01"),
+                IsDeleted = false
+            }
+        };
+
+        var observableProducts = fakeProducts.ToObservable(); 
+
+        mockProductService.Setup(service => service.Import(It.IsAny<IFormFile>())).Returns(observableProducts);
+
+        // Act
+        var result = await controller.ImportProductsFromJson(file);
+
+        // Assert
+        var okResult = result as OkObjectResult;
+        ClassicAssert.IsNotNull(okResult);
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+        var returnedProducts = okResult.Value as List<Product>;
+        ClassicAssert.IsNotNull(returnedProducts);
+        ClassicAssert.AreEqual(fakeProducts.Count, returnedProducts.Count);
+    }
+
+    [Test]
+    public async Task ExportProductsToJson_WhenProductsExist_ReturnsFileResult()
+    {
+        var mockProductService = new Mock<IProductService>();
+        var mockLogger = new Mock<ILogger<ProductController>>();
+        var controller = new ProductController(mockProductService.Object, mockLogger.Object);
+
+        var fakeProductResponses = new List<ProductResponse>
+        {
+            new ProductResponse
+            {
+                Id = "1",
+                Name = "Test Product",
+                Type = "BankAccount",
+                CreatedAt = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
+                UpdatedAt = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")
+
+            }
+        };
+
+        mockProductService.Setup(service => service.GetAllProductsAsync()).ReturnsAsync(fakeProductResponses);
+
+        var fakeProducts = fakeProductResponses.Select(pr => new Product(pr.Name, Enum.Parse<Product.Type>(pr.Type, true))
+        {
+            Id = pr.Id,
+            CreatedAt = DateTime.Parse(pr.CreatedAt),
+            UpdatedAt = DateTime.Parse(pr.UpdatedAt),
+        }).ToList();
+
+        var tempFilePath = System.IO.Path.GetTempFileName();
+        await File.WriteAllTextAsync(tempFilePath, Newtonsoft.Json.JsonConvert.SerializeObject(fakeProducts));
+        var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        mockProductService.Setup(service => service.Export(It.IsAny<List<Product>>())).ReturnsAsync(fileStream);
+
+        var result = await controller.ExportProductsToJson();
+
+        // Assert
+        var fileResult = result as FileStreamResult;
+        ClassicAssert.IsNotNull(fileResult);
+        ClassicAssert.AreEqual("application/json", fileResult.ContentType);
+        ClassicAssert.AreEqual("products.json", fileResult.FileDownloadName);
+    }
+
+
+
 }

@@ -1,403 +1,107 @@
-[2025-01-30 11:23:42.178] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (62ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+[2025-01-30 11:24:17.456] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
-[2025-01-30 11:27:46.975] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (60ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+[2025-01-30 11:28:53.609] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
-[2025-01-30 11:34:37.549] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (52ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+[2025-01-30 11:32:22.313] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (18ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
-[2025-01-30 11:42:08.862] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (69ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 11:47:17.413] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (59ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 11:56:55.876] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (65ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 12:20:59.226] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (54ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 12:21:32.061] [ERR] [Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware] An unhandled exception has occurred while executing the request.
-Swashbuckle.AspNetCore.SwaggerGen.SwaggerGeneratorException: Failed to generate Operation for action - VivesBankApi.Rest.Clients.Controller.ClientController.UpdateMyProfilePhotoAsync (VivesBankApi). See inner exception
- ---> Swashbuckle.AspNetCore.SwaggerGen.SwaggerGeneratorException: Error reading parameter(s) for action VivesBankApi.Rest.Clients.Controller.ClientController.UpdateMyProfilePhotoAsync (VivesBankApi) as [FromForm] attribute used with IFormFile. Please refer to https://github.com/domaindrivendev/Swashbuckle.AspNetCore#handle-forms-and-file-uploads for more information
-   at Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenerator.GenerateParametersAsync(ApiDescription apiDescription, SchemaRepository schemaRespository, Func`3 parameterGenerator)
-   at Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenerator.GenerateParametersAsync(ApiDescription apiDescription, SchemaRepository schemaRespository)
-   at Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenerator.GenerateOperationAsync(ApiDescription apiDescription, SchemaRepository schemaRepository, Func`3 parametersGenerator, Func`3 bodyGenerator, Func`3 applyFilters)
+[2025-01-30 11:34:00.769] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (7ms) [Parameters=[@p8='gCJCp7lRW4Q' (Nullable = false), @p0='mT_ynBQklw' (Nullable = false), @p1='1234567812345678' (Nullable = false), @p2='2025-01-30T10:32:22.9916030Z' (DbType = DateTime), @p3='123' (Nullable = false), @p4='12/31/2028' (DbType = Date), @p5='False', @p6='0099' (Nullable = false), @p7='2025-01-30T11:34:00.5392382+01:00' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+UPDATE "CreditCards" SET "AccountId" = @p0, "CardNumber" = @p1, "CreatedAt" = @p2, "Cvc" = @p3, "ExpirationDate" = @p4, "IsDeleted" = @p5, "Pin" = @p6, "UpdatedAt" = @p7
+WHERE "Id" = @p8;
+[2025-01-30 11:34:00.808] [ERR] [Microsoft.EntityFrameworkCore.Update] An exception occurred in the database while saving changes for context type 'VivesBankApi.Database.BancoDbContext'.
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> System.ArgumentException: Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported. Note that it's not possible to mix DateTimes with different Kinds in an array, range, or multirange. (Parameter 'value')
+   at Npgsql.Internal.Converters.DateTimeConverterResolver`1.Get(DateTime value, Nullable`1 expectedPgTypeId, Boolean validateOnly)
+   at Npgsql.Internal.Converters.DateTimeConverterResolver.<>c.<CreateResolver>b__0_0(DateTimeConverterResolver`1 resolver, DateTime value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.Converters.DateTimeConverterResolver`1.Get(T value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.PgConverterResolver`1.GetAsObjectInternal(PgTypeInfo typeInfo, Object value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.PgResolverTypeInfo.GetResolutionAsObject(Object value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.PgTypeInfo.GetObjectResolution(Object value)
+   at Npgsql.NpgsqlParameter.ResolveConverter(PgTypeInfo typeInfo)
+   at Npgsql.NpgsqlParameter.ResolveTypeInfo(PgSerializerOptions options)
+   at Npgsql.NpgsqlParameterCollection.ProcessParameters(PgSerializerOptions options, Boolean validateValues, CommandType commandType)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
    --- End of inner exception stack trace ---
-   at Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenerator.GenerateOperationAsync(ApiDescription apiDescription, SchemaRepository schemaRepository, Func`3 parametersGenerator, Func`3 bodyGenerator, Func`3 applyFilters)
-   at Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenerator.GenerateOperationAsync(ApiDescription apiDescription, SchemaRepository schemaRepository)
-   at Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenerator.GenerateOperationsAsync(IEnumerable`1 apiDescriptions, SchemaRepository schemaRepository)
-   at Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenerator.GeneratePathsAsync(IEnumerable`1 apiDescriptions, SchemaRepository schemaRepository, Func`3 operationsGenerator)
-   at Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenerator.GeneratePathsAsync(IEnumerable`1 apiDescriptions, SchemaRepository schemaRepository)
-   at Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenerator.GetSwaggerAsync(String documentName, String host, String basePath)
-   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
-   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
-[2025-01-30 12:32:47.367] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (65ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 12:44:53.989] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (70ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 12:56:55.174] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (57ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 13:02:40.314] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (53ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 13:03:50.160] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (54ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 13:09:38.664] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (53ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 13:10:49.347] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del cliente
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 484
-[2025-01-30 13:10:49.390] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 484
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 137
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 13:17:39.235] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (84ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 13:19:51.426] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del DNI del cliente.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 486
-[2025-01-30 13:19:51.477] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 486
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 139
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 13:25:02.343] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (78ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 13:26:30.509] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error al actualizar la foto del DNI del cliente.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 486
-[2025-01-30 13:26:30.549] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 486
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 138
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 13:29:50.680] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (69ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 13:30:59.767] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 487
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 138
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 13:33:19.427] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (74ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 13:34:37.916] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 489
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 138
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 13:40:39.006] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (62ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 13:41:59.742] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 489
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 138
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 15:21:12.948] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (52ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 15:23:33.573] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 489
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 138
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 15:33:38.162] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (81ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 15:34:54.523] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 498
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 138
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 15:48:42.336] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (631ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 15:54:48.607] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (538ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 15:57:59.487] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 498
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 138
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 16:01:20.608] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (52ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:05:39.289] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (160ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:06:38.951] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Client with ID czCGmeMNrY not found.
-[2025-01-30 16:11:24.665] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (51ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:12:29.842] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 490
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 136
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 16:16:16.143] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (50ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:17:21.485] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 492
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 136
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 16:19:10.734] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (649ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:28:26.924] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (56ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:32:07.215] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (56ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:33:24.008] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 490
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 136
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 16:34:05.769] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (542ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:43:05.593] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (49ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:45:46.294] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (55ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:46:50.070] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at VivesBankApi.Rest.Clients.Service.ClientService.UpdateClientPhotoDniAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 490
-   at VivesBankApi.Rest.Clients.Controller.ClientController.UpdateClientDniPhotoFtpAsync(String clientId, IFormFile file) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 136
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 16:47:37.766] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (73ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 16:49:15.856] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Client with ID KiYwx9XfJS0 not found.
-[2025-01-30 16:49:57.346] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Client with ID KiYwx9XfJS0 not found.
-[2025-01-30 16:52:45.880] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (48ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 17:02:58.704] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (60ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 17:24:24.813] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (61ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
-SELECT "MigrationId", "ProductVersion"
-FROM "__EFMigrationsHistory"
-ORDER BY "MigrationId";
-[2025-01-30 17:26:25.578] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error getting file from FTP
-FileStorageExceptions: File not found: defaultDni.png
-   at VivesBankApi.Rest.Clients.Service.ClientService.GetFileFromFtpAsync(String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 412
-[2025-01-30 17:26:25.617] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-FileStorageExceptions: File not found: defaultDni.png
-   at VivesBankApi.Rest.Clients.Service.ClientService.GetFileFromFtpAsync(String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 412
-   at VivesBankApi.Rest.Clients.Controller.ClientController.GetFileFromFtpAsync(String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 194
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChangesAsync(IList`1 entries, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> System.ArgumentException: Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported. Note that it's not possible to mix DateTimes with different Kinds in an array, range, or multirange. (Parameter 'value')
+   at Npgsql.Internal.Converters.DateTimeConverterResolver`1.Get(DateTime value, Nullable`1 expectedPgTypeId, Boolean validateOnly)
+   at Npgsql.Internal.Converters.DateTimeConverterResolver.<>c.<CreateResolver>b__0_0(DateTimeConverterResolver`1 resolver, DateTime value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.Converters.DateTimeConverterResolver`1.Get(T value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.PgConverterResolver`1.GetAsObjectInternal(PgTypeInfo typeInfo, Object value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.PgResolverTypeInfo.GetResolutionAsObject(Object value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.PgTypeInfo.GetObjectResolution(Object value)
+   at Npgsql.NpgsqlParameter.ResolveConverter(PgTypeInfo typeInfo)
+   at Npgsql.NpgsqlParameter.ResolveTypeInfo(PgSerializerOptions options)
+   at Npgsql.NpgsqlParameterCollection.ProcessParameters(PgSerializerOptions options, Boolean validateValues, CommandType commandType)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChangesAsync(IList`1 entries, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+[2025-01-30 11:34:00.822] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> System.ArgumentException: Cannot write DateTime with Kind=Local to PostgreSQL type 'timestamp with time zone', only UTC is supported. Note that it's not possible to mix DateTimes with different Kinds in an array, range, or multirange. (Parameter 'value')
+   at Npgsql.Internal.Converters.DateTimeConverterResolver`1.Get(DateTime value, Nullable`1 expectedPgTypeId, Boolean validateOnly)
+   at Npgsql.Internal.Converters.DateTimeConverterResolver.<>c.<CreateResolver>b__0_0(DateTimeConverterResolver`1 resolver, DateTime value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.Converters.DateTimeConverterResolver`1.Get(T value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.PgConverterResolver`1.GetAsObjectInternal(PgTypeInfo typeInfo, Object value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.PgResolverTypeInfo.GetResolutionAsObject(Object value, Nullable`1 expectedPgTypeId)
+   at Npgsql.Internal.PgTypeInfo.GetObjectResolution(Object value)
+   at Npgsql.NpgsqlParameter.ResolveConverter(PgTypeInfo typeInfo)
+   at Npgsql.NpgsqlParameter.ResolveTypeInfo(PgSerializerOptions options)
+   at Npgsql.NpgsqlParameterCollection.ProcessParameters(PgSerializerOptions options, Boolean validateValues, CommandType commandType)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(Boolean async, CommandBehavior behavior, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDatabase.SaveChangesAsync(IList`1 entries, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at GenericRepository`2.UpdateAsync(T entity) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Utils\GenericRepository\GenericRepository.cs:line 54
+   at VivesBankApi.Rest.Product.CreditCard.Service.CreditCardService.UpdateCreditCardAsync(String cardNumber, CreditCardUpdateRequest updateRequest) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Rest\Product\CreditCard\Service\CreditCardService.cs:line 184
+   at VivesBankApi.Rest.Product.CreditCard.Controller.CreditCardController.UpdateCardAsync(String number, CreditCardUpdateRequest updateRequest) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Rest\Product\CreditCard\Controller\CreditCardController.cs:line 70
+   at lambda_method297(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
    at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
    at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
    at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
@@ -406,42 +110,40 @@ FileStorageExceptions: File not found: defaultDni.png
    at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
    at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
    at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 17:43:29.536] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (57ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
+[2025-01-30 11:39:26.680] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
-[2025-01-30 17:45:16.186] [ERR] [VivesBankApi.Rest.Clients.Service.ClientService] Error getting file from FTP
-FileStorageExceptions: File not found: defaultDni.png
-   at VivesBankApi.Rest.Clients.Service.ClientService.GetFileFromFtpAsync(String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 412
-[2025-01-30 17:45:16.221] [ERR] [ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware] An unhandled exception occurred.
-FileStorageExceptions: File not found: defaultDni.png
-   at VivesBankApi.Rest.Clients.Service.ClientService.GetFileFromFtpAsync(String fileName) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 412
-   at VivesBankApi.Rest.Clients.Service.ClientService.GettingMyDniPhotoFromFtpAsync() in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Service\ClientService.cs:line 456
-   at VivesBankApi.Rest.Clients.Controller.ClientController.GetMyDniPhotoFromFtpAsync() in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Rest\Clients\Controller\ClientController.cs:line 244
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
-   at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
-[2025-01-30 18:17:55.850] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (48ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+[2025-01-30 11:45:30.764] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
-[2025-01-30 18:27:15.502] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (67ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+[2025-01-30 11:50:26.750] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
-[2025-01-30 18:32:27.145] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (71ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+[2025-01-30 12:02:23.462] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
-[2025-01-30 18:42:11.483] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (94ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+[2025-01-30 12:05:23.961] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 12:23:13.076] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (13ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 12:29:47.685] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 12:39:25.787] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (13ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-01-30 12:48:00.630] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (20ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
