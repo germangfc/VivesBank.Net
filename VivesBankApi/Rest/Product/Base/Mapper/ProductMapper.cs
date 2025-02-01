@@ -1,7 +1,8 @@
 ﻿using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
-using VivesBankApi.Rest.Product.Base.Models;
 
+namespace VivesBankApi.Rest.Product.Base.Mapper;
+using Models;
 
 public static class ProductMapper
 {
