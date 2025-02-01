@@ -95,7 +95,7 @@ public class ClientService : IClientService
         return res.ToResponse();
     }
 
-    public async Task<String> CreateClientAsync(ClientRequest request)
+    public async Task<string> CreateClientAsync(ClientRequest request)
     {
         var user = _httpContextAccessor.HttpContext!.User;
         var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -108,7 +108,6 @@ public class ClientService : IClientService
         if (existingClient != null)
             throw new ClientExceptions.ClientAlreadyExistsException(id);
     
-        // Actualiza el rol del usuario
         var userUpdate = new UserUpdateRequest
         {
             Role = Role.Client.ToString(),
@@ -116,18 +115,20 @@ public class ClientService : IClientService
     
         var client = request.FromDtoRequest();
         client.UserId = id;
+
+        client.Photo = "defaultProfile.png";
+        client.PhotoDni = "defaultDni.png";
     
-        // Actualiza el usuario
         await _userService.UpdateUserAsync(id, userUpdate);
     
-        // Agrega el cliente
         await _clientRepository.AddAsync(client);
 
-        // Obtén el usuario actualizado antes de generar el token
-        var updatedUser = await _userService.GetUserByIdAsync(id); // Obtén la última versión del usuario
-        _logger.LogDebug($"Updating user for client rol: {updatedUser.Role}");
+        var updatedUser = await _userService.GetUserByIdAsync(id);
+        _logger.LogDebug($"Updating user for client role: {updatedUser.Role}");
+
         return _jwtGenerator.GenerateJwtToken(updatedUser.ToUser());
     }
+
 
 
     public async Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request)
@@ -244,45 +245,6 @@ public class ClientService : IClientService
         return fullFileName;
     }
     
-
-
-    public async Task<string> UpdateClientDniPhotoAsync(string clientId, IFormFile file)
-    {
-        _logger.LogInformation($"Updating DNI photo for client with ID: {clientId}");
-
-        if (file == null || file.Length == 0)
-        {
-            throw new FileNotFoundException("No file was provided or the file is empty.");
-        }
-
-        var client = await _clientRepository.GetByIdAsync(clientId);
-        if (client == null)
-        {
-            throw new ClientExceptions.ClientNotFoundException($"Client with ID {clientId} not found.");
-        }
-
-        var user = await _userService.GetUserByIdAsync(client.UserId);
-        if (user == null)
-        {
-            throw new UserNotFoundException(client.UserId);
-        }
-
-        var newFileName = await SaveFileAsync(file, $"DNI-{user.Dni}");
-
-        if (client.PhotoDni != "default.png")
-        {
-            await DeleteFileAsync(client.PhotoDni);
-        }
-
-        client.PhotoDni = newFileName;
-        client.UpdatedAt = DateTime.UtcNow;
-
-        await _clientRepository.UpdateAsync(client);
-
-        _logger.LogInformation($"DNI photo updated successfully for client with ID: {clientId}");
-        return newFileName;
-    }
-
     
     public async Task<string> UpdateClientPhotoAsync(string clientId, IFormFile file)
     {
@@ -307,10 +269,6 @@ public class ClientService : IClientService
 
         var newFileName = await SaveFileAsync(file, $"PROFILE-{user.Dni}");
 
-        if (client.Photo != "defaultId.png")
-        {
-            await DeleteFileAsync(client.Photo);
-        }
 
         client.Photo = newFileName;
         client.UpdatedAt = DateTime.UtcNow;
@@ -320,34 +278,37 @@ public class ClientService : IClientService
         _logger.LogInformation($"Profile photo updated successfully for client with ID: {clientId}");
         return newFileName;
     }
-
-
     
-    public async Task<bool> DeleteFileAsync(string fileName)
+    public async Task<string> UpdateMyProfilePhotoAsync(IFormFile file)
     {
-        _logger.LogInformation($"Deleting file: {fileName}");
-        try
-        {
-            var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
-            
-            if (!File.Exists(filePath))
-            {
-                _logger.LogWarning($"File not found: {filePath}");
-                return false;
-            }
-            
-            File.Delete(filePath);
-            _logger.LogInformation($"File deleted: {filePath}");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting file");
-            throw;
-        }
-    }
+        _logger.LogInformation("Updating profile photo for current user.");
 
-    
+        var user = _httpContextAccessor.HttpContext!.User;
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        var client = await _clientRepository.getByUserIdAsync(userId);
+        if (client == null)
+        {
+            throw new ClientExceptions.ClientNotFoundException($"Client with user ID {userId} not found.");
+        }
+
+        var userData = await _userService.GetUserByIdAsync(client.UserId);
+        if (userData == null)
+        {
+            throw new UserNotFoundException(client.UserId);
+        }
+
+        var newFileName = await SaveFileAsync(file, $"PROFILE-{userData.Dni}");
+        
+
+        client.Photo = newFileName;
+        client.UpdatedAt = DateTime.UtcNow;
+
+        await _clientRepository.UpdateAsync(client);
+
+        _logger.LogInformation($"Profile photo updated successfully for user ID: {userId} (DNI: {userData.Dni})");
+        return newFileName;
+    }
 
     public async Task<FileStream> GetFileAsync(string fileName)
     {
@@ -469,71 +430,111 @@ public class ClientService : IClientService
         }
     }
 
-    public async Task<bool> DeleteFileFromFtpAsync(string fileName)
+    public async Task<FileStream> GettingMyDniPhotoFromFtpAsync()
     {
-        _logger.LogInformation("Deleting file from FTP: {fileName}", fileName);
+        _logger.LogInformation("Getting my DNI photo from FTP.");
 
-        using (var client = new AsyncFtpClient(_fileStorageRemoteConfig.FtpHost, _fileStorageRemoteConfig.FtpUsername, _fileStorageRemoteConfig.FtpPassword))
+        var user = _httpContextAccessor.HttpContext!.User;
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        var client = await _clientRepository.getByUserIdAsync(userId);
+        if (client == null)
         {
-            await client.Connect();
+            throw new ClientExceptions.ClientNotFoundException(userId);
+        }
 
-            string remotePath = $"{_fileStorageRemoteConfig.FtpDirectory}/{fileName}";
-            _logger.LogInformation($"FTP file path resolved to: {remotePath}");
+        // Obtén el nombre del archivo del DNI usando el formato 'DNI-timestamp.png'
+        string fileName = client.PhotoDni;
 
-            if (!await client.FileExists(remotePath))
-            {
-                _logger.LogWarning($"File not found on FTP server: {remotePath}");
-                return false;
-            }
+        // En caso de que no se haya establecido la foto del DNI o sea la predeterminada
+        if (string.IsNullOrEmpty(fileName) || fileName == "defaultDni.png")
+        {
+            fileName = "defaultDni.png"; // Utilizamos la foto predeterminada si no se ha configurado
+        }
 
-            _logger.LogInformation($"File found on FTP server. Deleting: {remotePath}");
-            await client.DeleteFile(remotePath);
-            _logger.LogInformation($"File successfully deleted: {remotePath}");
+        try
+        {
+            // Obtener el archivo desde FTP
+            _logger.LogInformation($"Resolving file path for DNI on FTP: {fileName}");
+            var fileStream = await GetFileFromFtpAsync(fileName);
 
-            await client.Disconnect();
-            return true;
+            // Registrar que la foto se ha encontrado y devolverla
+            _logger.LogInformation($"Returning DNI photo from FTP: {fileName}");
+            return fileStream;
+        }
+        catch (FileNotFoundException)
+        {
+            // Si no se encuentra el archivo en FTP, se lanza una excepción
+            _logger.LogWarning($"DNI photo not found on FTP for user: {userId}");
+            throw new FileNotFoundException("DNI photo not found on FTP.");
         }
     }
-
-
 
     
     public async Task<string> UpdateClientPhotoDniAsync(string clientId, IFormFile file)
     {
-        try
+        _logger.LogInformation($"Request to update DNI photo for client: {clientId}");
+
+        var client = await _clientRepository.GetByIdAsync(clientId);
+        if (client == null)
         {
-            var client = await _clientRepository.GetByIdAsync(clientId);
-            if (client == null)
-            {
-                throw new ClientExceptions.ClientNotFoundException($"El cliente con ClientId {clientId} no existe.");
-            }
-
-            var user = await _userRepository.GetByIdAsync(client.UserId);
-            if (user == null)
-            {
-                throw new UserNotFoundException($"El usuario con UserId {client.UserId} no existe.");
-            }
-
-            string dni = user.Dni;
-
-            string extension = Path.GetExtension(file.FileName).ToLower();
-            string timestamp = DateTime.UtcNow.ToString("yyyyMMdd");
-            string fileName = $"DNI-{dni}-{timestamp}{extension}";
-
-            string savedFileName = await SaveFileToFtpAsync(file, fileName);
-
-            client.PhotoDni = savedFileName;
-
-            await _clientRepository.UpdateAsync(client);
-
-            return savedFileName;
+            _logger.LogError($"Client with ID {clientId} not found.");
+            throw new ClientExceptions.ClientNotFoundException($"Client with ID {clientId} not found.");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error al actualizar la foto del cliente");
-            throw;
-        }
+
+        _logger.LogInformation($"Client found: {client.Id}");
+        _logger.LogInformation($"Fetching user with UserId: {client.UserId}");
+
+        
+        
+        var user = await _userService.GetUserByIdAsync(client.UserId);
+        
+        
+        string dni = user.Dni;
+        string extension = Path.GetExtension(file.FileName).ToLower();
+        string timestamp = DateTime.UtcNow.ToString("yyyyMMdd");
+        string fileName = $"DNI-{dni}-{timestamp}{extension}";
+
+        _logger.LogInformation($"Generated file name: {fileName}");
+
+        string savedFileName = await SaveFileToFtpAsync(file, fileName);
+
+        _logger.LogInformation($"File uploaded successfully with filename: {savedFileName}");
+
+        client.PhotoDni = savedFileName;
+        await _clientRepository.UpdateAsync(client);
+
+        _logger.LogInformation($"Client's DNI photo updated successfully.");
+        return savedFileName;
     }
+
+
+    
+    public async Task<FileStream> GettingMyProfilePhotoAsync()
+    {
+        _logger.LogInformation("Getting my profile photo.");
+
+        var user = _httpContextAccessor.HttpContext!.User;
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        var client = await _clientRepository.getByUserIdAsync(userId);
+        if (client == null)
+        {
+            throw new ClientExceptions.ClientNotFoundException(userId);
+        }
+
+        string filePath = Path.Combine(_fileStorageConfig.UploadDirectory, client.Photo);
+
+        if (!File.Exists(filePath))
+        {
+            _logger.LogWarning($"Profile photo not found: {filePath}");
+            throw new FileNotFoundException($"Profile photo file not found: {client.Photo}");
+        }
+
+        _logger.LogInformation($"Profile photo found: {filePath}");
+    }
+        return new FileStream(filePath, FileMode.Open, FileAccess.Read);
+
     
     
     public async Task EnviarNotificacionUpdateAsync<T>(T t)

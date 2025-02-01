@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Http;
@@ -209,25 +209,25 @@ public class AccountContollerTest
             AccountType = AccountType.STANDARD,
             InterestRate = 1.5
         };
-
-        _mockAccountsService
-            .Setup(x => x.CreateAccountAsync(testRequest))
-            .ReturnsAsync(testAccountResponse);
-
-        var actionResult = await _accountController.CreateAccount(testRequest);
-
-        ClassicAssert.IsInstanceOf<OkObjectResult>(actionResult.Result);
-        var okResult = actionResult.Result as OkObjectResult;
-        ClassicAssert.AreEqual(200, okResult.StatusCode);
-
-        var response = okResult.Value as AccountResponse;
-        ClassicAssert.IsNotNull(response);
-        ClassicAssert.AreEqual("NewAccountId", response.Id);
-        ClassicAssert.AreEqual("ES123456789", response.IBAN);
-        ClassicAssert.AreEqual("ClientId", response.clientID);
+        ClassicAssert.AreEqual(1.5, response.InterestRate);
         ClassicAssert.AreEqual("ProductId", response.productID);
         ClassicAssert.AreEqual(AccountType.STANDARD, response.AccountType);
-        ClassicAssert.AreEqual(1.5, response.InterestRate);
+        ClassicAssert.AreEqual("ClientId", response.clientID);
+        ClassicAssert.AreEqual("ES123456789", response.IBAN);
+        ClassicAssert.AreEqual("NewAccountId", response.Id);
+        var response = okResult.Value as AccountResponse;
+        ClassicAssert.IsNotNull(response);
+
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+        var okResult = actionResult.Result as OkObjectResult;
+        ClassicAssert.IsInstanceOf<OkObjectResult>(actionResult.Result);
+
+        var actionResult = await _accountController.CreateAccount(testRequest);
+            .ReturnsAsync(testAccountResponse);
+
+            .Setup(x => x.CreateAccountAsync(testRequest))
+        _mockAccountsService
+
     }
 
     [Test]
