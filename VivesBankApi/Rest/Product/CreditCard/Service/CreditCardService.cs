@@ -22,16 +22,16 @@ public class CreditCardService : ICreditCardService
 {
     private readonly ICreditCardRepository _creditCardRepository;
     private readonly ILogger _logger;
-    private readonly CvcGenerator _cvcGenerator;
-    private readonly ExpirationDateGenerator _expirationDateGenerator;
-    private readonly NumberGenerator _numberGenerator;
+    private readonly ICvcGenerator _cvcGenerator;
+    private readonly IExpirationDateGenerator _expirationDateGenerator;
+    private readonly INumberGenerator _numberGenerator;
     private readonly IAccountsRepository _accountsRepository;
     private readonly IDatabase _cache;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserService _userService;
     private readonly IClientRepository _clientRepository;
 
-    public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, CvcGenerator cvcGenerator, ExpirationDateGenerator expirationDateGenerator, NumberGenerator numberGenerator, IAccountsRepository accountsRepository, IConnectionMultiplexer connectionMultiplexer, IHttpContextAccessor httpContextAccessor, IUserService userService, IClientRepository clientRepository)
+    public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, ICvcGenerator cvcGenerator, IExpirationDateGenerator expirationDateGenerator, INumberGenerator numberGenerator, IAccountsRepository accountsRepository, IConnectionMultiplexer connectionMultiplexer, IHttpContextAccessor httpContextAccessor, IUserService userService, IClientRepository clientRepository)
     {
         _logger = logger;
         _creditCardRepository = creditCardRepository;
@@ -150,7 +150,7 @@ public class CreditCardService : ICreditCardService
             throw new AccountsExceptions.AccountNotFoundByIban(createRequest.AccountIban);
         }
 
-        if (account.ClientId == client.Id)
+        if (account.ClientId != client.Id)
         {
             _logger.LogError($"Client does not have access to account with iban {createRequest.AccountIban}");
             throw new ClientExceptions.ClientNotAllowedToAccessAccount(userForFound.Id, createRequest.AccountIban);
@@ -173,14 +173,14 @@ public class CreditCardService : ICreditCardService
         if (creditCard == null)
         {
             _logger.LogError($"Card not found with id {cardNumber}");
-            throw new CreditCardException.CreditCardNotFoundException(cardNumber);
+            throw new CreditCardException.CreditCardNotFoundByCardNumberException(cardNumber);
         }
         
         var cardToUpdate = myCreditCards.FirstOrDefault(card => card.AccountId == creditCard.AccountId);
         if (cardToUpdate == null)
         {
             _logger.LogError($"Card not found with account id {creditCard.AccountId}");
-            throw new CreditCardException.CreditCardNotFoundException(cardNumber);
+            throw new CreditCardException.CreditCardNotFoundByCardNumberException(cardNumber);
         }
         
         creditCard.Pin = updateRequest.Pin;
