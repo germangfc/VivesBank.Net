@@ -99,7 +99,7 @@ public class ClientController : ControllerBase
     
     [HttpPut("me")]
     [Authorize("ClientPolicy")]
-    public async Task<ActionResult<ClientResponse>> UpdateMeAsClient(ClientUpdateRequest request)
+    public async Task<ActionResult<ClientResponse>> UpdateMeAsClient([FromBody] ClientUpdateRequest request)
     {
         _logger.LogInformation($"Updating client registered on the system");
         if (!ModelState.IsValid)

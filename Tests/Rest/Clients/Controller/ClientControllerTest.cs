@@ -12,6 +12,7 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.JSON;
+using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace Tests.Rest.Clients.Controller;
@@ -162,11 +163,9 @@ public class ClientControllerTest
         var token = "test_token";
 
         _service.Setup(s => s.CreateClientAsync(request)).ReturnsAsync(token);
-
-        // Act
+        
         var result = await _clientController.CreateClientAsUser(request);
-
-        // Assert
+        
         ClassicAssert.NotNull(result);
         ClassicAssert.IsInstanceOf<OkObjectResult>(result);
 
@@ -177,7 +176,174 @@ public class ClientControllerTest
 
         ClassicAssert.AreEqual(token, returnedToken);
     }
+
+    [Test]
+    public async Task CreateClientAsUser_UserDontExists()
+    {
+        var request = new ClientRequest { FullName = "Updated Client" };
+        var id = "qq";
+        var createdClient = new ClientResponse { Id = "1", Fullname = "Updated Client" };
+        var token = "test_token";
+        
+        _service.Setup(s => s.CreateClientAsync( request)).ThrowsAsync(new UserNotFoundException(id));
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(async () => 
+            await _clientController.CreateClientAsUser(request));
     
+        Assert.That(ex.Message, Is.EqualTo($"The user with id: {id} was not found"));
+    }
+
+    [Test]
+    public async Task CreateClientAsUser_AlreadyExists()
+    {
+        var request = new ClientRequest { FullName = "Updated Client" };
+        var id = "1";
+        var createdClient = new ClientResponse { Id = "1", Fullname = "Updated Client" };
+        var token = "test_token";
+
+        _service.Setup(s => s.CreateClientAsync(request))
+            .ThrowsAsync(new ClientExceptions.ClientAlreadyExistsException(id));
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientAlreadyExistsException>(async () =>
+            await _clientController.CreateClientAsUser(request));
+
+        Assert.That(ex.Message, Is.EqualTo($"The client with id: {id} already exists"));
+    }
+
+    [Test]
+    public async Task CreateClientAsUser_BadRequest_underLimit()
+    {
+        var invalidRequest = new ClientRequest 
+        { 
+            FullName = "Abc",
+            Address = "Short"
+        };
+        
+        _clientController.ModelState.AddModelError("FullName", "The name must be at least 5 characters");
+        _clientController.ModelState.AddModelError("Address", "The address must be at least 10 characters");
+        
+        var result = await _clientController.CreateClientAsUser(invalidRequest);
+        
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("FullName"));
+        Assert.That(errors.ContainsKey("Address"));
+    }
+    
+    [Test]
+    public async Task CreateClientAsUser_BadRequest_AboveLimit()
+    {
+        var invalidRequest = new ClientRequest 
+        { 
+            FullName = "Abcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            Address = "Shortaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        };
+        
+        _clientController.ModelState.AddModelError("FullName", "The name must me at most 50 characters");
+        _clientController.ModelState.AddModelError("Address", "The address must me at most 100 characters");
+        
+        var result = await _clientController.CreateClientAsUser(invalidRequest);
+        
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("FullName"));
+        Assert.That(errors.ContainsKey("Address"));
+    }
+
+    [Test]
+    public async Task UpdateMeClient_SholdReturn_ClientResponse()
+    {
+        var updateRequest = new ClientUpdateRequest
+        {
+            FullName = "Updated Client",
+            Address = "Updated Address"
+        };
+        var response = new ClientResponse
+        {
+            Id = "1",
+            Fullname = "Updated Client",
+            Address = "Updated Address"
+        };
+        _service.Setup(s => s.UpdateMeAsync(updateRequest)).ReturnsAsync(response);
+
+        var res = await _clientController.UpdateMeAsClient(updateRequest);
+        var okResult = res.Result as OkObjectResult;
+        Assert.That(okResult!.StatusCode, Is.EqualTo(200), "Expected status code 200");
+
+        var returnedClient = okResult.Value as ClientResponse;
+        Assert.That(returnedClient, Is.Not.Null, "Expected ClientResponse to be not null");
+        Assert.That(returnedClient!.Fullname, Is.EqualTo(updateRequest.FullName), "Expected Fullname to be 'Updated Client'");
+        Assert.That(returnedClient.Address, Is.EqualTo(updateRequest.Address), "Expected Address to be 'Updated Address'");
+    }
+
+    [Test]
+    public async Task UpdateMeClient_ClientNotFoundAsync()
+    {
+        // Arrange
+        var updateRequest = new ClientUpdateRequest { FullName = "Updated Client" };
+
+        _service.Setup(s => s.UpdateMeAsync(updateRequest)).ThrowsAsync(new ClientExceptions.ClientNotFoundException("1"));
+
+        var result = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () =>
+            await _clientController.UpdateMeAsClient(updateRequest));
+        // Assert
+        ClassicAssert.AreEqual(result.Message, "Client not found by id 1");
+    }
+
+    [Test]
+    public async Task UpdateMeClient_BadRequest_Aboceimit()
+    {
+        var invalidRequest = new ClientUpdateRequest 
+        { 
+            FullName = "Abcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            Address = "Shortaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        };
+        
+        _clientController.ModelState.AddModelError("FullName", "FullName must be between 3 and 80 characters.");
+        _clientController.ModelState.AddModelError("Address", "Address must be between 3 and 80 characters.");
+        
+        var result = await _clientController.UpdateMeAsClient(invalidRequest);
+        
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("FullName"));
+        Assert.That(errors.ContainsKey("Address"));
+    }
+    
+    [Test]
+    public async Task UpdateMeClient_BadRequest_UnderLimit()
+    {
+        var invalidRequest = new ClientUpdateRequest 
+        { 
+            FullName = "ad",
+            Address = "Sh"
+        };
+        
+        _clientController.ModelState.AddModelError("FullName", "FullName must be between 3 and 80 characters.");
+        _clientController.ModelState.AddModelError("Address", "Address must be between 3 and 80 characters.");
+        
+        var result = await _clientController.UpdateMeAsClient(invalidRequest);
+        
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("FullName"));
+        Assert.That(errors.ContainsKey("Address"));
+    }
+
     [Test]
     public async Task UpdateClient_ReturnsOkResult_WhenClientExists()
     {
@@ -240,6 +406,36 @@ public class ClientControllerTest
 
         // Assert
         ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
+    }
+
+    [Test]
+    public async Task DeleteMeAsClient_ShouldLogicDeleteClient()
+    {
+        // Arrange
+        _service.Setup(s => s.DeleteMe()).Returns(Task.CompletedTask);
+
+        // Act
+        await _clientController.DeleteMeClient();
+
+        _service.Verify(_service => _service.DeleteMe(), Times.Once());
+    }
+
+    [Test]
+    public async Task DeleteMeAsClient_NotFound()
+    {
+        _service.Setup(s => s.DeleteMe()).ThrowsAsync(new ClientExceptions.ClientNotFoundException("1"));
+
+        Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(_clientController.DeleteMeClient);
+        _service.Verify(_service => _service.DeleteMe(), Times.Once());
+    }
+
+    [Test]
+    public async Task DeleteMeAsClient_UsreNotFound()
+    {
+        _service.Setup(s => s.DeleteMe()).ThrowsAsync(new UserNotFoundException("1"));
+
+        Assert.ThrowsAsync<UserNotFoundException>(_clientController.DeleteMeClient);
+        _service.Verify(_service => _service.DeleteMe(), Times.Once());
     }
 
     [Test]

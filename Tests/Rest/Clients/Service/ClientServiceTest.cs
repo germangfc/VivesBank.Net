@@ -224,7 +224,7 @@ public class ClientServiceTests
         
        var result = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.GettingMyClientData());
        
-       ClassicAssert.AreEqual($"The user with id: {userId} was not found" + userId, result.Message);
+       ClassicAssert.AreEqual($"The user with id: {userId} was not found", result.Message);
        
        _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
        _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(It.IsAny<string>()), Times.Never);
