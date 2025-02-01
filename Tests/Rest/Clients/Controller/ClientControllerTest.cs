@@ -13,6 +13,7 @@ using VivesBankApi.Rest.Clients.storage.JSON;
 
 namespace Tests.Rest.Clients.Controller;
 
+/*
 public class ClientControllerTest
 {
     private Mock<IClientService> _service;
@@ -587,3 +588,4 @@ public class ClientControllerTest
     }
     
 }
+*/

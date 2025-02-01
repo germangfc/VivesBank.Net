@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework.Legacy;
 
 namespace Tests.Rest.Product.CreditCard.Controller;
@@ -18,6 +20,7 @@ public class CreditCardControllerTest
     private Mock<ICreditCardService> _mockService;
     private Mock<ILogger<CreditCardController>> _mockLogger;
     private CreditCardController _controller;
+
 
     [SetUp]
     public void SetUp()
@@ -119,4 +122,36 @@ public class CreditCardControllerTest
         ClassicAssert.AreEqual(404, notFoundResult.StatusCode, "StatusCode should be 404.");
     }
     
+    [Test]
+    public async Task ImportCreditCardsFromJson_WhenValidFile_ReturnsOkResult()
+    {
+        // Arrange
+        var mockFile = new Mock<IFormFile>();
+
+        var fileContent = "[{\"Id\": \"1\", \"AccountId\": \"1\", \"CardNumber\": \"1234567890123456\", \"Pin\": \"123\", \"Cvc\": \"123\", \"ExpirationDate\": \"2025-12-31\", \"CreatedAt\": \"2023-01-01T00:00:00\", \"UpdatedAt\": \"2023-01-01T00:00:00\", \"IsDeleted\": false}]";
+        var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+
+        mockFile.Setup(f => f.OpenReadStream()).Returns(fileStream);
+        mockFile.Setup(f => f.Length).Returns(fileStream.Length);
+        mockFile.Setup(f => f.FileName).Returns("creditcards.json");
+        mockFile.Setup(f => f.ContentType).Returns("application/json");
+
+        var creditCardServiceMock = new Mock<ICreditCardService>();
+        var loggerMock = new Mock<ILogger<CreditCardController>>();
+
+        var controller = new CreditCardController(creditCardServiceMock.Object, loggerMock.Object);
+
+        var result = await controller.ImportCreditCardsFromJson(mockFile.Object);
+
+        ClassicAssert.IsInstanceOf<OkObjectResult>(result);  
+
+        var okResult = result as OkObjectResult;
+        ClassicAssert.IsNotNull(okResult);
+        var creditCards = okResult.Value as List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>;
+        ClassicAssert.IsNotNull(creditCards);
+        ClassicAssert.AreEqual(1, creditCards.Count);
+        ClassicAssert.AreEqual("1", creditCards[0].Id);
+        ClassicAssert.AreEqual("1234567890123456", creditCards[0].CardNumber);
+        ClassicAssert.AreEqual("123", creditCards[0].Pin);
+    }
 }

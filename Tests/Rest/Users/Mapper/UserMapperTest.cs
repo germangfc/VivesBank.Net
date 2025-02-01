@@ -281,4 +281,22 @@ public class UserMapperTests
         // Assert
         ClassicAssert.IsTrue(result, "The IsDeleted property should be set to true.");
     }
+    
+    [Test]
+    public void ToUser_ValidLoginRequest_ReturnsUserWithHashedPassword()
+    {
+        // Arrange
+        var request = new LoginRequest
+        {
+            Dni = "12345678",
+            Password = "SecurePassword123"
+        };
+
+        // Act
+        var user = request.ToUser();
+
+        // Assert
+        ClassicAssert.AreEqual(request.Dni, user.Dni);
+        ClassicAssert.IsTrue(BCrypt.Net.BCrypt.Verify(request.Password, user.Password));
+    }
 }

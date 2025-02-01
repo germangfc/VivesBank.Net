@@ -1,12 +1,17 @@
-﻿using Newtonsoft.Json;
+﻿using System.Reactive.Linq;
+using System.Text;
+using Microsoft.Extensions.FileProviders;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Exception;
+using VivesBankApi.Rest.Product.Base.Mapper;
 using VivesBankApi.Rest.Product.Base.Validators;
+using VivesBankApi.Rest.Product.Service;
 using VivesBankApi.WebSocket.Model;
 using VivesBankApi.WebSocket.Service;
 
-namespace VivesBankApi.Rest.Product.Service;
+namespace VivesBankApi.Rest.Product.Base.Service;
 
 public class ProductService : IProductService
 {
@@ -132,5 +137,121 @@ public class ProductService : IProductService
             Data = t
         };
         await _websocketHandler.NotifyAllAsync(notificacion);
+    }
+
+    public List<Base.Models.Product> LoadCsv(Stream stream)
+    {
+        Console.WriteLine("Loading products from CSV file...");
+
+        try
+        {
+            var products = new List<Base.Models.Product>();
+
+            using (var reader = new StreamReader(stream, Encoding.UTF8))
+            {
+                string line;
+                bool isFirstLine = true;
+
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+
+                    if (isFirstLine)
+                    {
+                        isFirstLine = false;
+                        continue;
+                    }
+
+                    var data = line.Split(',');
+
+                    if (data.Length < 6)
+                    {
+                        Console.WriteLine($"Skipping invalid line: {line}");
+                        continue;
+                    }
+
+                    var product = new Base.Models.Product(
+                        name: data[1].Trim(),
+                        productType: Enum.Parse<Base.Models.Product.Type>(data[2].Trim(), true)
+                    )
+                    {
+                        Id = data[0].Trim(),
+                        CreatedAt = DateTime.Parse(data[3].Trim()),
+                        UpdatedAt = DateTime.Parse(data[4].Trim()),
+                        IsDeleted = bool.Parse(data[5].Trim())
+                    };
+
+                    products.Add(product);
+                }
+            }
+
+            return products;
+        }
+        catch (System.Exception ex)
+        {
+            Console.WriteLine($"Error processing CSV file: {ex.Message}");
+            return new List<Base.Models.Product>(); 
+        }
+    }
+
+    public IObservable<Base.Models.Product> Import(IFormFile fileStream)
+    {
+        _logger.LogInformation("Importing Products from JSON file...");
+    
+        return Observable.Create<Base.Models.Product>(async (observer, cancellationToken) =>
+        {
+            try
+            {
+                using var stream = fileStream.OpenReadStream();
+                using var streamReader = new StreamReader(stream);
+                using var jsonReader = new JsonTextReader(streamReader)
+                {
+                    SupportMultipleContent = true
+                };
+
+                var serializer = new JsonSerializer
+                {
+                    MissingMemberHandling = MissingMemberHandling.Error
+                };
+
+                while (await jsonReader.ReadAsync(cancellationToken))
+                {
+                    if (jsonReader.TokenType == JsonToken.StartObject)
+                    {
+                        var product = serializer.Deserialize<Base.Models.Product>(jsonReader);
+                        observer.OnNext(product);
+                    }
+                }
+
+                observer.OnCompleted();
+            }
+            catch (System.Exception ex)
+            {
+                observer.OnError(ex);
+            }
+        });
+    }
+    
+    public async Task<FileStream> Export(List<Base.Models.Product> entities)
+    {
+        _logger.LogInformation("Exporting Products to JSON file...");
+
+        var json = JsonConvert.SerializeObject(entities, Formatting.Indented);
+
+        var directoryPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads", "Json");
+
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        var fileName = "ProductsInSystem-" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") + ".json";
+        var filePath = System.IO.Path.Combine(directoryPath, fileName);
+
+        await File.WriteAllTextAsync(filePath, json);
+
+        _logger.LogInformation($"File written to: {filePath}");
+
+        return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 }
