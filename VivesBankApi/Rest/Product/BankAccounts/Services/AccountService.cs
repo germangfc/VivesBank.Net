@@ -122,25 +122,42 @@ public class AccountService : IAccountsService
 
     public async Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request)
     {
-        _logger.LogInformation($"Creating account for Client registered on the system");
-        var user = _httpContextAccessor.HttpContext!.User;
+        _logger.LogInformation("Creating account for Client registered on the system");
+
+        if (_httpContextAccessor.HttpContext == null)
+            throw new Exception("HttpContext is null");
+
+        var user = _httpContextAccessor.HttpContext.User;
+
         var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userForFound = await _userService.GetUserByIdAsync(id) ?? throw new UserNotFoundException(id);
-        var client = await _clientRepository.getByUserIdAsync(id) ?? throw new ClientExceptions.ClientNotFoundException(id);
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("User ID claim is missing");
+
+        var userForFound = await _userService.GetUserByIdAsync(id)
+                           ?? throw new UserNotFoundException(id);
+        var client = await _clientRepository.getByUserIdAsync(id)
+                     ?? throw new ClientExceptions.ClientNotFoundException(id);
+
         var product = await _productRepository.GetByNameAsync(request.ProductName);
-        if(product == null)
+        if (product == null)
             throw new AccountsExceptions.AccountNotCreatedException();
-        var productId = product.Id;
-        var Iban = await _ibanGenerator.GenerateUniqueIbanAsync();
+
+        var iban = await _ibanGenerator.GenerateUniqueIbanAsync();
+        if (string.IsNullOrWhiteSpace(iban))
+            throw new Exception("IBAN generation failed");
+
         var account = request.fromDtoRequest();
         account.ClientId = client.Id;
-        account.ProductId = productId;
-        account.IBAN = Iban;
+        account.ProductId = product.Id;
+        account.IBAN = iban;
         account.Balance = 0;
+
         await _accountsRepository.AddAsync(account);
         await EnviarNotificacionCreateAsync(userForFound, account.toResponse());
+
         return account.toResponse();
     }
+
     
     public async Task DeleteMyAccountAsync(String iban)
     {

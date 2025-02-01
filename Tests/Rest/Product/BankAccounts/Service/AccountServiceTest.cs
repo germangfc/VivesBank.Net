@@ -1,21 +1,30 @@
 ﻿using System.Reactive.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
+using VivesBankApi.Rest.Clients.Exceptions;
+using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
+using VivesBankApi.Rest.Product.BankAccounts.Controller;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
 using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
+using VivesBankApi.Rest.Users.Dtos;
+using VivesBankApi.Rest.Users.Exceptions;
+using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.IbanGenerator;
 using VivesBankApi.WebSocket.Service;
+using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace Tests.Rest.Product.BankAccounts.Service;
 
@@ -40,7 +49,9 @@ public class AccountServiceTest
     {
         _connectionMultiplexer = new Mock<IConnectionMultiplexer>();
         _cache = new Mock<IDatabase>();
-        _connectionMultiplexer.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
+        _connectionMultiplexer
+            .Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>()))
+            .Returns(_cache.Object);
         _accountRepository = new Mock<IAccountsRepository>();
         _clientRepository = new Mock<IClientRepository>();
         _productRepository = new Mock<IProductRepository>();
@@ -49,9 +60,27 @@ public class AccountServiceTest
         _logger = new Mock<ILogger<AccountService>>();
         _httpContextAccessor = new Mock<IHttpContextAccessor>();
         _userService = new Mock<IUserService>();
-            
-        _accountService = new AccountService(_logger.Object, _ibanGenerator.Object, _clientRepository.Object, _productRepository.Object, _accountRepository.Object, _connectionMultiplexer.Object, _httpContextAccessor.Object, _userService.Object, _websocketHandler.Object);
+
+        var httpContext = new DefaultHttpContext();
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, "TestUserId")
+        };
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
+        _httpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+
+        _accountService = new AccountService(
+            _logger.Object,
+            _ibanGenerator.Object,
+            _clientRepository.Object,
+            _productRepository.Object,
+            _accountRepository.Object,
+            _connectionMultiplexer.Object,
+            _httpContextAccessor.Object,
+            _userService.Object,
+            _websocketHandler.Object);
     }
+
     
     private readonly Account account = new Account
     {
@@ -206,6 +235,189 @@ public class AccountServiceTest
     }
 
     [Test]
+    public async Task GetMyAccountsAsClientAsync_ShouldReturnAccounts_WhenClientExists()
+    {
+        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        var mockUserService = new Mock<IUserService>();
+        var mockClientRepository = new Mock<IClientRepository>();
+        var mockAccountsRepository = new Mock<IAccountsRepository>();
+        var mockLogger = new Mock<ILogger<AccountService>>();
+        var mockIbanGenerator = new Mock<IIbanGenerator>(); 
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockConnectionMultiplexer = new Mock<IConnectionMultiplexer>(); 
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>(); 
+
+        var userId = "test-user-id";
+        var mockUser = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+
+        mockHttpContextAccessor.Setup(x => x.HttpContext.User).Returns(mockUser);
+
+        mockUserService.Setup(service => service.GetUserByIdAsync(userId))
+            .ReturnsAsync(new UserResponse { Id = userId });
+
+        var mockClient = new Client { Id = "client-id" };
+        mockClientRepository.Setup(repo => repo.getByUserIdAsync(userId))
+            .ReturnsAsync(mockClient);
+
+        mockAccountsRepository.Setup(repo => repo.getAccountByClientIdAsync(mockClient.Id))
+            .ReturnsAsync(new List<Account>
+            {
+                new Account { Id = "1", ClientId = "client-id", IBAN = "IBAN123" }
+            });
+
+        var accountService = new AccountService(
+            mockLogger.Object,
+            mockIbanGenerator.Object,
+            mockClientRepository.Object,
+            mockProductRepository.Object,
+            mockAccountsRepository.Object,
+            mockConnectionMultiplexer.Object,
+            mockHttpContextAccessor.Object,
+            mockUserService.Object,
+            mockWebsocketHandler.Object
+        );
+
+        var result = await accountService.GetMyAccountsAsClientAsync();
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count, Is.EqualTo(1));
+        Assert.That(result[0].Id, Is.EqualTo("1"));
+        Assert.That(result[0].IBAN, Is.EqualTo("IBAN123"));
+    }
+
+    
+
+    [Test]
+    public async Task GetMyAccountsAsClientAsync_ShouldThrowUserNotFoundException_WhenUserNotFound()
+    {
+        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        var mockUserService = new Mock<IUserService>();
+        var mockClientRepository = new Mock<IClientRepository>();
+        var mockAccountsRepository = new Mock<IAccountsRepository>();
+        var mockLogger = new Mock<ILogger<AccountService>>();
+        var mockIbanGenerator = new Mock<IIbanGenerator>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockConnectionMultiplexer = new Mock<IConnectionMultiplexer>();
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>();
+
+        var userId = "test-user-id";
+        var mockUser = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+
+        mockHttpContextAccessor.Setup(x => x.HttpContext.User).Returns(mockUser);
+
+        mockUserService.Setup(service => service.GetUserByIdAsync(userId))
+            .ReturnsAsync((UserResponse)null);
+
+        var accountService = new AccountService(
+            mockLogger.Object,
+            mockIbanGenerator.Object,
+            mockClientRepository.Object,
+            mockProductRepository.Object,
+            mockAccountsRepository.Object,
+            mockConnectionMultiplexer.Object,
+            mockHttpContextAccessor.Object,
+            mockUserService.Object,
+            mockWebsocketHandler.Object
+        );
+
+        var exception = Assert.ThrowsAsync<UserNotFoundException>(async () => 
+            await accountService.GetMyAccountsAsClientAsync()
+        );
+    
+        Assert.That(exception.Message, Is.EqualTo($"The user with id: {userId} was not found"));
+    }
+    
+    [Test]
+    public async Task GetCompleteAccountByClientIdAsync_ShouldReturnAccounts_WhenAccountsFound()
+    {
+        var mockLogger = new Mock<ILogger<AccountService>>();
+        var mockIbanGenerator = new Mock<IIbanGenerator>();
+        var mockClientRepository = new Mock<IClientRepository>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockAccountsRepository = new Mock<IAccountsRepository>();
+        var mockConnection = new Mock<IConnectionMultiplexer>();
+        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        var mockUserService = new Mock<IUserService>();
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>();
+
+        var clientId = "client-id";
+
+        var accounts = new List<Account>
+        {
+            new Account { Id = "1", IBAN = "IBAN123" },
+            new Account { Id = "2", IBAN = "IBAN456" }
+        };
+
+        mockAccountsRepository.Setup(repo => repo.getAccountByClientIdAsync(clientId)).ReturnsAsync(accounts);
+
+        var accountService = new AccountService(
+            mockLogger.Object,
+            mockIbanGenerator.Object,
+            mockClientRepository.Object,
+            mockProductRepository.Object,
+            mockAccountsRepository.Object,
+            mockConnection.Object,
+            mockHttpContextAccessor.Object,
+            mockUserService.Object,
+            mockWebsocketHandler.Object
+        );
+
+        var result = await accountService.GetCompleteAccountByClientIdAsync(clientId);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count, Is.EqualTo(2));
+        Assert.That(result[0].Id, Is.EqualTo("1"));
+        Assert.That(result[0].IBAN, Is.EqualTo("IBAN123"));
+        Assert.That(result[1].Id, Is.EqualTo("2"));
+        Assert.That(result[1].IBAN, Is.EqualTo("IBAN456"));
+    }
+    
+    [Test]
+    public async Task GetCompleteAccountByClientIdAsync_ShouldThrowAccountNotFoundException_WhenAccountsNotFound()
+    {
+        var mockLogger = new Mock<ILogger<AccountService>>();
+        var mockIbanGenerator = new Mock<IIbanGenerator>();
+        var mockClientRepository = new Mock<IClientRepository>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockAccountsRepository = new Mock<IAccountsRepository>();
+        var mockConnection = new Mock<IConnectionMultiplexer>();
+        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        var mockUserService = new Mock<IUserService>();
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>();
+
+        var clientId = "client-id";
+
+        mockAccountsRepository.Setup(repo => repo.getAccountByClientIdAsync(clientId)).ReturnsAsync((List<Account>)null);
+
+        var accountService = new AccountService(
+            mockLogger.Object,
+            mockIbanGenerator.Object,
+            mockClientRepository.Object,
+            mockProductRepository.Object,
+            mockAccountsRepository.Object,
+            mockConnection.Object,
+            mockHttpContextAccessor.Object,
+            mockUserService.Object,
+            mockWebsocketHandler.Object
+        );
+
+        var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotFoundException>(async () =>
+            await accountService.GetCompleteAccountByClientIdAsync(clientId)
+        );
+
+        Assert.That(exception.Message, Is.EqualTo($"Account not found by id {clientId}"));
+    }
+
+
+    
+    
+    [Test]
     public void GetAccountByIbanAsync_ShouldThrowAccountNotFoundException_WhenNoAccountsFound()
     {
         var iban = "notFound";
@@ -219,67 +431,202 @@ public class AccountServiceTest
         
         _accountRepository.Verify(repo => repo.getAccountByIbanAsync(iban), Times.Once);
     }
+    
 
+    
+    
     [Test]
-    public async Task CreateAccountAsync_ShouldCreateSuccesfull()
+    public async Task GetCompleteAccountByIbanAsync_ShouldThrowAccountNotFoundByIban_WhenAccountNotFound()
     {
-        var request = new CreateAccountRequest
-        {
-           
-            ProductName = "ValidProductName",
-            AccountType = AccountType.STANDARD
-        };
-        var generatedIban = "ES9121000418450200051332";
-        var product = new VivesBankApi.Rest.Product.Base.Models.Product("ValidProductName", VivesBankApi.Rest.Product.Base.Models.Product.Type.BankAccount);
+        // Arrange
+        var mockLogger = new Mock<ILogger<AccountService>>();
+        var mockIbanGenerator = new Mock<IIbanGenerator>();
+        var mockClientRepository = new Mock<IClientRepository>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockAccountsRepository = new Mock<IAccountsRepository>();
+        var mockConnection = new Mock<IConnectionMultiplexer>();
+        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        var mockUserService = new Mock<IUserService>();
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>();
 
-        _productRepository.Setup(r => r.GetByNameAsync(request.ProductName))
-            .ReturnsAsync(product);
-        _ibanGenerator.Setup(g => g.GenerateUniqueIbanAsync());
-        
-        var result = await _accountService.CreateAccountAsync(request);
+        var iban = "IBAN123";
+
+        // Simulamos que no se encuentra la cuenta por IBAN
+        mockAccountsRepository.Setup(repo => repo.getAccountByIbanAsync(iban)).ReturnsAsync((Account)null);
+
+        var accountService = new AccountService(
+            mockLogger.Object,
+            mockIbanGenerator.Object,
+            mockClientRepository.Object,
+            mockProductRepository.Object,
+            mockAccountsRepository.Object,
+            mockConnection.Object,
+            mockHttpContextAccessor.Object,
+            mockUserService.Object,
+            mockWebsocketHandler.Object
+        );
+
+        // Act & Assert
+        var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotFoundByIban>(async () => 
+            await accountService.GetCompleteAccountByIbanAsync(iban)
+        );
+        Assert.That(exception.Message, Is.EqualTo($"Account not found by IBAN {iban}"));
+    }
+    
+    [Test]
+    public async Task GetCompleteAccountByIbanAsync_ShouldReturnAccountCompleteResponse_WhenAccountFound()
+    {
+        // Arrange
+        var mockLogger = new Mock<ILogger<AccountService>>();
+        var mockIbanGenerator = new Mock<IIbanGenerator>();
+        var mockClientRepository = new Mock<IClientRepository>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockAccountsRepository = new Mock<IAccountsRepository>();
+        var mockConnection = new Mock<IConnectionMultiplexer>();
+        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        var mockUserService = new Mock<IUserService>();
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>();
+
+        var iban = "IBAN123";
+
+        var account = new Account { Id = "1", IBAN = iban };
+        mockAccountsRepository.Setup(repo => repo.getAccountByIbanAsync(iban)).ReturnsAsync(account);
+
+        var accountService = new AccountService(
+            mockLogger.Object,
+            mockIbanGenerator.Object,
+            mockClientRepository.Object,
+            mockProductRepository.Object,
+            mockAccountsRepository.Object,
+            mockConnection.Object,
+            mockHttpContextAccessor.Object,
+            mockUserService.Object,
+            mockWebsocketHandler.Object
+        );
+
+        // Act
+        var result = await accountService.GetCompleteAccountByIbanAsync(iban);
+
+        // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.IBAN, Is.EqualTo(generatedIban));
-        
-        _productRepository.Verify(r => r.GetByNameAsync(request.ProductName), Times.Once);
-        _ibanGenerator.Verify(g => g.GenerateUniqueIbanAsync(), Times.Once);
-       
+        Assert.That(result.Id, Is.EqualTo(account.Id));
+        Assert.That(result.IBAN, Is.EqualTo(account.IBAN));
+    }
+
+
+    
+     [Test]
+    public async Task CreateAccountAsync_ShouldCreateSuccessfully()
+    {
+        var testUserId = "TestUserId";
+        var testClient = new Client { Id = "ClientId", UserId = testUserId };
+        var testProduct = new VivesBankApi.Rest.Product.Base.Models.Product("TestProduct", VivesBankApi.Rest.Product.Base.Models.Product.Type.BankAccount);
+        var testIban = "ES123456789";
+        var testRequest = new CreateAccountRequest { ProductName = "TestProduct" };
+
+        _userService.Setup(u => u.GetUserByIdAsync(testUserId))
+            .ReturnsAsync(new UserResponse
+            {
+                Id = testUserId,
+                Dni = "12345678X",
+                Role = Role.Client.ToString(),
+                IsDeleted = false
+            });
+
+        _clientRepository.Setup(c => c.getByUserIdAsync(testUserId))
+            .ReturnsAsync(testClient);
+
+        _productRepository.Setup(p => p.GetByNameAsync(testRequest.ProductName))
+            .ReturnsAsync(testProduct);
+
+        _ibanGenerator.Setup(i => i.GenerateUniqueIbanAsync())
+            .ReturnsAsync(testIban);
+
+        _accountRepository.Setup(a => a.AddAsync(It.IsAny<Account>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await _accountService.CreateAccountAsync(testRequest);
+
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.AreEqual(testIban, result.IBAN);
+        ClassicAssert.AreEqual(testProduct.Id, result.productID);
     }
 
     [Test]
-    public void CreateAccountAsync_ShouldThrowClientNotFound()
+    public void CreateAccountAsync_ShouldThrow_UserNotFoundException()
     {
-        var request = new CreateAccountRequest
-        {
-            ProductName = "",
-            AccountType = AccountType.STANDARD
-        };
-        var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotCreatedException>(async () =>
+        _userService.Setup(u => u.GetUserByIdAsync(It.IsAny<string>()))
+            .ReturnsAsync((UserResponse)null);
+
+        var request = new CreateAccountRequest { ProductName = "TestProduct" };
+
+        Assert.ThrowsAsync<UserNotFoundException>(async () => 
             await _accountService.CreateAccountAsync(request));
-        Assert.That(exception.Message, Is.EqualTo("Account couldnt be created, check that te client and the product exists"));
-        
-        _productRepository.Verify(r => r.GetByNameAsync(request.ProductName), Times.Never);
-        _ibanGenerator.Verify(g => g.GenerateUniqueIbanAsync(), Times.Never);
-        _accountRepository.Verify(r => r.AddAsync(It.IsAny<Account>()), Times.Never);
     }
 
     [Test]
-    public void CreateAccountAsync_ShouldThrowProductNotFound()
+    public void CreateAccountAsync_ShouldThrow_ClientNotFoundException()
     {
-        var request = new CreateAccountRequest
-        {
-            ProductName = "NotExistingProduct",
-            AccountType = AccountType.STANDARD
-        };
+        var testUserId = "TestUserId";
         
-        _productRepository.Setup(r => r.GetByNameAsync(request.ProductName))
-           .ReturnsAsync((VivesBankApi.Rest.Product.Base.Models.Product)null);
-        var exception = Assert.ThrowsAsync<AccountsExceptions.AccountNotCreatedException>(async () =>
+        _userService.Setup(u => u.GetUserByIdAsync(testUserId))
+            .ReturnsAsync(new UserResponse { Id = testUserId });
+
+        _clientRepository.Setup(c => c.getByUserIdAsync(testUserId))
+            .ReturnsAsync((Client)null);
+
+        var request = new CreateAccountRequest { ProductName = "TestProduct" };
+
+        Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () => 
             await _accountService.CreateAccountAsync(request));
-        Assert.That(exception.Message, Is.EqualTo("Account couldnt be created, check that te client and the product exists"));
-        
-        _productRepository.Verify(r => r.GetByNameAsync(request.ProductName), Times.Once);
-        _ibanGenerator.Verify(g => g.GenerateUniqueIbanAsync(), Times.Never);
-        _accountRepository.Verify(r => r.AddAsync(It.IsAny<Account>()), Times.Never);
+    }
+
+    [Test]
+    public void CreateAccountAsync_ShouldThrow_AccountNotCreatedException_WhenProductNotFound()
+    {
+        // Arrange
+        var testUserId = "TestUserId";
+        var testClient = new Client { Id = "ClientId", UserId = testUserId };
+
+        _userService.Setup(u => u.GetUserByIdAsync(testUserId))
+            .ReturnsAsync(new UserResponse { Id = testUserId });
+
+        _clientRepository.Setup(c => c.getByUserIdAsync(testUserId))
+            .ReturnsAsync(testClient);
+
+        _productRepository.Setup(p => p.GetByNameAsync(It.IsAny<string>()))
+            .ReturnsAsync((VivesBankApi.Rest.Product.Base.Models.Product)null);
+
+        var request = new CreateAccountRequest { ProductName = "TestProduct" };
+
+        // Act & Assert
+        Assert.ThrowsAsync<AccountsExceptions.AccountNotCreatedException>(async () => 
+            await _accountService.CreateAccountAsync(request));
+    }
+
+    [Test]
+    public void CreateAccountAsync_ShouldThrow_Exception_WhenIbanGenerationFails()
+    {
+        var testUserId = "TestUserId";
+        var testClient = new Client { Id = "ClientId", UserId = testUserId };
+        var testProduct = new VivesBankApi.Rest.Product.Base.Models.Product("TestProduct", VivesBankApi.Rest.Product.Base.Models.Product.Type.BankAccount);
+
+        _userService.Setup(u => u.GetUserByIdAsync(testUserId))
+            .ReturnsAsync(new UserResponse { Id = testUserId });
+
+        _clientRepository.Setup(c => c.getByUserIdAsync(testUserId))
+            .ReturnsAsync(testClient);
+
+        _productRepository.Setup(p => p.GetByNameAsync("TestProduct"))
+            .ReturnsAsync(testProduct);
+
+        _ibanGenerator.Setup(i => i.GenerateUniqueIbanAsync())
+            .ReturnsAsync(string.Empty);
+
+        var request = new CreateAccountRequest { ProductName = "TestProduct" };
+
+        Assert.ThrowsAsync<Exception>(async () => 
+            await _accountService.CreateAccountAsync(request), "IBAN generation failed");
     }
 
     [Test]
@@ -297,6 +644,111 @@ public class AccountServiceTest
         _accountRepository.Verify(r => r.GetByIdAsync(accountId), Times.Once);
         _accountRepository.Verify(r => r.UpdateAsync(It.Is<Account>(a => a.IsDeleted == true)), Times.Once);
     }
+    
+    [Test]
+    public async Task DeleteMyAccountAsync_ShouldDeleteAccount_WhenAccountFoundAndBalanceIsZero()
+    {
+        var mockLogger = new Mock<ILogger<AccountService>>();
+        var mockIbanGenerator = new Mock<IIbanGenerator>();
+        var mockClientRepository = new Mock<IClientRepository>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockAccountsRepository = new Mock<IAccountsRepository>();
+        var mockConnection = new Mock<IConnectionMultiplexer>();
+        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        var mockUserService = new Mock<IUserService>();
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>();
+        var mockCache = new Mock<IDatabase>();
+
+        var iban = "IBAN123";
+        var userId = "user-id";
+        var clientId = "client-id";
+        
+        var userClaims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        };
+        
+        var mockUser = new ClaimsPrincipal(new ClaimsIdentity(userClaims));
+
+        var userForFound = new UserResponse { Id = userId }; 
+        var client = new Client { Id = clientId };
+        var accountToDelete = new Account { Id = "1", IBAN = iban, ClientId = clientId, Balance = 0, IsDeleted = false };
+
+        mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(new DefaultHttpContext());
+        mockHttpContextAccessor.Setup(x => x.HttpContext.User).Returns(mockUser);
+        mockUserService.Setup(x => x.GetUserByIdAsync(It.IsAny<string>())).ReturnsAsync(new UserResponse { Id = userId });
+        mockClientRepository.Setup(x => x.getByUserIdAsync(It.IsAny<string>())).ReturnsAsync(new Client { Id = clientId });
+        mockAccountsRepository.Setup(x => x.getAccountByIbanAsync(It.IsAny<string>())).ReturnsAsync(new Account { Id = "1", IBAN = iban, ClientId = clientId, Balance = 0, IsDeleted = false });
+        mockConnection.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(mockCache.Object);
+        mockCache.Setup(x => x.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>())).ReturnsAsync(true);
+
+        var accountService = new AccountService(
+            mockLogger.Object,
+            mockIbanGenerator.Object,
+            mockClientRepository.Object,
+            mockProductRepository.Object,
+            mockAccountsRepository.Object,
+            mockConnection.Object,
+            mockHttpContextAccessor.Object,
+            mockUserService.Object,
+            mockWebsocketHandler.Object
+        );
+
+        await accountService.DeleteMyAccountAsync(iban);
+
+        mockAccountsRepository.Verify(x => x.UpdateAsync(It.Is<Account>(a => a.IsDeleted == true)), Times.Once);
+        mockCache.Verify(
+            x => x.KeyDeleteAsync(It.Is<RedisKey>(rk => rk == (RedisKey)$"account:{iban}"), It.IsAny<CommandFlags>()),
+            Times.Once
+        );
+
+    }
+    
+    [Test]
+    public async Task DeleteMyAccountAsync_ShouldThrowUserNotFoundException_WhenUserNotFound()
+    {
+        var mockLogger = new Mock<ILogger<AccountService>>();
+        var mockIbanGenerator = new Mock<IIbanGenerator>();
+        var mockClientRepository = new Mock<IClientRepository>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockAccountsRepository = new Mock<IAccountsRepository>();
+        var mockConnection = new Mock<IConnectionMultiplexer>();
+        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        var mockUserService = new Mock<IUserService>();
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>();
+        var mockCache = new Mock<IDatabase>();
+
+        var iban = "IBAN123";
+        var userId = "user-id";
+
+        var userClaims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        };
+
+        var mockUser = new ClaimsPrincipal(new ClaimsIdentity(userClaims));
+
+        mockHttpContextAccessor.Setup(x => x.HttpContext.User).Returns(mockUser);
+    
+        mockUserService.Setup(x => x.GetUserByIdAsync(userId)).ReturnsAsync((UserResponse)null);
+
+        var accountService = new AccountService(
+            mockLogger.Object,
+            mockIbanGenerator.Object,
+            mockClientRepository.Object,
+            mockProductRepository.Object,
+            mockAccountsRepository.Object,
+            mockConnection.Object,
+            mockHttpContextAccessor.Object,
+            mockUserService.Object,
+            mockWebsocketHandler.Object
+        );
+
+        var exception = Assert.ThrowsAsync<UserNotFoundException>(() => accountService.DeleteMyAccountAsync(iban));
+        Assert.That(exception.Message, Is.EqualTo("The user with id: user-id was not found"));
+
+    }
+    
 
     [Test]
     public async Task ImportJson()

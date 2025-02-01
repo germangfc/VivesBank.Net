@@ -160,29 +160,74 @@ public class AccountContollerTest
         ClassicAssert.IsNotNull(notFoundResult);
         ClassicAssert.AreEqual(404, notFoundResult.StatusCode);
     }
+    
+    [Test]
+    public async Task GetMyAccountsAsClientAsync_ShouldReturnOk_WhenAccountsExist()
+    {
+        var accountResponses = new List<AccountResponse>
+        {
+            new AccountResponse { Id = "1", IBAN = "IBAN1", AccountType = AccountType.STANDARD },
+            new AccountResponse { Id = "2", IBAN = "IBAN2", AccountType = AccountType.SAVING }
+        };
+
+        _mockAccountsService.Setup(service => service.GetMyAccountsAsClientAsync())
+            .ReturnsAsync(accountResponses);
+
+        var result = await _accountController.GetMyAccountsAsClientAsync();
+
+        ClassicAssert.IsNotNull(result);
+        var okResult = result.Result as OkObjectResult; 
+        ClassicAssert.IsNotNull(okResult);
+
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+
+        var accounts = okResult.Value as List<AccountResponse>;
+        ClassicAssert.IsNotNull(accounts);
+        ClassicAssert.AreEqual(2, accounts.Count); 
+        ClassicAssert.AreEqual("IBAN1", accounts[0].IBAN);
+        ClassicAssert.AreEqual("IBAN2", accounts[1].IBAN);
+
+        _mockAccountsService.Verify(service => service.GetMyAccountsAsClientAsync(), Times.Once);
+    }
+
 
     [Test]
-    public async Task CreateAccount_ShouldCreateAccount()
+    public async Task CreateAccount_ShouldReturnOk_WhenRequestIsValid()
     {
-        var request = new CreateAccountRequest
+        var testRequest = new CreateAccountRequest
         {
-            ProductName = "guay",
+            ProductName = "TestProduct",
             AccountType = AccountType.STANDARD
         };
-        var response = new AccountResponse
+
+        var testAccountResponse = new AccountResponse
         {
+            Id = "NewAccountId",
+            IBAN = "ES123456789",
+            clientID = "ClientId",
+            productID = "ProductId",
             AccountType = AccountType.STANDARD,
-            IBAN = "ES9121000418450200051332"
+            InterestRate = 1.5
         };
-        
-        var result = await _accountController.CreateAccount(request);
-        
-        var okResult = result.Result as OkObjectResult;
-        ClassicAssert.IsNotNull(okResult);
+
+        _mockAccountsService
+            .Setup(x => x.CreateAccountAsync(testRequest))
+            .ReturnsAsync(testAccountResponse);
+
+        var actionResult = await _accountController.CreateAccount(testRequest);
+
+        ClassicAssert.IsInstanceOf<OkObjectResult>(actionResult.Result);
+        var okResult = actionResult.Result as OkObjectResult;
         ClassicAssert.AreEqual(200, okResult.StatusCode);
-        ClassicAssert.AreEqual(response, okResult.Value);
-        
-        _mockAccountsService.Verify(service => service.CreateAccountAsync(request), Times.Once);
+
+        var response = okResult.Value as AccountResponse;
+        ClassicAssert.IsNotNull(response);
+        ClassicAssert.AreEqual("NewAccountId", response.Id);
+        ClassicAssert.AreEqual("ES123456789", response.IBAN);
+        ClassicAssert.AreEqual("ClientId", response.clientID);
+        ClassicAssert.AreEqual("ProductId", response.productID);
+        ClassicAssert.AreEqual(AccountType.STANDARD, response.AccountType);
+        ClassicAssert.AreEqual(1.5, response.InterestRate);
     }
 
     [Test]
@@ -209,6 +254,26 @@ public class AccountContollerTest
         
         _mockAccountsService.Verify(service => service.DeleteAccountAsync("TkjPO5u_2w"), Times.Once);
     }
+    
+    [Test]
+    public async Task DeleteMyAccountAsClientAsync_ShouldReturnNoContent_WhenAccountDeleted()
+    {
+        string ibanToDelete = "IBAN123456789";
+    
+        _mockAccountsService.Setup(service => service.DeleteMyAccountAsync(ibanToDelete))
+            .Returns(Task.CompletedTask);
+
+        var result = await _accountController.DeleteMyAccountAsClientAsync(ibanToDelete);
+
+        ClassicAssert.IsNotNull(result);
+        var noContentResult = result as NoContentResult;
+        ClassicAssert.IsNotNull(noContentResult);
+
+        ClassicAssert.AreEqual(204, noContentResult.StatusCode);
+
+        _mockAccountsService.Verify(service => service.DeleteMyAccountAsync(ibanToDelete), Times.Once);
+    }
+
 
     [Test]
     public async Task ImportAccountsFromJsonWhenFileIsNull()
@@ -259,7 +324,7 @@ public class AccountContollerTest
         ClassicAssert.IsNotNull(importedAccounts);  
         ClassicAssert.AreEqual(1, importedAccounts?.Count);  
     }
-
+    
     [Test]
     public async Task ImportAccountsFromJsonWhenFileIsEmpty()
     {
@@ -271,5 +336,80 @@ public class AccountContollerTest
         var badRequestResult = result as BadRequestObjectResult;
         ClassicAssert.IsNotNull(badRequestResult);
         ClassicAssert.AreEqual("No file uploaded.", badRequestResult?.Value); 
+    }
+
+    [Test]
+    public async Task ExportAccountsToJson_ShouldReturnFile_WhenAccountsExist()
+    {
+        var accountResponses = new List<AccountResponse>
+        {
+            new AccountResponse { Id = "1", IBAN = "IBAN1" },
+            new AccountResponse { Id = "2", IBAN = "IBAN2" }
+        };
+
+        var pageResponse = new PageResponse<AccountResponse>
+        {
+            Content = accountResponses,
+            TotalPages = 1,
+            TotalElements = 2,
+            PageSize = 2,
+            PageNumber = 0,
+            TotalPageElements = 2,
+            Empty = false,
+            First = true,
+            Last = true
+        };
+
+        _mockAccountsService.Setup(x => x.GetAccountsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(pageResponse);
+
+        var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "accounts.json");
+        using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+        {
+            var writer = new StreamWriter(fileStream);
+            writer.Write("[{\"Id\":\"1\",\"IBAN\":\"IBAN1\"},{\"Id\":\"2\",\"IBAN\":\"IBAN2\"}]");
+            writer.Flush();
+            fileStream.Position = 0;
+
+            _mockAccountsService.Setup(x => x.Export(It.IsAny<List<Account>>()))
+                .ReturnsAsync(fileStream);
+
+            var result = await _accountController.ExportAccountsToJson();
+
+            ClassicAssert.IsNotNull(result);
+            var fileResult = result as FileStreamResult;
+            ClassicAssert.IsNotNull(fileResult);
+            ClassicAssert.AreEqual("application/json", fileResult.ContentType);
+            ClassicAssert.AreEqual("accounts.json", fileResult.FileDownloadName);
+            ClassicAssert.AreEqual(fileStream, fileResult.FileStream);
+        }
+    }
+
+    
+
+    
+
+    [Test]
+    public async Task ExportAccountsToJson_ShouldReturnNoContent_WhenNoAccountsExist()
+    {
+        _mockAccountsService.Setup(x => x.GetAccountsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(new PageResponse<AccountResponse>
+            {
+                Content = new List<AccountResponse>(),
+                TotalPages = 0,
+                TotalElements = 0,
+                PageSize = 0,
+                PageNumber = 0,
+                TotalPageElements = 0,
+                Empty = true,
+                First = true,
+                Last = true
+            });
+
+        var result = await _accountController.ExportAccountsToJson();
+
+        var noContentResult = result as NoContentResult;
+        ClassicAssert.IsNotNull(noContentResult);
+        ClassicAssert.AreEqual(204, noContentResult.StatusCode);
     }
 }
