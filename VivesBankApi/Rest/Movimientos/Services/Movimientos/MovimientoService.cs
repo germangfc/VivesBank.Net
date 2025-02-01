@@ -376,7 +376,89 @@ public class MovimientoService(
         // Verificar que el movimiento es una transferencia
         if (originalMovement.Transferencia is null) throw new MovementIsNotTransferException(movimientoTransferenciaGuid);
 
-        // Verificar que el usuario que solicita la revocación es el propietario de la cuenta de origen
+        // Verificar que el usuario que solicita la revocación existe y es el propietario de la cuenta de origen
+        var client = await clientService.GetClientByUserIdAsync(user.Id);
+        if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
+        logger.LogInformation($"client.Id = {client.Id}, originalmovement.clientGuid = {originalMovement.ClienteGuid}");
+        if (!client.Id.Equals(originalMovement.ClienteGuid))
+            throw new AccountsExceptions.AccountUnknownIban(originalMovement.Transferencia.IbanOrigen);
+
+        // Cantidad a restaurar
+        var transferAmount = originalMovement.Transferencia.Cantidad;
+
+        // Obtener las cuentas involucradas
+        var originAccount = await accountsService.GetCompleteAccountByIbanAsync(originalMovement.Transferencia.IbanOrigen);
+        if (originAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(originalMovement.Transferencia.IbanOrigen);
+
+        // Revertir la transferencia
+        
+        // Sumar a la cuenta origen
+        originAccount.Balance += transferAmount;
+//       await accountsService.UpdateAccountAsync(originAccount.Id, new UpdateAccountRequest { Balance = originAccount.Balance });
+
+        // Notificar la revocación de la transferencia
+        await EnviarNotificacionDeleteAsync(user, originalMovement);
+        
+        
+        // Restar de la cuenta destino si era de nuestro banco
+        try {
+            var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(originalMovement.Transferencia.IbanDestino);
+            destinationAccount.Balance -= transferAmount;
+//        await accountsService.UpdateAccountAsync(destinationAccount.Id, new UpdateAccountRequest { Balance = destinationAccount.Balance });
+            /*// Notificar al cliente destino
+            var destinationClient = await clientService.GetClientByIdAsync(destinationAccount.ClientID);
+            if (destinationClient is null) throw new ClientExceptions.ClientNotFoundException(destinationAccount.ClientID);
+            var destinationUser = await userService.GetUserByIdAsync(destinationClient.UserId);
+            if (destinationUser is null) throw new UserNotFoundException(destinationClient.UserId);
+
+            await EnviarNotificacionCreacionAsync(destinationUser.ToUser(), originalMovement);*/
+            
+        } catch (AccountsExceptions.AccountNotFoundByIban ex)
+        { 
+            logger.LogInformation($"Claim amount to external bank ({ex.Message})");
+        }
+
+        // Marcar ambos movimientos como eliminados, simplemente se anulan, no se crean nuevos movimientos de revocación
+        originalMovement.IsDeleted = true; await movimientoRepository.UpdateMovimientoAsync(originalMovement.Id, originalMovement);
+        logger.LogInformation("Revoked original movement");
+        
+        // Marcar el movimiento de destino como revocado (si había, si no, es que no era revocable porque la transferencia era a otro banco por ejemplo)
+        if (originalMovement.Transferencia.MovimientoDestino != null)
+        {
+            var originalDestinationMovement = await movimientoRepository.GetMovimientoByIdAsync(originalMovement.Transferencia.MovimientoDestino);
+//        if (originalDestinationMovement is null) throw new MovimientoNotFoundException(originalMovement.Transferencia.MovimientoDestino);
+            if (originalDestinationMovement is not null)
+            {
+                originalDestinationMovement.IsDeleted = true; await movimientoRepository.UpdateMovimientoAsync(originalDestinationMovement.Id, originalDestinationMovement);
+                logger.LogInformation("Revoked destination movement from original movement");
+            }
+                
+        }
+        else logger.LogInformation("There was no destination movement in original movement");
+
+        //originalDestinationMovement.IsDeleted = true; await movimientoRepository.UpdateMovimientoAsync(originalDestinationMovement.Id, originalDestinationMovement);
+        
+        // Notificar la revocación de la transferencia
+        await EnviarNotificacionDeleteAsync(user, originalMovement);
+        // Retornar respuesta
+        return originalMovement;
+    }
+    public async Task<Movimiento> RevocarTransferenciaMal(User user, string movimientoTransferenciaGuid)
+    {
+        logger.LogInformation($"Revoking Transfer Id: {movimientoTransferenciaGuid}, user: {user.Id}");
+        
+        // Obtener el movimiento original
+        var originalMovement = await movimientoRepository.GetMovimientoByGuidAsync(movimientoTransferenciaGuid);
+        if (originalMovement is null) throw new MovimientoNotFoundException(movimientoTransferenciaGuid);
+        
+        // validar que no haya pasado 1 dia 
+        var dateOriginalMovement = originalMovement.CreatedAt;
+        if (dateOriginalMovement.HasValue && dateOriginalMovement.Value.AddDays(1) < DateTime.Now) throw new NotRevocableMovimientoException(movimientoTransferenciaGuid);
+
+        // Verificar que el movimiento es una transferencia
+        if (originalMovement.Transferencia is null) throw new MovementIsNotTransferException(movimientoTransferenciaGuid);
+
+        // Verificar que el usuario que solicita la revocación existe y es el propietario de la cuenta de origen
         var client = await clientService.GetClientByIdAsync(user.Id);
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
         if (!client.Id.Equals(originalMovement.ClienteGuid))
@@ -417,7 +499,6 @@ public class MovimientoService(
         // Retornar respuesta
         return originalMovement;
     }
-    
     
     // CACHE
     
