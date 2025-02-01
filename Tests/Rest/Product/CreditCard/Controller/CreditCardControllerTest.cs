@@ -19,6 +19,7 @@ public class CreditCardControllerTest
     private Mock<ILogger<CreditCardController>> _mockLogger;
     private CreditCardController _controller;
 
+
     [SetUp]
     public void SetUp()
     {
@@ -119,4 +120,47 @@ public class CreditCardControllerTest
         ClassicAssert.AreEqual(404, notFoundResult.StatusCode, "StatusCode should be 404.");
     }
     
+    [Test]
+    public async Task Export_WhenValidList_ReturnsFileResult()
+    {
+        // Arrange
+        var creditCards = new List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>
+        {
+            new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard
+            {
+                Id = "1",
+                AccountId = "1",
+                CardNumber = "1234567890123456",
+                Pin = "123",
+                Cvc = "123",
+                ExpirationDate = DateOnly.FromDateTime(DateTime.Now.AddYears(3)),
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
+                IsDeleted = false
+            }
+        };
+
+        var filePath = System.IO.Path.GetTempFileName();
+        var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+
+        // Setup del mock: se espera que Export devuelva el fileStream
+        _mockService.Setup(service => service.Export(It.IsAny<List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>>()))
+            .ReturnsAsync(fileStream);
+
+        // Act: Llamamos al método del controlador con asFile = true
+        var result = await _controller.ExportCreditCardsToJson(true); // Verifica que asFile = true
+
+        // Assert: Verificamos que el resultado sea un FileStreamResult
+        Assert.That(result, Is.InstanceOf<FileStreamResult>());
+
+        var fileResult = result as FileStreamResult;
+
+        // Verificamos el nombre del archivo y el tipo de contenido
+        Assert.That(fileResult.FileDownloadName, Does.Contain("creditcards.json"));
+        Assert.That(fileResult.ContentType, Is.EqualTo("application/json"));
+
+        // Limpiar archivo temporal (buena práctica)
+        fileStream.Close();
+        File.Delete(filePath);
+    }
 }

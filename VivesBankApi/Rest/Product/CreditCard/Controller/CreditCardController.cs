@@ -126,16 +126,17 @@ public class CreditCardController : ControllerBase
         }
     }
     
-    [HttpPost("export")]
     public async Task<IActionResult> ExportCreditCardsToJson([FromQuery] bool asFile = true)
     {
         try
         {
-            int pageNumber = 1; 
-            int pageSize = 100; 
-            string fullName = ""; 
-            bool? isDeleted = false; 
-            string direction = "asc"; 
+            _logger.LogInformation($"asFile value: {asFile}");  // Agregado para verificar el valor de asFile
+
+            int pageNumber = 1;
+            int pageSize = 100;
+            string fullName = "";
+            bool? isDeleted = false;
+            string direction = "asc";
 
             var creditCardsAdminResponse = await _creditCardService.GetAllCreditCardAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction);
 
@@ -150,7 +151,7 @@ public class CreditCardController : ControllerBase
                 Id = card.Id,
                 AccountId = card.AccountId,
                 CardNumber = card.CardNumber,
-                ExpirationDate = DateOnly.Parse(card.ExpirationDate), 
+                ExpirationDate = DateOnly.Parse(card.ExpirationDate),
                 CreatedAt = card.CreatedAt,
                 UpdatedAt = card.UpdatedAt,
                 IsDeleted = false
@@ -158,10 +159,17 @@ public class CreditCardController : ControllerBase
 
             if (!asFile)
             {
-                return Ok(creditCards); 
+                _logger.LogInformation("Returning credit cards as JSON, not as file.");
+                return Ok(creditCards); // Retorna los datos como JSON si asFile es falso
             }
 
+            _logger.LogInformation("Returning credit cards as file.");
             var fileStream = await _creditCardService.Export(creditCards);
+
+            if (fileStream == null)
+            {
+                return StatusCode(500, new { message = "Error al generar el archivo" });
+            }
 
             return File(fileStream, "application/json", "creditcards.json");
         }

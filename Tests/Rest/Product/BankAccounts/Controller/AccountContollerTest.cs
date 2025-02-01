@@ -1,13 +1,9 @@
-using System.Diagnostics;
 using System.Reactive.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework.Legacy;
-using Refit;
-using Serilog;
 using VivesBankApi.Rest.Product.BankAccounts.AccountTypeExtensions;
 using VivesBankApi.Rest.Product.BankAccounts.Controller;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
@@ -192,43 +188,30 @@ public class AccountContollerTest
 
 
     [Test]
-    public async Task CreateAccount_ShouldReturnOk_WhenRequestIsValid()
+    public async Task CreateAccount_ShouldCreateAccount()
     {
-        var testRequest = new CreateAccountRequest
+        var request = new CreateAccountRequest
         {
-            ProductName = "TestProduct",
+            ProductName = "guay",
             AccountType = AccountType.STANDARD
         };
-
-        var testAccountResponse = new AccountResponse
+        var response = new AccountResponse
         {
-            Id = "NewAccountId",
-            IBAN = "ES123456789",
-            clientID = "ClientId",
-            productID = "ProductId",
             AccountType = AccountType.STANDARD,
-            InterestRate = 1.5
+            IBAN = "ES9121000418450200051332"
         };
-        ClassicAssert.AreEqual(1.5, response.InterestRate);
-        ClassicAssert.AreEqual("ProductId", response.productID);
-        ClassicAssert.AreEqual(AccountType.STANDARD, response.AccountType);
-        ClassicAssert.AreEqual("ClientId", response.clientID);
-        ClassicAssert.AreEqual("ES123456789", response.IBAN);
-        ClassicAssert.AreEqual("NewAccountId", response.Id);
-        var response = okResult.Value as AccountResponse;
-        ClassicAssert.IsNotNull(response);
-
-        ClassicAssert.AreEqual(200, okResult.StatusCode);
-        var okResult = actionResult.Result as OkObjectResult;
-        ClassicAssert.IsInstanceOf<OkObjectResult>(actionResult.Result);
-
-        var actionResult = await _accountController.CreateAccount(testRequest);
-            .ReturnsAsync(testAccountResponse);
-
-            .Setup(x => x.CreateAccountAsync(testRequest))
-        _mockAccountsService
-
+        
+        _mockAccountsService.Setup(service => service.CreateAccountAsync(request)).ReturnsAsync(response);
+        var result = await _accountController.CreateAccount(request);
+        
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult.StatusCode, Is.EqualTo(200));
+        Assert.That(okResult.Value, Is.EqualTo(response));
+        
+        _mockAccountsService.Verify(service => service.CreateAccountAsync(request), Times.Once);
     }
+
 
     [Test]
     public async Task DeleteById_Should_Logically_Delete()
