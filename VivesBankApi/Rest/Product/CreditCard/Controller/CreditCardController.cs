@@ -124,7 +124,8 @@ public class CreditCardController : ControllerBase
         }
     }
 
-
+    [HttpPost("export")]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> ExportCreditCardsToJson([FromQuery] bool asFile = true)
     {
         try
