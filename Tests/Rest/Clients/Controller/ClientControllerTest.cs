@@ -1,19 +1,22 @@
 ﻿using System.Reactive.Linq;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework.Legacy;
 using VivesBankApi.Rest.Clients.Controller;
 using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.JSON;
+using VivesBankApi.Rest.Users.Exceptions;
+using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace Tests.Rest.Clients.Controller;
 
-/*
 public class ClientControllerTest
 {
     private Mock<IClientService> _service;
@@ -26,7 +29,7 @@ public class ClientControllerTest
     {
         _service = new Mock<IClientService>();
         _storage = new ClientStorageJson(
-            NullLogger<ClientStorageJson>.Instance
+            NullLogger<GenericStorageJson<ClientResponse>>.Instance
         );
         _logger = new Mock<ILogger<ClientController>>();
         _clientController = new ClientController(_service.Object, _logger.Object, _storage);
@@ -60,24 +63,21 @@ public class ClientControllerTest
         var result = await _clientController.GetAllUsersAsync(pageNumber, pageSize, fullName, isDeleted, direction) as ActionResult<PageResponse<ClientResponse>>;
 
         // Assert
+        ClassicAssert.NotNull(result);
+        ClassicAssert.NotNull(result.Value);
+
         var pageResponse = result.Value;
-        
-        Assert.Multiple(() =>
-        {
-            ClassicAssert.NotNull(result);
-            ClassicAssert.NotNull(result.Value);
-            ClassicAssert.AreEqual(pagedList.TotalCount, pageResponse.TotalElements);
-            ClassicAssert.AreEqual(pagedList.PageCount, pageResponse.TotalPages);
-            ClassicAssert.AreEqual(pagedList.PageSize, pageResponse.PageSize);
-            ClassicAssert.AreEqual(pagedList.PageNumber, pageResponse.PageNumber);
-            ClassicAssert.AreEqual(pagedList.Count, pageResponse.TotalPageElements);
-            ClassicAssert.AreEqual(pagedList.ToList(), pageResponse.Content);
-            ClassicAssert.AreEqual(direction, pageResponse.Direction);
-            ClassicAssert.AreEqual("fullName", pageResponse.SortBy);
-            ClassicAssert.AreEqual(pagedList.IsFirstPage, pageResponse.First);
-            ClassicAssert.AreEqual(pagedList.IsLastPage, pageResponse.Last);
-            ClassicAssert.AreEqual(pagedList.Count == 0, pageResponse.Empty);
-        });
+        ClassicAssert.AreEqual(pagedList.TotalCount, pageResponse.TotalElements);
+        ClassicAssert.AreEqual(pagedList.PageCount, pageResponse.TotalPages);
+        ClassicAssert.AreEqual(pagedList.PageSize, pageResponse.PageSize);
+        ClassicAssert.AreEqual(pagedList.PageNumber, pageResponse.PageNumber);
+        ClassicAssert.AreEqual(pagedList.Count, pageResponse.TotalPageElements);
+        ClassicAssert.AreEqual(pagedList.ToList(), pageResponse.Content);
+        ClassicAssert.AreEqual(direction, pageResponse.Direction);
+        ClassicAssert.AreEqual("fullName", pageResponse.SortBy);
+        ClassicAssert.AreEqual(pagedList.IsFirstPage, pageResponse.First);
+        ClassicAssert.AreEqual(pagedList.IsLastPage, pageResponse.Last);
+        ClassicAssert.AreEqual(pagedList.Count == 0, pageResponse.Empty);
     }
 
     [Test]
@@ -108,111 +108,242 @@ public class ClientControllerTest
         // Assert
         ClassicAssert.Null(result.Value);
     }
-    
+
     [Test]
-    public async Task CreateClientAsUser_ReturnsBadRequest_WhenModelIsInvalid()
+    public async Task GetMyClientData_WhenUserIsAuthenticated()
     {
-        // Arrange
-        var request = new ClientRequest(); // Request vacío/inválido
-        _clientController.ModelState.AddModelError("Name", "Required");
+        var expectedClient = new ClientResponse { Fullname = "cholo", Address = "simeone" };
+        _service.Setup(s => s.GettingMyClientData()).ReturnsAsync(expectedClient);
 
         // Act
+        var result = await _clientController.GetMyClientData();
+
+        // Assert
+        Assert.That(result.Value, Is.EqualTo(expectedClient));
+    }
+
+    [Test]
+    public async Task GetMyClientData_WhenUserIsNotAuthenticated()
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity()); // Usuario vacío (no autenticado)
+
+        _clientController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+
+        // Act
+        var result = await _clientController.GetMyClientData();
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<UnauthorizedResult>());
+    }
+
+    [Test]
+    public async Task GetMyClientData_whenUserIsUnAuthorized()
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Role, "Admin") }));
+
+        _clientController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+        
+        var result = await _clientController.GetMyClientData();
+        
+        Assert.That(result.Result, Is.InstanceOf<UnauthorizedResult>());
+    }
+
+    [Test]
+    public async Task CreateClientAsUser_ShouldReturnToken()
+    {
+        var request = new ClientRequest { FullName = "Test Client", Address = "Test Address" };
+        var token = "test_token";
+
+        _service.Setup(s => s.CreateClientAsync(request)).ReturnsAsync(token);
+        
         var result = await _clientController.CreateClientAsUser(request);
-
-        // Assert
+        
         ClassicAssert.NotNull(result);
-        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result);
-    }
-
-    [Test]
-    public async Task CreateClientAsUser_ValidRequest_ReturnsOkWithToken()
-    {
-        // Arrange
-        var clientRequest = new ClientRequest { FullName = "John Doe", Address = "123 Main St" };
-        var expectedToken = "fake_jwt_token";
-        _service.Setup(s => s.CreateClientAsync(clientRequest)).ReturnsAsync(expectedToken);
-
-        // Act
-        var result = await _clientController.CreateClientAsUser(clientRequest);
-
-        // Assert
         ClassicAssert.IsInstanceOf<OkObjectResult>(result);
+
         var okResult = result as OkObjectResult;
-        ClassicAssert.AreEqual(200, okResult.StatusCode);
+        ClassicAssert.NotNull(okResult.Value);
+        var responseObject = JObject.FromObject(okResult.Value);
+        string returnedToken = responseObject["client"]?.ToString();
 
-        // Verifica que el objeto anónimo tenga la propiedad "client"
-        var responseData = okResult.Value as dynamic;
-        ClassicAssert.AreEqual(expectedToken, responseData.GetType().GetProperty("client").GetValue(responseData));
+        ClassicAssert.AreEqual(token, returnedToken);
     }
 
-    
     [Test]
-    public async Task UpdateClientDniPhotoAsync_WithValidFile_ReturnsOk()
+    public async Task CreateClientAsUser_UserDontExists()
     {
-        // Arrange
-        var clientId = "12345";
-        var fileName = "new_photo.png";
-
-        var fileMock = new Mock<IFormFile>();
-        var fileContent = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("fake image content"));
-        fileMock.Setup(f => f.OpenReadStream()).Returns(fileContent);
-        fileMock.Setup(f => f.Length).Returns(fileContent.Length);
-        fileMock.Setup(f => f.FileName).Returns(fileName);
-
-        _service.Setup(s => s.UpdateClientPhotoAsync(clientId, fileMock.Object))
-            .ReturnsAsync(fileName);
-
-        // Act
-        var result = await _clientController.UpdateClientDniPhotoFtpAsync(clientId, fileMock.Object);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<OkObjectResult>(result);
-        var okResult = result as OkObjectResult;
-        ClassicAssert.IsNotNull(okResult);
-        ClassicAssert.AreEqual("Profile photo updated successfully", 
-            okResult.Value?.GetType().GetProperty("message")?.GetValue(okResult.Value));
-        ClassicAssert.AreEqual(fileName, 
-            okResult.Value?.GetType().GetProperty("fileName")?.GetValue(okResult.Value));
+        var request = new ClientRequest { FullName = "Updated Client" };
+        var id = "qq";
+        var createdClient = new ClientResponse { Id = "1", Fullname = "Updated Client" };
+        var token = "test_token";
+        
+        _service.Setup(s => s.CreateClientAsync( request)).ThrowsAsync(new UserNotFoundException(id));
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(async () => 
+            await _clientController.CreateClientAsUser(request));
+    
+        Assert.That(ex.Message, Is.EqualTo($"The user with id: {id} was not found"));
     }
-    
+
     [Test]
-    public async Task UpdateClientDniPhotoAsync_WithNullFile_ReturnsBadRequest()
+    public async Task CreateClientAsUser_AlreadyExists()
     {
-        // Arrange
-        var clientId = "12345";
+        var request = new ClientRequest { FullName = "Updated Client" };
+        var id = "1";
+        var createdClient = new ClientResponse { Id = "1", Fullname = "Updated Client" };
+        var token = "test_token";
 
-        // Act
-        var result = await _clientController.UpdateClientDniPhotoFtpAsync(clientId, null);
+        _service.Setup(s => s.CreateClientAsync(request))
+            .ThrowsAsync(new ClientExceptions.ClientAlreadyExistsException(id));
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientAlreadyExistsException>(async () =>
+            await _clientController.CreateClientAsUser(request));
 
-        // Assert
-        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result);
+        Assert.That(ex.Message, Is.EqualTo($"The client with id: {id} already exists"));
+    }
+
+    [Test]
+    public async Task CreateClientAsUser_BadRequest_underLimit()
+    {
+        var invalidRequest = new ClientRequest 
+        { 
+            FullName = "Abc",
+            Address = "Short"
+        };
+        
+        _clientController.ModelState.AddModelError("FullName", "The name must be at least 5 characters");
+        _clientController.ModelState.AddModelError("Address", "The address must be at least 10 characters");
+        
+        var result = await _clientController.CreateClientAsUser(invalidRequest);
+        
         var badRequestResult = result as BadRequestObjectResult;
-        ClassicAssert.IsNotNull(badRequestResult);
-        ClassicAssert.AreEqual("No file was provided or the file is empty.", 
-            badRequestResult.Value);
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("FullName"));
+        Assert.That(errors.ContainsKey("Address"));
+    }
+    
+    [Test]
+    public async Task CreateClientAsUser_BadRequest_AboveLimit()
+    {
+        var invalidRequest = new ClientRequest 
+        { 
+            FullName = "Abcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            Address = "Shortaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        };
+        
+        _clientController.ModelState.AddModelError("FullName", "The name must me at most 50 characters");
+        _clientController.ModelState.AddModelError("Address", "The address must me at most 100 characters");
+        
+        var result = await _clientController.CreateClientAsUser(invalidRequest);
+        
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("FullName"));
+        Assert.That(errors.ContainsKey("Address"));
     }
 
     [Test]
-    public async Task UpdateClientDniPhotoAsync_WithEmptyFile_ReturnsBadRequest()
+    public async Task UpdateMeClient_SholdReturn_ClientResponse()
+    {
+        var updateRequest = new ClientUpdateRequest
+        {
+            FullName = "Updated Client",
+            Address = "Updated Address"
+        };
+        var response = new ClientResponse
+        {
+            Id = "1",
+            Fullname = "Updated Client",
+            Address = "Updated Address"
+        };
+        _service.Setup(s => s.UpdateMeAsync(updateRequest)).ReturnsAsync(response);
+
+        var res = await _clientController.UpdateMeAsClient(updateRequest);
+        var okResult = res.Result as OkObjectResult;
+        Assert.That(okResult!.StatusCode, Is.EqualTo(200), "Expected status code 200");
+
+        var returnedClient = okResult.Value as ClientResponse;
+        Assert.That(returnedClient, Is.Not.Null, "Expected ClientResponse to be not null");
+        Assert.That(returnedClient!.Fullname, Is.EqualTo(updateRequest.FullName), "Expected Fullname to be 'Updated Client'");
+        Assert.That(returnedClient.Address, Is.EqualTo(updateRequest.Address), "Expected Address to be 'Updated Address'");
+    }
+
+    [Test]
+    public async Task UpdateMeClient_ClientNotFoundAsync()
     {
         // Arrange
-        var clientId = "12345";
+        var updateRequest = new ClientUpdateRequest { FullName = "Updated Client" };
 
-        var fileMock = new Mock<IFormFile>();
-        fileMock.Setup(f => f.Length).Returns(0); // Simula un archivo vacío
+        _service.Setup(s => s.UpdateMeAsync(updateRequest)).ThrowsAsync(new ClientExceptions.ClientNotFoundException("1"));
 
-        // Act
-        var result = await _clientController.UpdateClientDniPhotoFtpAsync(clientId, fileMock.Object);
-
+        var result = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () =>
+            await _clientController.UpdateMeAsClient(updateRequest));
         // Assert
-        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result);
-        var badRequestResult = result as BadRequestObjectResult;
-        ClassicAssert.IsNotNull(badRequestResult);
-        ClassicAssert.AreEqual("No file was provided or the file is empty.", 
-            badRequestResult.Value);
+        ClassicAssert.AreEqual(result.Message, "Client not found by id 1");
+    }
+
+    [Test]
+    public async Task UpdateMeClient_BadRequest_Aboceimit()
+    {
+        var invalidRequest = new ClientUpdateRequest 
+        { 
+            FullName = "Abcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            Address = "Shortaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        };
+        
+        _clientController.ModelState.AddModelError("FullName", "FullName must be between 3 and 80 characters.");
+        _clientController.ModelState.AddModelError("Address", "Address must be between 3 and 80 characters.");
+        
+        var result = await _clientController.UpdateMeAsClient(invalidRequest);
+        
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("FullName"));
+        Assert.That(errors.ContainsKey("Address"));
     }
     
-    
+    [Test]
+    public async Task UpdateMeClient_BadRequest_UnderLimit()
+    {
+        var invalidRequest = new ClientUpdateRequest 
+        { 
+            FullName = "ad",
+            Address = "Sh"
+        };
+        
+        _clientController.ModelState.AddModelError("FullName", "FullName must be between 3 and 80 characters.");
+        _clientController.ModelState.AddModelError("Address", "Address must be between 3 and 80 characters.");
+        
+        var result = await _clientController.UpdateMeAsClient(invalidRequest);
+        
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("FullName"));
+        Assert.That(errors.ContainsKey("Address"));
+    }
+
     [Test]
     public async Task UpdateClient_ReturnsOkResult_WhenClientExists()
     {
@@ -226,16 +357,12 @@ public class ClientControllerTest
         var result = await _clientController.UpdateClient("1", request);
 
         // Assert
+        ClassicAssert.NotNull(result.Result);
+        ClassicAssert.IsInstanceOf<OkObjectResult>(result.Result);
         var updatedClientResult = result.Result as OkObjectResult;
-        Assert.Multiple(() =>
-        {
-            ClassicAssert.NotNull(result.Result);
-            ClassicAssert.IsInstanceOf<OkObjectResult>(result.Result);
-            ClassicAssert.NotNull(updatedClientResult.Value);
-            ClassicAssert.AreEqual(updatedClient, updatedClientResult.Value);
-        });
+        ClassicAssert.NotNull(updatedClientResult.Value);
+        ClassicAssert.AreEqual(updatedClient, updatedClientResult.Value);
     }
-    
 
     [Test]
     public async Task UpdateClient_ReturnsNotFound_WhenClientDoesNotExist()
@@ -259,81 +386,6 @@ public class ClientControllerTest
         // Assert
         ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
     }
-    
-    [Test]
-    public async Task UpdateClient_WithInvalidModel_ReturnsBadRequest()
-    {
-        // Arrange
-        var clientId = "1";
-        var invalidRequest = new ClientUpdateRequest { FullName = "" }; // Assuming FullName is required
-        _clientController.ModelState.AddModelError("FullName", "Required");
-
-        // Act
-        var result = await _clientController.UpdateClient(clientId, invalidRequest);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result.Result);
-        var badRequestResult = result.Result as BadRequestObjectResult;
-        ClassicAssert.IsNotNull(badRequestResult);
-        ClassicAssert.That(((SerializableError)badRequestResult.Value)["FullName"] as string[], Is.EqualTo(new[] { "Required" }));
-    }
-    
-    [Test]
-    public async Task UpdateMeAsClient_WithValidRequest_ReturnsOkResult()
-    {
-        // Arrange
-        var request = new ClientUpdateRequest { FullName = "Updated Client" };
-        var updatedClient = new ClientResponse { Id = "1", Fullname = "Updated Client" };
-
-        _service.Setup(s => s.UpdateMeAsync(request)).ReturnsAsync(updatedClient);
-
-        // Act
-        var result = await _clientController.UpdateMeAsClient(request);
-
-        // Assert
-        var okResult = result.Result as OkObjectResult;
-        Assert.Multiple(() =>
-        {
-            ClassicAssert.NotNull(result.Result);
-            ClassicAssert.IsInstanceOf<OkObjectResult>(result.Result);
-            ClassicAssert.NotNull(okResult.Value);
-            ClassicAssert.AreEqual(updatedClient, okResult.Value);
-        });
-    }
-    
-    [Test]
-    public async Task UpdateMeAsClient_WithInvalidModel_ReturnsBadRequest()
-    {
-        // Arrange
-        var invalidRequest = new ClientUpdateRequest { FullName = "" }; // Assuming FullName is required
-        _clientController.ModelState.AddModelError("FullName", "Required");
-
-        // Act
-        var result = await _clientController.UpdateMeAsClient(invalidRequest);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result.Result);
-        var badRequestResult = result.Result as BadRequestObjectResult;
-        ClassicAssert.IsNotNull(badRequestResult);
-        ClassicAssert.That(((SerializableError)badRequestResult.Value)["FullName"] as string[], Is.EqualTo(new[] { "Required" }));
-    }
-    
-    [Test]
-    public async Task DeleteClient_ShouldCallLogicDeleteClientAsync_WhenCalledWithValidId()
-    {
-        // Arrange
-        var clientId = "123";
-        _service
-            .Setup(service => service.LogicDeleteClientAsync(clientId))
-            .Returns(Task.CompletedTask); // Simula una tarea exitosa
-
-        // Act
-        await _clientController.DeleteClient(clientId);
-
-        // Assert
-        // Verificar que LogicDeleteClientAsync haya sido llamado con el id correcto
-        _service.Verify(service => service.LogicDeleteClientAsync(clientId), Times.Once);
-    }
 
     [Test]
     public async Task DeleteClient_ReturnsNotFound_WhenClientDoesNotExist()
@@ -355,222 +407,42 @@ public class ClientControllerTest
         // Assert
         ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
     }
-    
-    
+
     [Test]
-    public async Task DeleteMeClient_ShouldCallDeleteMeOnService()
+    public async Task DeleteMeAsClient_ShouldLogicDeleteClient()
     {
         // Arrange
-        bool deleteMeWasCalled = false;
-        _service.Setup(s => s.DeleteMe())
-            .Callback(() => deleteMeWasCalled = true) 
-            .Returns(Task.CompletedTask);
+        _service.Setup(s => s.DeleteMe()).Returns(Task.CompletedTask);
 
         // Act
         await _clientController.DeleteMeClient();
 
-        // Assert
-        ClassicAssert.IsTrue(deleteMeWasCalled);
-    }
-    
-    [Test]
-    public async Task GetPhotoByFileNameAsync_WithValidFileName_ReturnsFileStreamResult()
-    {
-        // Arrange
-        var fileName = "photo.png";
-        var fileContent = "Contenido del fichero";
-        var mimeType = "image/png";
-
-        // Create a temporary file
-        var tempFilePath = System.IO.Path.GetTempFileName();
-        await File.WriteAllTextAsync(tempFilePath, fileContent);
-        var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read);
-
-        _service.Setup(s => s.GetFileAsync(fileName)).ReturnsAsync(fileStream);
-
-        // Act
-        var result = await _clientController.GetPhotoByFileNameAsync(fileName);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<FileStreamResult>(result);
-        var fileResult = result as FileStreamResult;
-        ClassicAssert.IsNotNull(fileResult);
-        ClassicAssert.AreEqual(mimeType, fileResult.ContentType);
-        ClassicAssert.AreEqual(fileName, fileResult.FileDownloadName);
-
-        // Clean up
-        fileStream.Dispose();
-        File.Delete(tempFilePath);
-    }
-    
-    [Test]
-    public async Task GetPhotoByFileNameAsync_WithEmptyFileName_ReturnsBadRequest()
-    {
-        // Arrange
-        var fileName = string.Empty;
-
-        // Act
-        var result = await _clientController.GetPhotoByFileNameAsync(fileName);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result);
-        var badRequestResult = result as BadRequestObjectResult;
-        ClassicAssert.IsNotNull(badRequestResult);
-        ClassicAssert.AreEqual("File name must be provided.",
-            badRequestResult.Value?.GetType().GetProperty("message")?.GetValue(badRequestResult.Value));
-    }
-    
-    [Test]
-    public async Task GetPhotoByFileNameAsync_ReturnsNotFound_WhenFileStreamIsNull()
-    {
-        // Arrange
-        var fileName = "nonexistent.png";
-
-        _service.Setup(s => s.GetFileAsync(fileName))
-            .ReturnsAsync((FileStream)null);
-
-        // Act
-        var result = await _clientController.GetPhotoByFileNameAsync(fileName);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
-        var notFoundResult = result as NotFoundObjectResult;
-        ClassicAssert.IsNotNull(notFoundResult);
-        ClassicAssert.AreEqual($"File with name {fileName} not found.", 
-            notFoundResult.Value?.GetType().GetProperty("message")?.GetValue(notFoundResult.Value));
-    }
-    
-    [Test]
-    public async Task GetFileFromFtpAsync_WithValidFileName_ReturnsFileStreamResult()
-    {
-        // Arrange
-        var fileName = "document.pdf";
-        var fileContent = "Contenido del fichero";
-        var mimeType = "application/pdf";
-
-        // Crear un archivo temporal para simular el stream
-        var tempFilePath = System.IO.Path.GetTempFileName();
-        await File.WriteAllTextAsync(tempFilePath, fileContent);
-        var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read);
-
-        _service.Setup(s => s.GetFileFromFtpAsync(fileName))
-            .ReturnsAsync(fileStream);
-
-        // Act
-        var result = await _clientController.GetFileFromFtpAsync(fileName);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<FileStreamResult>(result);
-        var fileResult = result as FileStreamResult;
-        ClassicAssert.IsNotNull(fileResult);
-        ClassicAssert.AreEqual(mimeType, fileResult.ContentType);
-        ClassicAssert.AreEqual(fileName, fileResult.FileDownloadName);
-
-        // Clean up
-        fileStream.Dispose();
-        File.Delete(tempFilePath);
-    }
-    
-    [Test]
-    public async Task GetFileFromFtpAsync_WithNonExistentFile_ReturnsNotFound()
-    {
-        // Arrange
-        var fileName = "nonexistent.pdf";
-
-        _service.Setup(s => s.GetFileFromFtpAsync(fileName))
-            .ReturnsAsync((FileStream)null);
-
-        // Act
-        var result = await _clientController.GetFileFromFtpAsync(fileName);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
-        var notFoundResult = result as NotFoundObjectResult;
-        ClassicAssert.IsNotNull(notFoundResult);
-        ClassicAssert.AreEqual($"File with name {fileName} not found.", 
-            notFoundResult.Value?.GetType().GetProperty("message")?.GetValue(notFoundResult.Value));
+        _service.Verify(_service => _service.DeleteMe(), Times.Once());
     }
 
     [Test]
-    public async Task GetFileFromFtpAsync_WithEmptyFileName_ReturnsBadRequest()
+    public async Task DeleteMeAsClient_NotFound()
     {
-        // Arrange
-        var fileName = string.Empty;
+        _service.Setup(s => s.DeleteMe()).ThrowsAsync(new ClientExceptions.ClientNotFoundException("1"));
 
-        // Act
-        var result = await _clientController.GetFileFromFtpAsync(fileName);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result);
-        var badRequestResult = result as BadRequestObjectResult;
-        ClassicAssert.IsNotNull(badRequestResult);
-        ClassicAssert.AreEqual("File name must be provided.", 
-            badRequestResult.Value?.GetType().GetProperty("message")?.GetValue(badRequestResult.Value));
-    }
-
-    
-    [Test]
-    public async Task DeleteFileAsync_ReturnsOkResult()
-    {
-        // Arrange
-        var fileName = "document.pdf";
-
-        _service.Setup(s => s.F(fileName))
-            .ReturnsAsync(true);
-
-        // Act
-        var result = await _clientController.DeleteFileAsync(fileName);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<OkObjectResult>(result);
-        var okResult = result as OkObjectResult;
-        ClassicAssert.IsNotNull(okResult);
-        ClassicAssert.AreEqual($"File with name {fileName} deleted successfully.", 
-            okResult.Value?.GetType().GetProperty("message")?.GetValue(okResult.Value));
+        Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(_clientController.DeleteMeClient);
+        _service.Verify(_service => _service.DeleteMe(), Times.Once());
     }
 
     [Test]
-    public async Task DeleteFileAsync_ReturnsNotFoundResult()
+    public async Task DeleteMeAsClient_UsreNotFound()
     {
-        // Arrange
-        var fileName = "nonexistent.pdf";
+        _service.Setup(s => s.DeleteMe()).ThrowsAsync(new UserNotFoundException("1"));
 
-        _service.Setup(s => s.DeleteFileFromFtpAsync(fileName))
-            .ReturnsAsync(false);
-
-        // Act
-        var result = await _clientController.DeleteFileAsync(fileName);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
-        var notFoundResult = result as NotFoundObjectResult;
-        ClassicAssert.IsNotNull(notFoundResult);
-        ClassicAssert.AreEqual($"File with name {fileName} not found.", 
-            notFoundResult.Value?.GetType().GetProperty("message")?.GetValue(notFoundResult.Value));
+        Assert.ThrowsAsync<UserNotFoundException>(_clientController.DeleteMeClient);
+        _service.Verify(_service => _service.DeleteMe(), Times.Once());
     }
 
-    [Test]
-    public async Task DeleteFileAsync_ReturnsBadRequest()
-    {
-        // Arrange
-        var fileName = string.Empty;
-
-        // Act
-        var result = await _clientController.DeleteFileAsync(fileName);
-
-        // Assert
-        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result);
-        var badRequestResult = result as BadRequestObjectResult;
-        ClassicAssert.IsNotNull(badRequestResult);
-        ClassicAssert.AreEqual("File name must be provided.", 
-            badRequestResult.Value?.GetType().GetProperty("message")?.GetValue(badRequestResult.Value));
-    }
-    
     [Test]
     public async Task ExportMeData_ReturnsJsonFile_WhenExporting()
     {
         // Arrange
-        var client = new ClientResponse { Id = "3gdv_474", Fullname = "Test Client 1" };
+        var client = new ClientResponse { Id = "1", Fullname = "Test Client 1" };
         _service.Setup(s => s.GettingMyClientData()).ReturnsAsync(client);
         
         // Act
@@ -584,8 +456,6 @@ public class ClientControllerTest
         IFormFile file = new FormFile(fileResult.FileStream, 0, fileResult.FileStream.Length, "id_from_form", "test.json");
         var returnedClient = await _storage.Import(file).ToList();
         ClassicAssert.AreEqual(returnedClient[0].Id, client.Id);
-        ClassicAssert.AreEqual(returnedClient[0].FullName, client.Fullname);
+        ClassicAssert.AreEqual(returnedClient[0].Fullname, client.Fullname);
     }
-    
 }
-*/
