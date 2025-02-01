@@ -57,6 +57,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 case IngresoNominaInvalidAmountException:
                 case PagoTarjetaInvalidAmountException:
                 case TransferInvalidAmountException:
+                case TransferSameIbanException:
                 case InvalidSourceIbanException:
                 case InvalidCardNumberException:
                 case InvalidDestinationIbanException:
