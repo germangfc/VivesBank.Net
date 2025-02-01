@@ -1,4 +1,5 @@
 ﻿using VivesBankApi.Rest.Product.CreditCard.Dto;
+using VivesBankApi.Rest.Product.CreditCard.Mappers;
 
 namespace Tests.Rest.Product.CreditCard.Mapper;
 

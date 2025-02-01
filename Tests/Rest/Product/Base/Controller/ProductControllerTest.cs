@@ -1,173 +1,212 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using System.Reactive.Linq;
+using System.Text;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MongoDB.Bson.IO;
 using Moq;
-using StackExchange.Redis;
-using Testcontainers.PostgreSql;
-using VivesBankApi.Database;
+using NUnit.Framework.Legacy;
 using VivesBankApi.Rest.Product.Base.Controller;
 using VivesBankApi.Rest.Product.Base.Dto;
 using VivesBankApi.Rest.Product.Base.Models;
-using VivesBankApi.Rest.Product.Base.Repository;
-using VivesBankApi.Rest.Product.Base.Validators;
 using VivesBankApi.Rest.Product.Service;
+using Newtonsoft.Json;
+
 
 
 [TestFixture]
 [TestOf(typeof(ProductController))]
 public class ProductControllerTests
 {
-    private Mock<IDatabase> _cache;
-    private Mock<IConnectionMultiplexer> connection;
-    private PostgreSqlContainer _postgreSqlContainer;
-    private BancoDbContext _dbContext;
-    private ProductRepository _repository;
-    private ProductService _service;
+    private Mock<IProductService> _productService;
+    private Mock<ILogger<ProductController>> _logger;
     private ProductController _controller;
-    private ProductValidator _productValidator;
+    
+    //Products
+    private ProductCreateRequest _productCreateRequest;
+    private ProductUpdateRequest _productUpdateRequest;
+    private ProductResponse _productResponse1;
+    private ProductResponse _productResponse2;
+    private ProductResponse _productResponse3;
+    private ProductResponse _productResponse4;
+    private List<ProductResponse> _products;
 
-    [OneTimeSetUp]
-    public async Task Setup()
+    [SetUp]
+    public void SetUp()
     {
-        _cache = new Mock<IDatabase>();
-        connection = new Mock<IConnectionMultiplexer>();
-        connection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<string>())).Returns(_cache.Object);
-        _postgreSqlContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:15-alpine")
-            .WithDatabase("testdb")
-            .WithUsername("testuser")
-            .WithPassword("testpassword")
-            .WithPortBinding(5432, true)
-            .Build();
+        _productService = new Mock<IProductService>();
+        _logger = new Mock<ILogger<ProductController>>();
+        _controller = new ProductController(_productService.Object, _logger.Object);
 
-        await _postgreSqlContainer.StartAsync();
-
-        var options = new DbContextOptionsBuilder<BancoDbContext>()
-            .UseNpgsql(_postgreSqlContainer.GetConnectionString())
-            .Options;
-
-        _dbContext = new BancoDbContext(options);
-        await _dbContext.Database.EnsureCreatedAsync();
-
-        _repository = new ProductRepository(_dbContext, NullLogger<ProductRepository>.Instance);
-        _service = new ProductService(NullLogger<ProductService>.Instance, _repository, _productValidator, connection.Object);
-        _controller = new ProductController(_service, NullLogger<ProductController>.Instance);
-    }
-
-    [OneTimeTearDown]
-    public async Task Teardown()
-    {
-        if (_dbContext != null) await _dbContext.DisposeAsync();
-        if (_postgreSqlContainer != null)
+        _productCreateRequest = new ProductCreateRequest
         {
-            await _postgreSqlContainer.StopAsync();
-            await _postgreSqlContainer.DisposeAsync();
-        }
-    }
+            Name = "ProductCreateName",
+            Type = Product.Type.BankAccount.ToString()
+        };
 
+        _productUpdateRequest = new ProductUpdateRequest
+        {
+            Name = "ProductUpdateName",
+            Type = Product.Type.BankAccount.ToString()
+        };
+
+        _productResponse1 = new ProductResponse
+        {
+            Id = "1",
+            Name = "Product 1",
+            Type = "CreditCard"
+        };
+        
+        _productResponse2 = new ProductResponse
+        {
+            Id = "2",
+            Name = "Product 2",
+            Type = "BankAccount"
+        };
+        
+        _productResponse3 = new ProductResponse
+        {
+            Id = "3",
+            Name = "Product 3",
+            Type = "BankAccount"
+        };
+        
+        _productResponse4 = new ProductResponse
+        {
+            Id = "4",
+            Name = "Product 4",
+            Type = "CreditCard"
+        };
+
+
+        _products = new List<ProductResponse>
+        {
+            _productResponse1, _productResponse2, _productResponse3
+        };
+    }
+    
+    
     [Test]
-    public async Task GetAllProducts()
+    public async Task GetAllProductsAsync()
     {
-        var product = new Product("Product 1", Product.Type.BankAccount);
-        _dbContext.Products.Add(product);
-        await _dbContext.SaveChangesAsync();
+        // Arrange
+        _productService
+            .Setup(service => service.GetAllProductsAsync())
+            .ReturnsAsync(_products);
 
+        // Act
         var result = await _controller.GetAllProductsAsync();
-
-        Assert.That(result, Is.InstanceOf<ActionResult<List<ProductResponse>>>());
-
         var okResult = result.Result as OkObjectResult;
+        var responseProducts = okResult?.Value as List<ProductResponse>;
 
-        Assert.That(okResult, Is.Not.Null);
-        Assert.That(okResult.Value, Is.InstanceOf<List<ProductResponse>>());
-        Assert.That(okResult.Value, Is.Not.Null);
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.InstanceOf<ActionResult<List<ProductResponse>>>());
+            Assert.That(okResult, Is.Not.Null);
+            Assert.That(okResult!.StatusCode, Is.EqualTo(200));
+            Assert.That(responseProducts, Is.Not.Null);
+            Assert.That(responseProducts, Is.InstanceOf<List<ProductResponse>>());
+            Assert.That(responseProducts!.Count, Is.EqualTo(_products.Count));
+            Assert.That(responseProducts, Is.EqualTo(_products));
+        });
     }
+
     
     [Test]
     public async Task GetProductById()
     {
-        var product = new Product("Product 3", Product.Type.BankAccount);
-        _dbContext.Products.Add(product);
-        await _dbContext.SaveChangesAsync();
+        // Arrange
+        var productId = "3";
+        _productService
+            .Setup(service => service.GetProductByIdAsync(productId))
+            .ReturnsAsync(_productResponse3);
 
-        var result = await _controller.GetProductByIdAsync(product.Id);
-
-        Assert.That(result, Is.InstanceOf<ActionResult<ProductResponse>>());
-
+        // Act
+        var result = await _controller.GetProductByIdAsync(productId);
         var okResult = result.Result as OkObjectResult;
+        var product = okResult?.Value as ProductResponse;
 
-        Assert.That(okResult, Is.Not.Null);
-        Assert.That(okResult.Value, Is.InstanceOf<ProductResponse>());
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.InstanceOf<ActionResult<ProductResponse>>());
+            Assert.That(okResult, Is.Not.Null);
+            Assert.That(okResult!.StatusCode, Is.EqualTo(200));
+            Assert.That(product, Is.Not.Null);
+            Assert.That(product!.Id, Is.EqualTo(_productResponse3.Id));
+            Assert.That(product.Name, Is.EqualTo(_productResponse3.Name));
+            Assert.That(product.Type, Is.EqualTo(_productResponse3.Type));
+        });
     }
-
+    
+    
     [Test]
-    public async Task GetProductByIdNotFound()
+    public async Task GetProductById_NotFound()
     {
-        var mockService = new Mock<IProductService>();
-        mockService
-            .Setup(service => service.GetProductByIdAsync("nonExistingId"))
+        // Arrange
+        var productId = "999";
+        _productService
+            .Setup(service => service.GetProductByIdAsync(productId))
             .ReturnsAsync((ProductResponse)null);
 
-        var logger = NullLogger<ProductController>.Instance;
-        var controller = new ProductController(mockService.Object, logger);
+        // Act
+        var result = await _controller.GetProductByIdAsync(productId);
 
-        var result = await controller.GetProductByIdAsync("nonExistingId");
-
-        var notFoundResult = result.Result as NotFoundResult;
-
-        Assert.That(notFoundResult, Is.Not.Null);
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.InstanceOf<ActionResult<ProductResponse>>());
+            Assert.That(result.Result, Is.InstanceOf<NotFoundResult>());
+        
+            var notFoundResult = result.Result as NotFoundResult;
+            Assert.That(notFoundResult!.StatusCode, Is.EqualTo(404));
+        });
     }
+
     
     [Test]
-    public async Task CreateProductCreated()
+    public async Task CreateProduct()
     {
-        var mockRequest = new ProductCreateRequest
-        {
-            Name = "New Product",
-            Type = Product.Type.BankAccount.ToString()
-        };
+        // Arrange
+        var mockCreateRequest = _productCreateRequest;
+        var mockResponse = _productResponse4;
 
-        var mockResponse = new ProductResponse
-        {
-            Id = "newProductId",
-            Name = "New Product",
-            Type = "BankAccount" 
-        };
+        _productService
+            .Setup(service => service.CreateProductAsync(mockCreateRequest))
+            .ReturnsAsync(mockResponse);
 
-        var mockService = new Mock<IProductService>();
-        mockService
-            .Setup(service => service.CreateProductAsync(mockRequest))
-            .ReturnsAsync(mockResponse); 
-
-        var logger = NullLogger<ProductController>.Instance;
-        var controller = new ProductController(mockService.Object, logger);
-
-        var result = await controller.CreateProductAsync(mockRequest);
-
+        // Act
+        var result = await _controller.CreateProductAsync(mockCreateRequest);
         var createdResult = result.Result as CreatedAtActionResult;
-        Assert.That(createdResult, Is.Not.Null); 
-        Assert.That(createdResult.ActionName, Is.EqualTo("GetProductByIdAsync")); 
-        Assert.That(createdResult.RouteValues["id"], Is.EqualTo("newProductId")); 
-        Assert.That(createdResult.Value, Is.InstanceOf<ProductResponse>()); 
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.InstanceOf<ActionResult<ProductResponse>>());
+            Assert.That(createdResult, Is.Not.Null);
+            Assert.That(createdResult!.ActionName, Is.EqualTo(nameof(ProductController.GetProductByIdAsync)));
+            Assert.That(createdResult.RouteValues?["id"], Is.EqualTo(mockResponse.Id));
+            Assert.That(createdResult.Value, Is.InstanceOf<ProductResponse>());
+        });
 
         var product = createdResult.Value as ProductResponse;
-        Assert.That(product.Id, Is.EqualTo("newProductId"));
-        Assert.That(product.Name, Is.EqualTo("New Product"));
-        Assert.That(product.Type, Is.EqualTo("BankAccount")); 
+        Assert.Multiple(() =>
+        {
+            Assert.That(product!.Id, Is.EqualTo(mockResponse.Id));
+            Assert.That(product.Name, Is.EqualTo(mockResponse.Name));
+            Assert.That(product.Type, Is.EqualTo(mockResponse.Type));
+        });
     }
-
+    
     
     [Test]
-    public async Task UpdateProductUpdated()
+    public async Task UpdateProductAsync()
     {
-        var productId = "existingProductId";
-
-        var mockRequest = new ProductUpdateRequest
-        {
-            Name = "Updated Product",
-            Type = Product.Type.BankAccount.ToString()
-        };
-
+        // Arrange
+        var productId = "1";
+        var mockRequest = _productUpdateRequest; 
         var mockResponse = new ProductResponse
         {
             Id = productId,
@@ -183,81 +222,212 @@ public class ProductControllerTests
         var logger = NullLogger<ProductController>.Instance;
         var controller = new ProductController(mockService.Object, logger);
 
+        // Act
         var result = await controller.UpdateProductAsync(productId, mockRequest);
 
+        // Assert
         var createdResult = result.Result as CreatedAtActionResult;
-        Assert.That(createdResult, Is.Not.Null); 
-        Assert.That(createdResult.ActionName, Is.EqualTo("GetProductByIdAsync"));
-        Assert.That(createdResult.RouteValues["id"], Is.EqualTo(productId)); 
-        Assert.That(createdResult.Value, Is.InstanceOf<ProductResponse>()); 
 
-        var product = createdResult.Value as ProductResponse;
-        Assert.That(product.Id, Is.EqualTo(productId));
-        Assert.That(product.Name, Is.EqualTo("Updated Product"));
-        Assert.That(product.Type, Is.EqualTo("BankAccount")); 
-    }
-    
-    [Test]
-    public async Task UpdateProductNotfound()
-    {
-        var productId = "nonExistingProductId";
-
-        var mockRequest = new ProductUpdateRequest
+        Assert.Multiple(() =>
         {
-            Name = "Updated Product",
-            Type = "BankAccount" 
-        };
-
-        var mockService = new Mock<IProductService>();
-        mockService
-            .Setup(service => service.UpdateProductAsync(productId, mockRequest))
-            .ReturnsAsync((ProductResponse)null);
-
-        var logger = NullLogger<ProductController>.Instance;
-        var controller = new ProductController(mockService.Object, logger);
-
-        var result = await controller.UpdateProductAsync(productId, mockRequest);
-
-        Assert.That(result.Result, Is.InstanceOf<NotFoundResult>()); 
+            Assert.That(createdResult, Is.Not.Null);
+            Assert.That(createdResult.ActionName, Is.EqualTo("GetProductByIdAsync"));
+            Assert.That(createdResult.RouteValues["id"], Is.EqualTo(productId));
+            
+            var product = createdResult.Value as ProductResponse;
+            Assert.That(product, Is.Not.Null);
+            Assert.That(product.Id, Is.EqualTo(productId));
+            Assert.That(product.Name, Is.EqualTo("Updated Product"));
+            Assert.That(product.Type, Is.EqualTo("BankAccount"));
+        });
+        
         mockService.Verify(service => service.UpdateProductAsync(productId, mockRequest), Times.Once);
     }
     
+    
     [Test]
-    public async Task DeleteProductDeleted()
+    public async Task UpdateProductAsync_NotFound()
     {
-        var productId = "existingProductId";
+        // Arrange
+        var productId = "999";
+        var mockRequest = new ProductUpdateRequest
+        {
+            Name = "Updated Product",
+            Type = "CreditCard"
+        };
+        
+        _productService.Setup(service => service.UpdateProductAsync(productId, mockRequest))
+            .ReturnsAsync((ProductResponse)null);
 
-        var mockService = new Mock<IProductService>();
-        mockService
-            .Setup(service => service.DeleteProductAsync(productId))
-            .Returns(Task.FromResult(true));
+        var controller = new ProductController(_productService.Object, NullLogger<ProductController>.Instance);
 
-        var logger = NullLogger<ProductController>.Instance;
-        var controller = new ProductController(mockService.Object, logger);
+        // Act
+        var result = await controller.UpdateProductAsync(productId, mockRequest);
 
+        // Assert
+        var notFoundResult = result.Result as NotFoundResult;
+        Assert.That(notFoundResult?.StatusCode, Is.EqualTo(404)); 
+
+        _productService.Verify(service => service.UpdateProductAsync(productId, mockRequest), Times.Once);
+    }
+
+    
+    [Test]
+    public async Task DeleteProductAsync()
+    {
+        // Arrange
+        var productId = "1";
+        _productService.Setup(service => service.DeleteProductAsync(productId))
+            .ReturnsAsync(true);
+
+        var controller = new ProductController(_productService.Object, NullLogger<ProductController>.Instance);
+
+        // Act
         var result = await controller.DeleteProductAsync(productId);
 
+        // Assert
         Assert.That(result, Is.InstanceOf<NoContentResult>());
-        mockService.Verify(service => service.DeleteProductAsync(productId), Times.Once); 
+        _productService.Verify(service => service.DeleteProductAsync(productId), Times.Once);
+    }
+
+    
+    [Test]
+    public async Task DeleteProductAsync_NotFound()
+    {
+        // Arrange
+        var productId = "999";
+        _productService.Setup(service => service.DeleteProductAsync(productId))
+            .ReturnsAsync(false);
+
+        var controller = new ProductController(_productService.Object, NullLogger<ProductController>.Instance);
+
+        // Act
+        var result = await controller.DeleteProductAsync(productId);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<NotFoundResult>());
+        _productService.Verify(service => service.DeleteProductAsync(productId), Times.Once);
     }
     
     [Test]
-    public async Task DeleteProductNotFound()
+    public async Task LoadProduct_WhenValidCsvUploaded_ReturnsOkResult()
     {
-        var productId = "nonExistingProductId";
+        // Arrange
+        var mockProductService = new Mock<IProductService>();
+        var mockLogger = new Mock<ILogger<ProductController>>();
+        var controller = new ProductController(mockProductService.Object, mockLogger.Object);
 
-        var mockService = new Mock<IProductService>();
-        mockService
-            .Setup(service => service.DeleteProductAsync(productId))
-            .ReturnsAsync(false); 
+        var csvContent = "Id,Name,Type,CreatedAt,UpdatedAt,IsDeleted\n1,Test Product,Physical,2024-01-01,2024-02-01,false";
+        var bytes = Encoding.UTF8.GetBytes(csvContent);
+        var file = new FormFile(new MemoryStream(bytes), 0, bytes.Length, "file", "products.csv");
 
-        var logger = NullLogger<ProductController>.Instance;
-        var controller = new ProductController(mockService.Object, logger);
+        var fakeProducts = new List<Product>
+        {
+            new Product("Test Product", Product.Type.BankAccount)
+            {
+                Id = "1",
+                CreatedAt = DateTime.Parse("2024-01-01"),
+                UpdatedAt = DateTime.Parse("2024-02-01"),
+                IsDeleted = false
+            }
+        };
 
-        var result = await controller.DeleteProductAsync(productId);
+        mockProductService.Setup(service => service.LoadCsv(It.IsAny<Stream>())).Returns(fakeProducts);
 
-        Assert.That(result, Is.InstanceOf<NotFoundResult>()); 
-        mockService.Verify(service => service.DeleteProductAsync(productId), Times.Once); 
+        // Act
+        var result = await controller.LoadProduct(file);
+
+        // Assert
+        var okResult = result as OkObjectResult;
+        ClassicAssert.IsNotNull(okResult);
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+        var returnedProducts = okResult.Value as List<Product>;
+        ClassicAssert.IsNotNull(returnedProducts);
+        ClassicAssert.AreEqual(fakeProducts.Count, returnedProducts.Count);
     }
     
+    [Test]
+    public async Task ImportProductsFromJson_WhenValidJsonUploaded_ReturnsOkResult()
+    {
+        var mockProductService = new Mock<IProductService>();
+        var mockLogger = new Mock<ILogger<ProductController>>();
+        var controller = new ProductController(mockProductService.Object, mockLogger.Object);
+
+        var jsonContent = "[{\"Id\":\"1\",\"Name\":\"Test Product\",\"Type\":\"Physical\",\"CreatedAt\":\"2024-01-01\",\"UpdatedAt\":\"2024-02-01\",\"IsDeleted\":false}]";
+        var bytes = Encoding.UTF8.GetBytes(jsonContent);
+        var file = new FormFile(new MemoryStream(bytes), 0, bytes.Length, "file", "products.json");
+
+        var fakeProducts = new List<Product>
+        {
+            new Product("Test Product", Product.Type.BankAccount)
+            {
+                Id = "1",
+                CreatedAt = DateTime.Parse("2024-01-01"),
+                UpdatedAt = DateTime.Parse("2024-02-01"),
+                IsDeleted = false
+            }
+        };
+
+        var observableProducts = fakeProducts.ToObservable(); 
+
+        mockProductService.Setup(service => service.Import(It.IsAny<IFormFile>())).Returns(observableProducts);
+
+        // Act
+        var result = await controller.ImportProductsFromJson(file);
+
+        // Assert
+        var okResult = result as OkObjectResult;
+        ClassicAssert.IsNotNull(okResult);
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+        var returnedProducts = okResult.Value as List<Product>;
+        ClassicAssert.IsNotNull(returnedProducts);
+        ClassicAssert.AreEqual(fakeProducts.Count, returnedProducts.Count);
+    }
+
+    [Test]
+    public async Task ExportProductsToJson_WhenProductsExist_ReturnsFileResult()
+    {
+        var mockProductService = new Mock<IProductService>();
+        var mockLogger = new Mock<ILogger<ProductController>>();
+        var controller = new ProductController(mockProductService.Object, mockLogger.Object);
+
+        var fakeProductResponses = new List<ProductResponse>
+        {
+            new ProductResponse
+            {
+                Id = "1",
+                Name = "Test Product",
+                Type = "BankAccount",
+                CreatedAt = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
+                UpdatedAt = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")
+
+            }
+        };
+
+        mockProductService.Setup(service => service.GetAllProductsAsync()).ReturnsAsync(fakeProductResponses);
+
+        var fakeProducts = fakeProductResponses.Select(pr => new Product(pr.Name, Enum.Parse<Product.Type>(pr.Type, true))
+        {
+            Id = pr.Id,
+            CreatedAt = DateTime.Parse(pr.CreatedAt),
+            UpdatedAt = DateTime.Parse(pr.UpdatedAt),
+        }).ToList();
+
+        var tempFilePath = System.IO.Path.GetTempFileName();
+        await File.WriteAllTextAsync(tempFilePath, Newtonsoft.Json.JsonConvert.SerializeObject(fakeProducts));
+        var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        mockProductService.Setup(service => service.Export(It.IsAny<List<Product>>())).ReturnsAsync(fileStream);
+
+        var result = await controller.ExportProductsToJson();
+
+        // Assert
+        var fileResult = result as FileStreamResult;
+        ClassicAssert.IsNotNull(fileResult);
+        ClassicAssert.AreEqual("application/json", fileResult.ContentType);
+        ClassicAssert.AreEqual("products.json", fileResult.FileDownloadName);
+    }
+
+
+
 }
