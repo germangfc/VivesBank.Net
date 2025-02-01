@@ -391,27 +391,35 @@ public class MovimientoService(
         if (originAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(originalMovement.Transferencia.IbanOrigen);
 
         // Revertir la transferencia
-        
+
         // Sumar a la cuenta origen
-        originAccount.Balance += transferAmount;
-//       await accountsService.UpdateAccountAsync(originAccount.Id, new UpdateAccountRequest { Balance = originAccount.Balance });
+        var newBalanceOrigin = originAccount.Balance - transferAmount; 
+        
+        var updateAccountRequestOrigin = originAccount.toUpdateAccountRequest();
+        updateAccountRequestOrigin.Balance = newBalanceOrigin;
+        var updatedAccountOrigin = await accountsService.UpdateAccountAsync(originAccount.Id, updateAccountRequestOrigin);
+        logger.LogInformation($"New balance origin account after Transfer Revoking: {updatedAccountOrigin.Balance}");
 
         // Notificar la revocación de la transferencia
         await EnviarNotificacionDeleteAsync(user, originalMovement);
         
-        
         // Restar de la cuenta destino si era de nuestro banco
         try {
             var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(originalMovement.Transferencia.IbanDestino);
-            destinationAccount.Balance -= transferAmount;
-//        await accountsService.UpdateAccountAsync(destinationAccount.Id, new UpdateAccountRequest { Balance = destinationAccount.Balance });
-            /*// Notificar al cliente destino
+
+            var newBalanceDestination = destinationAccount.Balance + transferAmount;
+            var updateAccountRequestDestination = destinationAccount.toUpdateAccountRequest();
+            updateAccountRequestDestination.Balance = newBalanceDestination;
+            var updatedAccountDestination = await accountsService.UpdateAccountAsync(destinationAccount.Id, updateAccountRequestDestination);
+            logger.LogInformation($"New balance destination account after Transfer Revoking: {updatedAccountDestination.Balance}");
+            
+            // Notificar al cliente destino
             var destinationClient = await clientService.GetClientByIdAsync(destinationAccount.ClientID);
             if (destinationClient is null) throw new ClientExceptions.ClientNotFoundException(destinationAccount.ClientID);
             var destinationUser = await userService.GetUserByIdAsync(destinationClient.UserId);
             if (destinationUser is null) throw new UserNotFoundException(destinationClient.UserId);
 
-            await EnviarNotificacionCreacionAsync(destinationUser.ToUser(), originalMovement);*/
+            await EnviarNotificacionCreacionAsync(destinationUser.ToUser(), originalMovement);
             
         } catch (AccountsExceptions.AccountNotFoundByIban ex)
         { 
@@ -426,7 +434,6 @@ public class MovimientoService(
         if (originalMovement.Transferencia.MovimientoDestino != null)
         {
             var originalDestinationMovement = await movimientoRepository.GetMovimientoByIdAsync(originalMovement.Transferencia.MovimientoDestino);
-//        if (originalDestinationMovement is null) throw new MovimientoNotFoundException(originalMovement.Transferencia.MovimientoDestino);
             if (originalDestinationMovement is not null)
             {
                 originalDestinationMovement.IsDeleted = true; await movimientoRepository.UpdateMovimientoAsync(originalDestinationMovement.Id, originalDestinationMovement);
@@ -436,10 +443,6 @@ public class MovimientoService(
         }
         else logger.LogInformation("There was no destination movement in original movement");
 
-        //originalDestinationMovement.IsDeleted = true; await movimientoRepository.UpdateMovimientoAsync(originalDestinationMovement.Id, originalDestinationMovement);
-        
-        // Notificar la revocación de la transferencia
-        await EnviarNotificacionDeleteAsync(user, originalMovement);
         // Retornar respuesta
         return originalMovement;
     }
