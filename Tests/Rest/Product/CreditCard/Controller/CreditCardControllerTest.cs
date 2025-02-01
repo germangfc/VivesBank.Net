@@ -66,8 +66,6 @@ public class CreditCardControllerTest
         ClassicAssert.IsNotNull(okResult);
         var creditCardResponse = okResult.Value as List<CreditCardAdminResponse>;
         ClassicAssert.IsNotNull(creditCardResponse);
-    
-        // Example assertions
         var firstCard = creditCardResponse.First();
         ClassicAssert.AreEqual("1234567890123456", firstCard.CardNumber);
         ClassicAssert.False(firstCard.IsDeleted);
