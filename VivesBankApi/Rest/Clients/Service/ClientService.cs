@@ -534,9 +534,7 @@ public class ClientService : IClientService
             throw;
         }
     }
-
-
-
+    
     
     public async Task EnviarNotificacionUpdateAsync<T>(T t)
     {
