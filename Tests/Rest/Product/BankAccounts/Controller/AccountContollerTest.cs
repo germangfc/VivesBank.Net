@@ -171,6 +171,7 @@ public class AccountContollerTest
             IBAN = "ES9121000418450200051332"
         };
         
+        _mockAccountsService.Setup(service => service.CreateAccountAsync(request)).ReturnsAsync(response);
         var result = await _accountController.CreateAccount(request);
         
         var okResult = result.Result as OkObjectResult;

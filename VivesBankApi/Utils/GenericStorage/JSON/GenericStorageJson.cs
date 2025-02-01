@@ -53,8 +53,20 @@ public class GenericStorageJson<T> : IGenericStorageJson<T> where T : class
     {
         _logger.LogInformation($"Exporting {typeof(T).Name} to a JSON file");
         var json = JsonConvert.SerializeObject(entities, Formatting.Indented);
-        var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json");
-        await File.WriteAllTextAsync(tempFilePath, json);
-        return new FileStream(tempFilePath, FileMode.Open);
+        var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "Json");
+
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        var fileName = $"{typeof(T).Name}sInSystem-" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") + ".json";
+        var filePath = Path.Combine(directoryPath, fileName);
+
+        await File.WriteAllTextAsync(filePath, json);
+
+        _logger.LogInformation($"File written to: {filePath}");
+
+        return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 }

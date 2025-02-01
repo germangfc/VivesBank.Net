@@ -84,4 +84,44 @@ public class ClientMappersTests
             ClassicAssert.AreEqual(_clientUpdateRequest.Address, client.Adress);
         });
     }
+    
+    
+    [Test]
+    public void FromDtoResponse_ConvertsClientResponseToClient_Correctly()
+    {
+        // Arrange
+        var response = new ClientResponse
+        {
+            Id = "123",
+            Fullname = "John Doe",
+            UserId = "User-456",
+            Address = "123 Main St",
+            Photo = "photo.jpg",
+            DniPhoto = "dni.jpg",
+            Accounts = new List<string> { "Account1", "Account2" },
+            CreatedAt = new DateTime(2024, 1, 1, 12, 0, 0),
+            UpdatedAt = new DateTime(2024, 1, 2, 14, 30, 0),
+            IsDeleted = false
+        };
+
+        // Act
+        var result = response.FromDtoResponse();
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            ClassicAssert.NotNull(result);
+            ClassicAssert.AreEqual(response.Id, result.Id);
+            ClassicAssert.AreEqual(response.Fullname, result.FullName);
+            ClassicAssert.AreEqual(response.UserId, result.UserId);
+            ClassicAssert.AreEqual(response.Address, result.Adress);
+            ClassicAssert.AreEqual(response.Photo, result.Photo);
+            ClassicAssert.AreEqual(response.DniPhoto, result.PhotoDni);
+            ClassicAssert.AreEqual(response.Accounts, result.AccountsIds);
+            ClassicAssert.AreEqual(response.CreatedAt, result.CreatedAt);
+            ClassicAssert.AreEqual(response.UpdatedAt, result.UpdatedAt);
+            ClassicAssert.AreEqual(response.IsDeleted, result.IsDeleted);
+        }
+            );
+    }
 }

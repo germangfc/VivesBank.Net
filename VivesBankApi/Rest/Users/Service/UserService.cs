@@ -174,6 +174,7 @@ public class UserService : IUserService
         return null;
     }
 
+    
     private async Task<User?> GetByUsernameAsync(string username)
     {
         // Try to get from cache first
