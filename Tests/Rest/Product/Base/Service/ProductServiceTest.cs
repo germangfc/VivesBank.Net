@@ -1,4 +1,5 @@
 ﻿using System.Reactive.Linq;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -212,5 +213,104 @@ public class ProductServiceTest
         _cache.Verify(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once());
     }
     
+    [Test]
+    public void LoadCsvOk()
+    {
+        var mockLogger = new Mock<ILogger<ProductService>>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockProductValidator = new Mock<ProductValidator>();
     
+        var mockConnectionMultiplexer = new Mock<IConnectionMultiplexer>();
+    
+        var mockDatabase = new Mock<IDatabase>();
+
+        mockConnectionMultiplexer.Setup(m => m.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(mockDatabase.Object);
+
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>();
+
+        var productService = new ProductService(
+            mockLogger.Object,
+            mockProductRepository.Object,
+            mockProductValidator.Object,
+            mockConnectionMultiplexer.Object,
+            mockWebsocketHandler.Object
+        );
+
+        var stream = new MemoryStream(); 
+        var result = productService.LoadCsv(stream);
+
+        ClassicAssert.IsNotNull(result);
+    }
+    
+    [Test]
+    public void ImportProductsOk()
+    {
+        var mockLogger = new Mock<ILogger<ProductService>>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockProductValidator = new Mock<ProductValidator>();
+        var mockConnection = new Mock<IConnectionMultiplexer>();
+        var mockCache = new Mock<IDatabase>();
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>();  
+
+        mockConnection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(mockCache.Object);
+
+        var productService = new ProductService(
+            mockLogger.Object,
+            mockProductRepository.Object,
+            mockProductValidator.Object,
+            mockConnection.Object,  
+            mockWebsocketHandler.Object  
+        );
+        
+        var mockFile = new Mock<IFormFile>();
+
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes("[{ \"Id\": \"1\", \"Name\": \"Test Product\" }]"));
+        mockFile.Setup(f => f.OpenReadStream()).Returns(stream);
+
+        var result = productService.Import(mockFile.Object);
+
+        ClassicAssert.IsNotNull(result); 
+    }
+    
+    [Test]
+    public async Task ExportProductsOk()
+    {
+        var mockLogger = new Mock<ILogger<ProductService>>();
+        var mockProductRepository = new Mock<IProductRepository>();
+        var mockProductValidator = new Mock<ProductValidator>();
+        var mockConnection = new Mock<IConnectionMultiplexer>();
+        var mockCache = new Mock<IDatabase>();
+        var mockWebsocketHandler = new Mock<IWebsocketHandler>(); 
+
+        mockConnection.Setup(c => c.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(mockCache.Object);
+
+        var productService = new ProductService(
+            mockLogger.Object,
+            mockProductRepository.Object,
+            mockProductValidator.Object,
+            mockConnection.Object, 
+            mockWebsocketHandler.Object 
+        );
+
+        var fakeProducts = new List<Product>
+        {
+            new Product("Test Product", Product.Type.CreditCard)
+            {
+                Id = "1",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsDeleted = false
+            }
+        };
+
+        var fileStream = await productService.Export(fakeProducts);
+
+        ClassicAssert.IsNotNull(fileStream, "El archivo exportado no debería ser nulo.");
+        ClassicAssert.IsTrue(fileStream.Length > 0, "El archivo exportado debería contener datos.");
+
+        fileStream.Dispose();
+    }
+
+
+
 }

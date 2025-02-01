@@ -27,17 +27,18 @@ public class CreditCardController : ControllerBase
 
     [HttpGet]
     [Authorize("AdminPolicy")]
-    public async Task<ActionResult<List<CreditCardAdminResponse>>> GetAllCardsAdminAsync([FromQuery ]int pageNumber = 0, 
+    public async Task<ActionResult<List<CreditCardAdminResponse>>> GetAllCardsAdminAsync([FromQuery] int pageNumber = 0,
         [FromQuery] int pageSize = 10,
         [FromQuery] string fullName = "",
         [FromQuery] bool? isDeleted = null,
         [FromQuery] string direction = "asc")
     {
         _logger.LogInformation("Getting all credit cards");
-        var cards = await _creditCardService.GetAllCreditCardAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction);
+        var cards = await _creditCardService.GetAllCreditCardAdminAsync(pageNumber, pageSize, fullName, isDeleted,
+            direction);
         return Ok(cards);
     }
-    
+
     [HttpGet("{cardId}")]
     [Authorize("AdminPolicy")]
     public async Task<ActionResult<CreditCardAdminResponse?>> GetCardByIdAdminAsync(string cardId)
@@ -72,10 +73,10 @@ public class CreditCardController : ControllerBase
     {
         _logger.LogInformation($"Updating card with id {number}");
         var card = await _creditCardService.UpdateCreditCardAsync(number, updateRequest);
-        
-        if (card == null) 
+
+        if (card == null)
         {
-            return NotFound(); 
+            return NotFound();
         }
 
         return Ok(card);
@@ -86,7 +87,7 @@ public class CreditCardController : ControllerBase
     public async Task<IActionResult> DeleteCardAsync(string cardnumber)
     {
         _logger.LogInformation($"Deleting card with id {cardnumber}");
-        
+
         try
         {
             await _creditCardService.DeleteCreditCardAsync(cardnumber);
@@ -94,11 +95,11 @@ public class CreditCardController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            _logger.LogWarning($"Card with id {cardnumber} not found."); 
+            _logger.LogWarning($"Card with id {cardnumber} not found.");
             return NotFound();
         }
     }
-    
+
     [HttpPost("import")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> ImportCreditCardsFromJson([Required] IFormFile file)
@@ -112,12 +113,9 @@ public class CreditCardController : ControllerBase
         {
             var creditCards = new List<Models.CreditCard>();
 
-            await _creditCardService.Import(file).ForEachAsync(creditCard =>
-            {
-                creditCards.Add(creditCard);
-            });
+            await _creditCardService.Import(file).ForEachAsync(creditCard => { creditCards.Add(creditCard); });
 
-            return Ok(creditCards); 
+            return new OkObjectResult(creditCards);
         }
         catch (Exception ex)
         {
@@ -125,12 +123,13 @@ public class CreditCardController : ControllerBase
             return StatusCode(500, new { message = "Error importing credit cards", details = ex.Message });
         }
     }
-    
+
+
     public async Task<IActionResult> ExportCreditCardsToJson([FromQuery] bool asFile = true)
     {
         try
         {
-            _logger.LogInformation($"asFile value: {asFile}");  // Agregado para verificar el valor de asFile
+            _logger.LogInformation($"asFile value: {asFile}"); // Esto te ayudará a ver el valor de asFile en los logs
 
             int pageNumber = 1;
             int pageSize = 100;
@@ -168,7 +167,8 @@ public class CreditCardController : ControllerBase
 
             if (fileStream == null)
             {
-                return StatusCode(500, new { message = "Error al generar el archivo" });
+                _logger.LogError("Error generating the file.");
+                return StatusCode(500, new { message = "Error generating the file" });
             }
 
             return File(fileStream, "application/json", "creditcards.json");
@@ -179,5 +179,4 @@ public class CreditCardController : ControllerBase
             return StatusCode(500, new { message = "Error exporting credit cards", details = ex.Message });
         }
     }
-
 }

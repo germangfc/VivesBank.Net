@@ -266,7 +266,10 @@ public class CreditCardService : ICreditCardService
 
         await File.WriteAllTextAsync(filePath, json);
 
-        return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        // Usamos "using" para asegurar que el archivo se cierre correctamente
+        var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        return fileStream;
     }
+
 
 }
