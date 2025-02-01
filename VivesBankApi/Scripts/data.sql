@@ -114,6 +114,30 @@ INSERT INTO "BankAccounts" (
              false                         
          );
 
+INSERT INTO "BankAccounts" (
+    "Id",
+    "ProductId",
+    "ClientId",
+    "TarjetaId",
+    "IBAN",
+    "Balance",
+    "AccountType",
+    "CreatedAt",
+    "UpdatedAt",
+    "IsDeleted"
+) VALUES (
+             'aB_ynBQklw',
+             'Z-QnRlm7XQ',
+             'eJTX-_GjsQ',
+             'gCJCp7lRW4Q',
+             'ES9121000418450200051332',
+             1000.00,
+             0,
+             NOW(),
+             NOW(),
+             false
+         );
+
 INSERT INTO "CreditCards" (
     "Id", "AccountId", "CardNumber", "Pin", "Cvc", "ExpirationDate", "CreatedAt", "UpdatedAt", "IsDeleted"
 ) VALUES (

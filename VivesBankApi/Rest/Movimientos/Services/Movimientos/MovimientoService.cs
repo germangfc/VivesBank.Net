@@ -249,6 +249,9 @@ public class MovimientoService(
     {
         logger.LogInformation("Adding new transfer");
         
+        // Validar que las cuentas de origen y destino sean distintas
+        if (transferencia.IbanOrigen.Equals(transferencia.IbanDestino)) throw new TransferSameIbanException(transferencia.IbanOrigen);
+
         // Validar que la cantidad es mayor que cero
         if (transferencia.Cantidad <= 0) throw new TransferInvalidAmountException(transferencia.Cantidad);
         
@@ -340,7 +343,7 @@ public class MovimientoService(
                 IbanDestino = transferencia.IbanDestino,
                 Cantidad = decimal.Negate(transferencia.Cantidad),
                 NombreBeneficiario = transferencia.NombreBeneficiario,
-                MovimientoDestino = destinationMovementAux.Id ?? ""
+                MovimientoDestino = destinationMovementAux.Id ?? null
             },
             CreatedAt = now,
             UpdatedAt = now,
@@ -351,6 +354,7 @@ public class MovimientoService(
         var originSavedMovement = await movimientoRepository.AddMovimientoAsync(newOriginMovement);
 
         // Notificar al cliente origen
+        logger.LogInformation("Notifying transfer origin client");
         await EnviarNotificacionCreacionAsync(user, newOriginMovement);
         
         // Retornar respuesta
