@@ -369,9 +369,10 @@ public class MovimientoService(
         var originalMovement = await movimientoRepository.GetMovimientoByGuidAsync(movimientoTransferenciaGuid);
         if (originalMovement is null) throw new MovimientoNotFoundException(movimientoTransferenciaGuid);
         
-        // validar que no haya pasado 1 dia 
+        // validar que no haya pasado 1 día 
         var dateOriginalMovement = originalMovement.CreatedAt;
-        if (dateOriginalMovement.HasValue && dateOriginalMovement.Value.AddDays(1) < DateTime.Now) throw new NotRevocableMovimientoException(movimientoTransferenciaGuid);
+        if (dateOriginalMovement.HasValue && (DateTime.UtcNow - dateOriginalMovement.Value).TotalHours > 24) 
+            throw new NotRevocableMovimientoException(movimientoTransferenciaGuid);
 
         // Verificar que el movimiento es una transferencia
         if (originalMovement.Transferencia is null) throw new MovementIsNotTransferException(movimientoTransferenciaGuid);
@@ -392,7 +393,7 @@ public class MovimientoService(
 
         // Revertir la transferencia
 
-        // Sumar a la cuenta origen
+        //    Sumar a la cuenta origen
         var newBalanceOrigin = originAccount.Balance - transferAmount; 
         
         var updateAccountRequestOrigin = originAccount.toUpdateAccountRequest();
@@ -400,10 +401,10 @@ public class MovimientoService(
         var updatedAccountOrigin = await accountsService.UpdateAccountAsync(originAccount.Id, updateAccountRequestOrigin);
         logger.LogInformation($"New balance origin account after Transfer Revoking: {updatedAccountOrigin.Balance}");
 
-        // Notificar la revocación de la transferencia
+        //    Notificar la revocación de la transferencia
         await EnviarNotificacionDeleteAsync(user, originalMovement);
         
-        // Restar de la cuenta destino si era de nuestro banco
+        //    Restar de la cuenta destino si era de nuestro banco
         try {
             var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(originalMovement.Transferencia.IbanDestino);
 
@@ -427,78 +428,33 @@ public class MovimientoService(
         }
 
         // Marcar ambos movimientos como eliminados, simplemente se anulan, no se crean nuevos movimientos de revocación
-        originalMovement.IsDeleted = true; await movimientoRepository.UpdateMovimientoAsync(originalMovement.Id, originalMovement);
-        logger.LogInformation("Revoked original movement");
-        
-        // Marcar el movimiento de destino como revocado (si había, si no, es que no era revocable porque la transferencia era a otro banco por ejemplo)
-        if (originalMovement.Transferencia.MovimientoDestino != null)
-        {
-            var originalDestinationMovement = await movimientoRepository.GetMovimientoByIdAsync(originalMovement.Transferencia.MovimientoDestino);
-            if (originalDestinationMovement is not null)
-            {
-                originalDestinationMovement.IsDeleted = true; await movimientoRepository.UpdateMovimientoAsync(originalDestinationMovement.Id, originalDestinationMovement);
-                logger.LogInformation("Revoked destination movement from original movement");
-            }
-                
-        }
-        else logger.LogInformation("There was no destination movement in original movement");
-
-        // Retornar respuesta
-        return originalMovement;
-    }
-    public async Task<Movimiento> RevocarTransferenciaMal(User user, string movimientoTransferenciaGuid)
-    {
-        logger.LogInformation($"Revoking Transfer Id: {movimientoTransferenciaGuid}, user: {user.Id}");
-        
-        // Obtener el movimiento original
-        var originalMovement = await movimientoRepository.GetMovimientoByGuidAsync(movimientoTransferenciaGuid);
-        if (originalMovement is null) throw new MovimientoNotFoundException(movimientoTransferenciaGuid);
-        
-        // validar que no haya pasado 1 dia 
-        var dateOriginalMovement = originalMovement.CreatedAt;
-        if (dateOriginalMovement.HasValue && dateOriginalMovement.Value.AddDays(1) < DateTime.Now) throw new NotRevocableMovimientoException(movimientoTransferenciaGuid);
-
-        // Verificar que el movimiento es una transferencia
-        if (originalMovement.Transferencia is null) throw new MovementIsNotTransferException(movimientoTransferenciaGuid);
-
-        // Verificar que el usuario que solicita la revocación existe y es el propietario de la cuenta de origen
-        var client = await clientService.GetClientByIdAsync(user.Id);
-        if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
-        if (!client.Id.Equals(originalMovement.ClienteGuid))
-            throw new AccountsExceptions.AccountUnknownIban(originalMovement.Transferencia.IbanOrigen);
-
-        // Obtener las cuentas involucradas
-        var originAccount = await accountsService.GetCompleteAccountByIbanAsync(originalMovement.Transferencia.IbanOrigen);
-        if (originAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(originalMovement.Transferencia.IbanOrigen);
-
-        var destinationAccount = await accountsService.GetCompleteAccountByIbanAsync(originalMovement.Transferencia.IbanDestino);
-        if (destinationAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(originalMovement.Transferencia.IbanDestino);
-
-        // Revertir la transferencia
-
-        // Restar de la cuenta destino
-        var transferAmount = originalMovement.Transferencia.Cantidad;
-        destinationAccount.Balance -= transferAmount;
-//        await accountsService.UpdateAccountAsync(destinationAccount.Id, new UpdateAccountRequest { Balance = destinationAccount.Balance });
-        
-        // Sumar a la cuenta origen
-        originAccount.Balance += transferAmount;
-//       await accountsService.UpdateAccountAsync(originAccount.Id, new UpdateAccountRequest { Balance = originAccount.Balance });
-
-        // Marcar el movimiento original como revocado (si es necesario)
-        var originalDestinationMovement =
-            await movimientoRepository.GetMovimientoByGuidAsync(originalMovement.Transferencia.MovimientoDestino);
-        if (originalDestinationMovement is null)
-            throw new MovimientoNotFoundException(originalMovement.Transferencia.MovimientoDestino);
-        
-        // Marcar ambos movimientos como eliminados, simplemente se anulan, no se crean nuevos movimientos de revocación
         originalMovement.IsDeleted = true;
-        await movimientoRepository.UpdateMovimientoAsync(originalMovement.Id, originalMovement);
-        originalDestinationMovement.IsDeleted = true;
-        await movimientoRepository.UpdateMovimientoAsync(originalDestinationMovement.Id, originalDestinationMovement);
-        
-        // Notificar la revocación de la transferencia
-        await EnviarNotificacionDeleteAsync(user, originalMovement);
+        if (originalMovement.Id != null)
+        {
+            await movimientoRepository.UpdateMovimientoAsync(originalMovement.Id, originalMovement);
+            logger.LogInformation("Revoked original movement");
+
+            // Verificamos si hay un movimiento destino
+            if (originalMovement.Transferencia.MovimientoDestino != null)
+            {
+                var originalDestinationMovement =
+                    await movimientoRepository.GetMovimientoByIdAsync(originalMovement.Transferencia.MovimientoDestino);
+
+                // Si existe el movimiento destino, lo marcamos como eliminado
+                if (originalDestinationMovement != null)
+                {
+                    originalDestinationMovement.IsDeleted = true;
+                    if (originalDestinationMovement.Id != null)
+                    {
+                        await movimientoRepository.UpdateMovimientoAsync(originalDestinationMovement.Id, originalDestinationMovement);
+                        logger.LogInformation("Revoked destination movement from original movement");
+                    }
+                }
+                else logger.LogInformation("Destination movement not found");
+            }
+            else logger.LogInformation("There was no destination movement in original movement");
+        }
+
         // Retornar respuesta
         return originalMovement;
     }
