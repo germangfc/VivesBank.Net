@@ -1,10 +1,7 @@
-﻿using System.Reactive.Linq;
-using System.Security.Claims;
-using System.Text;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -14,12 +11,11 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Service;
-using VivesBankApi.Rest.Clients.storage.JSON;
+using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Movimientos.Storage;
 using VivesBankApi.Rest.Users.Exceptions;
-using VivesBankApi.Utils.GenericStorage.JSON;
-using System.IO;
+using Path = System.IO.Path;
 
 
 namespace Tests.Rest.Clients.Controller;
@@ -27,7 +23,6 @@ namespace Tests.Rest.Clients.Controller;
 public class ClientControllerTest
 {
     private Mock<IClientService> _service;
-    private ClientStorageJson _storage;
     private Mock<ILogger<ClientController>> _logger;
     private Mock<IMovimientoStoragePDF> _movimientoStoragePdf;
     private Mock<IMovimientoService> _movimientoService;
@@ -37,9 +32,6 @@ public class ClientControllerTest
     public void Setup()
     {
         _service = new Mock<IClientService>();
-        _storage = new ClientStorageJson(
-            NullLogger<ClientStorageJson>.Instance 
-        );
         _logger = new Mock<ILogger<ClientController>>();
         _movimientoStoragePdf = new Mock<IMovimientoStoragePDF>();
         _movimientoService = new Mock<IMovimientoService>();
@@ -472,5 +464,38 @@ public class ClientControllerTest
         ClassicAssert.AreEqual(client.Id, returnedClient.Id);
         ClassicAssert.AreEqual(client.Fullname, returnedClient.Fullname);
     }
+    
+    [Test]
+    public async Task ExportPdf_ReturnsFileStreamResult()
+    {
+        // Arrange
+        var client = new ClientResponse() { Id = "client123" };
+        var movimientos = new List<Movimiento>
+        {
+            new Movimiento { Id = "mov1", ClienteGuid = "client123" },
+            new Movimiento { Id = "mov2", ClienteGuid = "client123" }
+        };
+        var tempFilePath = Path.GetTempFileName();
+        await File.WriteAllTextAsync(tempFilePath, "Fake PDF Content");
 
+        var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        _service.Setup(s => s.GettingMyClientData()).ReturnsAsync(client);
+        _movimientoService.Setup(s => s.FindAllMovimientosByClientAsync(client.Id)).ReturnsAsync(movimientos);
+        _movimientoStoragePdf.Setup(s => s.Export(movimientos)).ReturnsAsync(fileStream);
+
+        // Act
+        var result = await _clientController.ExportPdf();
+
+        // Assert
+        ClassicAssert.IsInstanceOf<FileStreamResult>(result);
+        var fileResult = result as FileStreamResult;
+        ClassicAssert.AreEqual("application/pdf", fileResult.ContentType);
+        ClassicAssert.AreEqual("Movimientos.pdf", fileResult.FileDownloadName);
+        ClassicAssert.NotNull(fileResult.FileStream);
+
+        // Cleanup
+        fileStream.Dispose();
+        File.Delete(tempFilePath);
+    }
 }
