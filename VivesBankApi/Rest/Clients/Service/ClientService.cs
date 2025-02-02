@@ -58,6 +58,12 @@ public class ClientService : GenericStorageJson<Client>, IClientService
         _websocketHandler = websocketHandler;
         _fileStorageRemoteConfig = configuration.GetSection("FileStorageRemoteConfig").Get<FileStorageRemoteConfig>();
     } 
+    
+    public async Task<List<Client>> GetAll()
+    {
+        return await _clientRepository.GetAllAsync();
+    }
+    
     public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber, 
         int pageSize,

@@ -16,6 +16,7 @@ using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
+using VivesBankApi.Utils.GenericStorage.JSON;
 using VivesBankApi.WebSocket.Model;
 using VivesBankApi.WebSocket.Service;
 using JsonConvert = Newtonsoft.Json.JsonConvert;
@@ -23,17 +24,17 @@ using JsonConvert = Newtonsoft.Json.JsonConvert;
 namespace VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
 public class MovimientoService(
-    IMovimientoRepository movimientoRepository, 
+    IMovimientoRepository movimientoRepository,
     IDomiciliacionRepository domiciliacionRepository,
     IUserService userService,
     IClientService clientService,
     IAccountsService accountsService,
     ICreditCardService creditCardService,
-    ILogger<MovimientoService> logger, 
+    ILogger<MovimientoService> logger,
     IOptions<ApiConfig> apiConfig,
     IWebsocketHandler websocketHandler,
     IConnectionMultiplexer connection)
-    : IMovimientoService
+    : GenericStorageJson<Movimiento>(logger), IMovimientoService
 {
     private readonly IDatabase _cache = connection.GetDatabase();
     public async Task<List<Movimiento>> FindAllMovimientosAsync()

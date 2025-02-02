@@ -52,6 +52,9 @@ public class GenericStorageJson<T> : IGenericStorageJson<T> where T : class
     public async Task<FileStream> Export(List<T> entities)
     {
         _logger.LogInformation($"Exporting {typeof(T).Name} to a JSON file");
+        
+        
+        
         var json = JsonConvert.SerializeObject(entities, Formatting.Indented);
         var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "Json");
 
@@ -68,5 +71,19 @@ public class GenericStorageJson<T> : IGenericStorageJson<T> where T : class
         _logger.LogInformation($"File written to: {filePath}");
 
         return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+    }
+    
+    public async Task<List<T>> ImportFromFile(string filePath)
+    {
+        _logger.LogInformation($"Importing {typeof(T).Name} from file: {filePath}");
+
+        if (!File.Exists(filePath))
+        {
+            _logger.LogWarning($"File not found: {filePath}");
+            return new List<T>();
+        }
+
+        var json = await File.ReadAllTextAsync(filePath);
+        return JsonConvert.DeserializeObject<List<T>>(json) ?? new List<T>();
     }
 }

@@ -12,6 +12,7 @@ public interface IUserService : IGenericStorageJson<User>
         string role,
         bool? isDeleted,
         string direction);
+    Task<List<User>> GetAll();
     Task<UserResponse> GetUserByIdAsync(String id);
     Task<UserResponse> AddUserAsync(CreateUserRequest userRequest);
     Task<UserResponse> GetUserByUsernameAsync(String username);

@@ -13,6 +13,8 @@ public interface IClientService : IGenericStorageJson<Client>
         bool? isDeleted,
         string direction);
 
+    Task<List<Client>> GetAll();
+
     Task<ClientResponse> GetClientByIdAsync(string id);
     Task<ClientResponse> GettingMyClientData();
     Task<String> CreateClientAsync(ClientRequest request);
