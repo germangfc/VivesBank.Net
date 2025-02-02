@@ -4,12 +4,12 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Mappers;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.Config;
-using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Movimientos.Storage;
 using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Clients.Controller;
+
 [ApiController]
 [Route("api/[controller]")]
 public class ClientController : ControllerBase
