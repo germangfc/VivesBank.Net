@@ -36,10 +36,26 @@ namespace VivesBankApi.Controllers
         
         [HttpPost("import")]
         [Authorize("AdminPolicy")]
-        public async Task<IActionResult> ImportFromZip([FromBody] BackUpRequest zipFilePath)
+        public async Task<IActionResult> ImportFromZip([FromForm] IFormFile file)
         {
-            await _backupService.ImportFromZip(zipFilePath);
-            return Ok(new { Message = "Backup imported successfully." });
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { Message = "Debe proporcionar un archivo ZIP válido." });
+            }
+
+            var tempFilePath = Path.Combine(Path.GetTempPath(), file.FileName);
+
+            using (var stream = new FileStream(tempFilePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            await _backupService.ImportFromZip(new BackUpRequest { FilePath = tempFilePath });
+
+            System.IO.File.Delete(tempFilePath);
+
+            return Ok(new { Message = "Backup importado correctamente." });
         }
+
     }
 }
