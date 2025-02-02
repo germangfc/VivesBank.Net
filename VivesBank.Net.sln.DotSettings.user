@@ -5,7 +5,8 @@
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ADbSet_002Ecs_002Fl_003A_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003F4b21fc3f8a3abb5d25f06c622276fbec0fd3932f169cc6af520bf5abc6a46b4_003FDbSet_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ADelegatingTestCommand_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003FUsers_003FUsuario_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003Fcbf7e25d7e28b919da22174d17d071a3ea3b5603f28f384c31cf3f94d22c93f_003FDelegatingTestCommand_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ADouble_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003FUsers_003FUsuario_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003F297ddfd6fbf145994a8b7136ad9ca52a87ba9deac4a95b2ad10d8f3fa5746_003FDouble_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
-	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\Usuario\AppData\Local\JetBrains\Rider2024.3\resharper-host\temp\Rider\vAny\CoverageData\_VivesBank.Net.1371685540\Snapshot\snapshot.utdcvr</s:String>
+	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\a2005\AppData\Local\JetBrains\Rider2024.3\resharper-host\temp\Rider\vAny\CoverageData\_VivesBank.Net.-1125341629\Snapshot\snapshot.utdcvr</s:String>
+	
 	
 	
 	
@@ -14,112 +15,74 @@
 	<s:Boolean x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/ShowAdvancedOptions/@EntryValue">True</s:Boolean>
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestProjectMapping/=387E43A0_002DA2E6_002D4E32_002D89CC_002D3E029C82EB62/@EntryIndexedValue">25919506-285A-4870-8A96-91AEA75D359E</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestTemplateMapping/=NUnit3x/@EntryIndexedValue">db4927dd-2e12-48a7-9a84-2b7e3e31b9c8</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=21f5b619_002D3bbf_002D4aa2_002D8239_002Df2a68fc2a2c5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GetMyClientData_ShouldReturn_UserNotFoundException" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetMyClientData_ShouldReturn_UserNotFoundException&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.CreateClientAsUser_ShouldReturnToken&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.CreateClientAsUser_NotAuthorized&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.CreateClientAsUser_UserDontExists&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.CreateClientAsUser_BadRequest&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.CreateClientAsUser_BadRequest_AboveLimit&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.UpdateMeClient_SholdReturn_ClientResponse&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.UpdateMeClient_ClientNotFoundAsync&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.UpdateMeClient_BadRequest_Aboceimit&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.UpdateMeClient_BadRequest_UnderLimit&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.DeleteMeAsClient_ShouldLogicDeleteClient&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.DeleteMeAsClient_NotFound&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.DeleteMeAsClient_UsreNotFound&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=297c12cc_002D716f_002D4313_002Db098_002Dc161b1a30057/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="CreateClient_WithAExistingUser_ShouldReturnException" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3806a8fb_002D517c_002D498d_002D966d_002D8a5eeb36f971/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="ProductControllerTests #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::ProductControllerTests&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Users.Mapper.UserMapperTests.UpdateUserFromInput_InvalidRole&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::VivesBankApi.Tests.CreditCard.CreditCardServiceTests.GetAllCreditCardAsyncReturnsOk&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::VivesBankApi.Tests.CreditCard.CreditCardServiceTests.GetCreditCardByIdAdminAsync&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::VivesBankApi.Tests.CreditCard.CreditCardServiceTests.GetCreditCardByIdAdminAsyncNotFound&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3d8e25e5_002D18fe_002D4edf_002D80e8_002D35b31fa62b6f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="AccountsRepositoryTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=57ace027_002Dc220_002D48d1_002Dbe7e_002Df3cf7a11a8de/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="RegisterUser_Should_ReturnUser" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5ded767f_002D3b80_002D41f3_002D9a30_002D068e3867f6ef/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CreateClientAsync_ShouldReturn" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.CreateClientAsync_ShouldReturn&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5e3f7450_002D5140_002D497c_002D8cb8_002D19fa026f366a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CurrencyApiServiceTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=615b0ccc_002Db9c0_002D4eb4_002Db315_002Def3283730858/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="ProductControllerTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::ProductControllerTests&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6a9e7222_002D1184_002D433d_002Daa08_002De2e85fb2ece1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetByIdAsync" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Solution /&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7321daa0_002D38af_002D4f99_002Dbeb6_002De4db39aa35f8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetMyClientData_ShouldReturn_ClientResponse" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.GetMyClientData_ShouldReturn_ClientResponse&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=89e2e8bd_002Df955_002D4024_002D8ef5_002D7c4efcbc5555/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetCreditCardByIdAdminAsyncNotFound" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::VivesBankApi.Tests.CreditCard.CreditCardServiceTests.GetCreditCardByIdAdminAsyncNotFound&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=9c4e1195_002D395f_002D49f6_002Db3f8_002D7a51e4c39a23/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="DomiciliacionRepositoryTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Solution /&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=b1190e0b_002Dbce6_002D4f91_002Dab3a_002D828e722c660f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from Solution" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Solution /&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=ccc8bb6c_002Dcf55_002D4d92_002D8040_002D6acb792330ef/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CreditCardControllerTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5cfe7c52_002Da088_002D4c6c_002Dbf90_002D8504f276b06f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="UpdateMyCreditCard_Successfully" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Mapper.CreditCardMapperTest&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::VivesBankApi.Tests.CreditCard.CreditCardServiceTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d000e20e_002D002a_002D4664_002Da33d_002D91b08fe1a1b9/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CreditCardServiceTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Project Location="C:\Users\raulf\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=dd5777c8_002Dfdc2_002D4351_002Db379_002D28be58fff23a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CurrencyApiServiceTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Project Location="C:\Users\samue\RiderProjects\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=deed2812_002D3ede_002D4064_002D954b_002D9111e9163b6c/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="CreateClientAsync_ShouldReturn_Token" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5d06009b_002D7cb0_002D4f82_002D996e_002D85cba8bb4594/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetCardByIdAdminAsyncNotExist" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.CreateClientAsync_ShouldReturn_Token&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.CreateClientAsync_ShouldThrowException_WhenUserIsNotAuthenticated&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.CreateClientAsync_ShouldReturn_UserNotFoundException&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.CreateClientAsync_ShouldReturn_ClientAlreadyExistsException&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.GetCardByIdAdminAsyncNotExist&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.GetById_ReturnsNotFound_WhenClientDoesNotExist&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.GetMyCreditCards_Successfull&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.GetMyCreditCards_ThrowsException&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.CreateCardAsyncReturnsCreated&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.CreateCardAsync_BadRequestPin&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e10460f2_002D18b9_002D47b2_002Dbc10_002D228e6f6a461b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetCreditCardByIdAdminAsyncNotFound #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6669d0a8_002Da515_002D48e9_002Dabce_002D363188ded8f1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="UpdateCreditCardAsync_CreditCardNotFound" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::VivesBankApi.Tests.CreditCard.CreditCardServiceTests&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Mapper.CreditCardMapperTest.ToAdminResponse_ValidCreditCard_ReturnsAdminResponse&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Mapper.CreditCardMapperTest.FromDtoRequest_ValidRequest_ReturnsCreditCardModel&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Mapper.CreditCardMapperTest.ToClientResponse_ValidCreditCard_ReturnsClientResponse&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Mapper.CreditCardMapperTest&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Repository.CreditCardRepositoryTest.GetAllAsync_ReturnsAllCreditCards&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.GetAllCardsAdminAsyncReturnsOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.GetAllCardsAdminAsync_FiltersByFullName&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.GetAllCardsAdminAsync_UnauthorizedWithoutAdminPolicy&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.GetCardByIdAdminAsyncNotExist&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=ecfbf0da_002D7857_002D4259_002D9b70_002Daad183a4f6e0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Project Location="C:\Users\raulf\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f2fd869c_002Db915_002D48e8_002Da3c0_002Dfb269cb1f480/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GetAllClientsAsync_ReturnsPagedClients" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=91cc86ba_002De5dd_002D4f23_002Dbac9_002D69eaebf8a4c0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CreateCardAsync_BadRequestPin" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.CreateCardAsync_BadRequestPin&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Controller.CreditCardControllerTest.UpdateMyCreditCard_Successfully&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=96840bbd_002Dfed0_002D4e9f_002D9c9e_002D8fb80dab8c72/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetCreditCardsPaginated_ShouldReturn_ListaVacia" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.GetCreditCardsPaginated_ShouldReturn_ListaVacia&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.GetMyCreditCardsAsync_ShouldReturnMyCreditCards&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.GetMyCreditCarsAsync_UserNotFoundException&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.GertMYCreditCardAsync_ClientNotFoundException&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.GetMyCreditCardAsync_ReturnEmptyList&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.GetCreditCardByNumberAsync_ShouldReturn_CreditCard&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.GetCreditCardByNumberAsync_ShouldReturn_NotFoundException&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.CreateCreditCardAsync_WhenAccountExists&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.CreateCreditCardAsync_WhenClientNotFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.CreateCreditCardAsync_UserNotFoundException&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.CreateCreditCardAsync_AccountDoesNotExist&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.CreateCreditCardAsync_OnAnAccountWithoutOwningIt&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.UpdateCreditCardAsync_UpdatesSuccessfully&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.UpdateCreditCardAsync_UserNotFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.UpdateCreditCardAsync_CreditCardNotFound&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	</wpf:ResourceDictionary>
