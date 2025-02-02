@@ -16,7 +16,7 @@ namespace VivesBankApi.Rest.Clients.Controller;
 public class ClientController : ControllerBase
 {
     private readonly IClientService _clientService;
-    private readonly IMovimientoRepository _movimientoRepository;
+    private readonly IMovimientoService _movimientoService;
     private readonly IMovimientoStoragePDF _movimientoStoragePDF;
     private readonly IClientStorageJson _storage;
     private ILogger _logger;
@@ -25,11 +25,11 @@ public class ClientController : ControllerBase
         IClientService clientService, 
         ILogger<ClientController> logger, 
         IClientStorageJson storage,
-        IMovimientoRepository movimientoRepository,
+        IMovimientoService movimientoService,
         IMovimientoStoragePDF movimientoStoragePDF
     )
     {
-        _movimientoRepository = movimientoRepository;
+        _movimientoService = movimientoService;
         _movimientoStoragePDF = movimientoStoragePDF;
         _clientService = clientService;
         _storage = storage;
@@ -149,7 +149,7 @@ public class ClientController : ControllerBase
     {
         _logger.LogInformation("Exporting client's transactions as a PDF file");
         var client = await _clientService.GettingMyClientData();
-        var movimientos = await _movimientoRepository.GetMovimientosByClientAsync(client.Id);
+        var movimientos = await _movimientoService.FindAllMovimientosByClientAsync(client.Id);
         var fileStream = await _movimientoStoragePDF.Export(movimientos);
 
         return File(fileStream, "application/pdf", "Movimientos.pdf");
