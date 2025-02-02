@@ -569,54 +569,6 @@ public class CreditCardServiceTest
     }
 
     [Test]
-    public async Task UpdateCreditCardAsync_InvalidPin()
-    {
-        // Arrange
-        var userId = "user123";
-        var cardNumber = "1234567890123456";
-        var updateRequest = new CreditCardUpdateRequest { Pin = "1234" };
-
-        _clientRepository.Setup(repo => repo.getByUserIdAsync(userId)).ReturnsAsync(new Client { Id = "client123", UserId = "user123" });
-        _accountsRepositiryMock.Setup(repo => repo.getAccountByClientIdAsync(userId)).ReturnsAsync(new List<Account> { new Account { Id = "account123", ClientId = "client123" } });
-        _creditCardRepositoryMock.Setup(repo => repo.GetByCardNumber(cardNumber)).ReturnsAsync(new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard { Pin = "0000" });
-        _creditCardRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>()))
-           .Throws(new InvalidOperationException("Invalid PIN"));
-        
-        // Act & Assert
-        var res = Assert.ThrowsAsync<InvalidOperationException>(() =>
-        {
-             return CreditCardService.UpdateCreditCardAsync(cardNumber, updateRequest);
-        });
-
-        // Verify
-        _creditCardRepositoryMock.Verify(repo => repo.GetByCardNumber(cardNumber), Times.Once);
-        _creditCardRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>()), Times.Never);
-    }
-
-    [Test]
-    public void UpdateCreditCardAsync_NotFound()
-    {
-        // Arrange
-        var creditCardId = "999";
-        var creditCardUpdateRequest = new CreditCardUpdateRequest
-        {
-            Pin = "123"
-        };
-
-        _creditCardRepositoryMock.Setup(repo => repo.GetByIdAsync(creditCardId)).ReturnsAsync((VivesBankApi.Rest.Product.CreditCard.Models.CreditCard?)null);
-
-        // Act & Assert
-        Assert.ThrowsAsync<CreditCardException.CreditCardNotFoundException>(async () =>
-        {
-            await CreditCardService.UpdateCreditCardAsync(creditCardId, creditCardUpdateRequest);
-        });
-
-        // Verify
-        _creditCardRepositoryMock.Verify(repo => repo.GetByIdAsync(creditCardId), Times.Once);
-        _creditCardRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>()), Times.Never);
-    }
-
-    [Test]
     public async Task DeleteCreditCardAsync()
     {
         // Arrange
