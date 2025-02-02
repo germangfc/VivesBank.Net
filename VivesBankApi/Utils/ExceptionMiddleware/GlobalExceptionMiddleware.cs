@@ -145,6 +145,12 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     break;
                 
                 
+                default:
+                    logger.LogError(exception, "An unhandled exception occurred.");
+                    break;
+               
+                
+              
                 
                 /************************** STORAGE EXCEPTIONS *****************************************************/
                 /************************** BACKUP *****************************************************/

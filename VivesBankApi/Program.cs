@@ -305,7 +305,9 @@
     //Credit Card
         myBuilder.Services.AddScoped<ICreditCardRepository, CreditCardRepository>();
         myBuilder.Services.AddScoped<ICreditCardService, CreditCardService>();
-        
+        myBuilder.Services.AddScoped<ICvcGenerator, CvcGenerator>();
+        myBuilder.Services.AddScoped<INumberGenerator, NumberGenerator>();
+        myBuilder.Services.AddScoped<IExpirationDateGenerator, ExpirationDateGenerator>();
     // CLIENTE
         myBuilder.Services.AddScoped<IClientRepository, ClientRepository>(); 
         myBuilder.Services.AddScoped<IClientService, ClientService>();

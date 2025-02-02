@@ -65,6 +65,23 @@ public class DomiciliacionRepositoryTest
         Assert.That(domiciliaciones.First().Guid, Is.EqualTo(domiciliacion.Guid));
         Assert.That(domiciliaciones.Count(), Is.EqualTo(1));
     }
+    [Test]
+    public async Task GetAllDomiciliacionesActivasAsync()
+    {
+        var domiciliacion = new Domiciliacion
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+            Activa = true,
+        };
+        await _repository.AddDomiciliacionAsync(domiciliacion);
+        var domiciliaciones = await _repository.GetAllDomiciliacionesActivasAsync();
+
+        Assert.That(domiciliaciones, Is.Not.Empty);
+        Assert.That(domiciliaciones.First().Guid, Is.EqualTo(domiciliacion.Guid));
+        Assert.That(domiciliaciones.Count(), Is.EqualTo(1));
+    }
 
     [Test]
     public async Task GetDomiciliacionByIdAsync()
@@ -147,5 +164,40 @@ public class DomiciliacionRepositoryTest
 
         Assert.That(result, Is.Not.Null);
         
+    }
+    
+    [Test]
+    public async Task GetDomiciliacionesActivasByClienteGiudAsync()
+    {
+        var domiciliacion = new Domiciliacion
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+            Activa = true,
+        };
+        await _repository.AddDomiciliacionAsync(domiciliacion);
+        var domiciliaciones = await _repository.GetDomiciliacionesActivasByClienteGiudAsync(domiciliacion.ClienteGuid);
+
+        Assert.That(domiciliaciones, Is.Not.Empty);
+        Assert.That(domiciliaciones.First().Guid, Is.EqualTo(domiciliacion.Guid));
+        Assert.That(domiciliaciones.Count(), Is.EqualTo(1));
+    }
+    [Test]
+    public async Task GetDomiciliacionByClientGuidAsync()
+    {
+        var domiciliacion = new Domiciliacion
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+            Activa = false,
+        };
+        await _repository.AddDomiciliacionAsync(domiciliacion);
+        var domiciliaciones = await _repository.GetDomiciliacionByClientGuidAsync(domiciliacion.ClienteGuid);
+
+        Assert.That(domiciliaciones, Is.Not.Empty);
+        Assert.That(domiciliaciones.First().Guid, Is.EqualTo(domiciliacion.Guid));
+        Assert.That(domiciliaciones.Count(), Is.EqualTo(1));
     }
 }

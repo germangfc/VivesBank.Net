@@ -231,4 +231,102 @@ public class MovimientoRepositoryTest
         // Assert
         Assert.That(result, Is.Null);
     }
+    
+    [Test]
+    public async Task GetMovimientosDomiciliacionByClienteGuidAsync()
+    {
+        var movimiento = new Movimiento
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+            Domiciliacion = new Domiciliacion()
+        };
+        // Act
+        await _repository.AddMovimientoAsync(movimiento);
+        var movimientos = await _repository.GetMovimientosDomiciliacionByClienteGuidAsync(movimiento.ClienteGuid);
+
+        // Assert
+        Assert.That(movimientos, Is.Not.Empty);
+        Assert.That(movimientos.First().Guid, Is.EqualTo(movimiento.Guid));
+        Assert.That(movimientos.Count(), Is.EqualTo(1) );
+    }
+    
+    [Test]
+    public async Task GetMovimientosTransferenciaByClienteGuidAsync()
+    {
+        var movimiento = new Movimiento
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+            Transferencia = new Transferencia()
+        };
+        // Act
+        await _repository.AddMovimientoAsync(movimiento);
+        var movimientos = await _repository.GetMovimientosTransferenciaByClienteGuidAsync(movimiento.ClienteGuid);
+
+        // Assert
+        Assert.That(movimientos, Is.Not.Empty);
+        Assert.That(movimientos.First().Guid, Is.EqualTo(movimiento.Guid));
+        Assert.That(movimientos.Count(), Is.EqualTo(1) );
+    }
+    
+    [Test]
+    public async Task GetMovimientosPagoConTarjetaByClienteGuidAsync()
+    {
+        var movimiento = new Movimiento
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+            PagoConTarjeta = new PagoConTarjeta()
+        };
+        // Act
+        await _repository.AddMovimientoAsync(movimiento);
+        var movimientos = await _repository.GetMovimientosPagoConTarjetaByClienteGuidAsync(movimiento.ClienteGuid);
+
+        // Assert
+        Assert.That(movimientos, Is.Not.Empty);
+        Assert.That(movimientos.First().Guid, Is.EqualTo(movimiento.Guid));
+        Assert.That(movimientos.Count(), Is.EqualTo(1) );
+    }
+    [Test]
+    public async Task GetMovimientosReciboDeNominaByClienteGuidAsync()
+    {
+        var movimiento = new Movimiento
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+            IngresoDeNomina = new IngresoDeNomina()
+        };
+        // Act
+        await _repository.AddMovimientoAsync(movimiento);
+        var movimientos = await _repository.GetMovimientosReciboDeNominaByClienteGuidAsync(movimiento.ClienteGuid);
+
+        // Assert
+        Assert.That(movimientos, Is.Not.Empty);
+        Assert.That(movimientos.First().Guid, Is.EqualTo(movimiento.Guid));
+        Assert.That(movimientos.Count(), Is.EqualTo(1) );
+    }
+    [Test]
+    public async Task GetMovimientosTransferenciaRevocadaByClienteGuidAsync()
+    {
+        var movimiento = new Movimiento
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+            IsDeleted = true
+        };
+        // Act
+        await _repository.AddMovimientoAsync(movimiento);
+        var movimientos = await _repository.GetMovimientosTransferenciaRevocadaByClienteGuidAsync(movimiento.ClienteGuid);
+
+        // Assert
+        Assert.That(movimientos, Is.Not.Empty);
+        Assert.That(movimientos.First().Guid, Is.EqualTo(movimiento.Guid));
+        Assert.That(movimientos.Count(), Is.EqualTo(1) );
+    }
 }

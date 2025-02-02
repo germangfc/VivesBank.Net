@@ -126,6 +126,18 @@ public class AccountServiceTest
         _accountRepository.Verify(repo => repo.GetAllPagedAsync(0, 2), Times.Once);
     }
 
+    [Test]
+    public async Task GetAccountsAsync_ReutrnsEmpty()
+    {
+        _accountRepository
+            .Setup(repo => repo.GetAllPagedAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(PagedList<Account>.Create(new List<Account>(), pageNumber: 0, pageSize: 2));
+
+        var result = await _accountService.GetAccountsAsync(pageNumber: 0, pageSize: 2, sortBy: "id", direction: "asc");
+        
+        ClassicAssert.IsTrue(result.Empty);
+    }
+
 
     [Test]
     public async Task GetAccountByIdAsync_ShouldReturnAccount()

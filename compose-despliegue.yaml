@@ -9,6 +9,7 @@ services:
       - mongo-db
       - postgres
       - redis
+      - ftp-server
     networks:
       - banco-network
     environment:
@@ -56,6 +57,21 @@ services:
       - REDIS_DATABASES=16
     networks:
       - banco-network
+  
+  ftp-server:
+    image: fauria/vsftpd
+    container_name: ftp-server
+    environment:
+      FTP_USER: "myuser"
+      FTP_PASS: "mypass"
+      PASV_ADDRESS: "127.0.0.1"
+      PASV_MIN_PORT: 21000
+      PASV_MAX_PORT: 21010
+      FTP_HOME: "/home/vsftpd"
+    volumes:
+      - "./ftp_data:/home/vsftpd"
+    networks:
+      - banco-network
 
   proxy:
     image: nginx:latest
@@ -100,6 +116,7 @@ services:
       - ./VivesBankApi/Despliegue/docs/sites-available:/etc/nginx/sites-available
     networks:
       - banco-network
+      
 volumes:
   mongo-init:
   postgres_data:

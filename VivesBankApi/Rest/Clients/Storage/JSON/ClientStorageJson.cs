@@ -5,7 +5,7 @@ using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Clients.storage.JSON;
 
-public class ClientStorageJson(ILogger<ClientStorageJson> logger) : GenericStorageJson<Client>(logger), IClientStorageJson
+public class ClientStorageJson(ILogger<ClientStorageJson> logger) : GenericStorageJson<Client>(logger)
 {
     public async Task<FileStream> ExportOnlyMeData(Client client)
     {
