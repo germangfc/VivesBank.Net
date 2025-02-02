@@ -108,7 +108,7 @@ public class MovimientoService(
         if (!IbanValidator.ValidateIban(domiciliacion.IbanOrigen)) throw new InvalidSourceIbanException(domiciliacion.IbanOrigen);
 
         // Validar que el cliente existe
-        var client = await clientService.GetClientByIdAsync(user.Id);
+        var client = await clientService.GetClientByUserIdAsync(user.Id);
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
         
         // Validar que la cuenta del cliente existe (origen)
@@ -118,12 +118,14 @@ public class MovimientoService(
         // Validar que la cuenta es de ese cliente
         if (!account.clientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(domiciliacion.IbanOrigen);
         
-        // Validar si la domiciliación ya existe (mismo cobrador, cuenta destino)
-        var clientDomiciliacion = await domiciliacionRepository.GetDomiciliacionByClientGuidAsync(client.Id);
-        if (clientDomiciliacion.Any(d => d.IbanDestino == domiciliacion.IbanDestino)) throw new DuplicatedDomiciliacionException(domiciliacion.IbanDestino);
+        // Validar si la domiciliación ya existe (mismo cobrador (cuenta destino), mismo cliente (cuenta origen))
+        logger.LogDebug($"Getting active direct debits for client client.id {client.Id}, domiciliacion.clientGuid: {domiciliacion.ClienteGuid}, user.id = {user.Id}");
+        var clientDomiciliacion = await domiciliacionRepository.GetDomiciliacionesActivasByClienteGiudAsync(client.Id);
+        if (clientDomiciliacion.Any(d => d.IbanDestino == domiciliacion.IbanDestino && d.IbanOrigen == domiciliacion.IbanOrigen)) 
+            throw new DuplicatedDomiciliacionException(domiciliacion.IbanDestino);
     
         // Guardar la domiciliación
-        domiciliacion.UltimaEjecucion = DateTime.Now;
+        domiciliacion.UltimaEjecucion = DateTime.UtcNow;
         domiciliacion.ClienteGuid = client.Id;
     
         // Notificación al cliente
