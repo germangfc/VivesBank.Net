@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Runtime.InteropServices.JavaScript;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -210,5 +211,27 @@ public class DomiciliacionServiceTest
         
         _repositoryMock.Verify(repo => repo.DeleteDomiciliacionAsync(id), Times.Once);
     }
+    [Test]
+    public async Task FindDomiciliacionesActivasByClienteGiudAsync()
+    {
+        // Arrange
+        _repositoryMock.Setup(repo => repo.GetDomiciliacionesActivasByClienteGiudAsync(_expectedDomiciliacionList[0].ClienteGuid))
+            .ReturnsAsync(_expectedDomiciliacionList);
 
+        // Act
+        var result = await _domiciliacionService.FindDomiciliacionesActivasByClienteGiudAsync(_expectedDomiciliacionList[0].ClienteGuid);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            ClassicAssert.IsNotNull(result);
+            ClassicAssert.AreEqual(2, result.Count);
+            ClassicAssert.AreEqual(_expectedDomiciliacionList[0].Guid, result[0].Guid);
+            ClassicAssert.AreEqual(_expectedDomiciliacionList[1].Guid, result[1].Guid);
+            ClassicAssert.AreEqual(_expectedDomiciliacionList[0].ClienteGuid, result[0].ClienteGuid);
+            ClassicAssert.AreEqual(_expectedDomiciliacionList[1].ClienteGuid, result[1].ClienteGuid);
+        });
+
+        _repositoryMock.Verify(repo => repo.GetDomiciliacionesActivasByClienteGiudAsync(_expectedDomiciliacionList[0].ClienteGuid), Times.Once);
+    }
 }

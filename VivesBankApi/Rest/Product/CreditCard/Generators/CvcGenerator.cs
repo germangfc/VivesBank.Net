@@ -1,6 +1,6 @@
 ﻿namespace VivesBankApi.Rest.Product.CreditCard.Generators;
 
-public class CvcGenerator
+public class CvcGenerator : ICvcGenerator
 {
     public virtual string Generate()
     {

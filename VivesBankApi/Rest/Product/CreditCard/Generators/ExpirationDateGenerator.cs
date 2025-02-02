@@ -1,6 +1,6 @@
 ﻿namespace VivesBankApi.Rest.Product.CreditCard.Generators;
 
-public class ExpirationDateGenerator
+public class ExpirationDateGenerator : IExpirationDateGenerator
 {
     public virtual DateOnly GenerateRandomDate()
     {

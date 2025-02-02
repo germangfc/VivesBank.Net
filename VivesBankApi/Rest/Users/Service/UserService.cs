@@ -12,6 +12,7 @@ using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Validator;
+using VivesBankApi.Utils.GenericStorage.JSON;
 using VivesBankApi.WebSocket.Model;
 using VivesBankApi.WebSocket.Service;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -19,7 +20,7 @@ using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace VivesBankApi.Rest.Users.Service;
 
-public class UserService : IUserService
+public class UserService : GenericStorageJson<User>, IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IDatabase _cache;
@@ -27,8 +28,15 @@ public class UserService : IUserService
     private readonly ILogger _logger;
     private readonly IWebsocketHandler _webSocketHandler;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    
-    public UserService(ILogger<UserService> logger, IUserRepository userRepository, AuthJwtConfig authConfig, IConnectionMultiplexer connectionMultiplexer, IWebsocketHandler webSocketHandler, IHttpContextAccessor httpContextAccessor)
+
+    public UserService(
+        ILogger<UserService> logger,
+        IUserRepository userRepository,
+        AuthJwtConfig authConfig,
+        IConnectionMultiplexer connectionMultiplexer,
+        IWebsocketHandler webSocketHandler,
+        IHttpContextAccessor httpContextAccessor
+    ) : base(logger)
     {
         _logger = logger;
         _authConfig = authConfig;
