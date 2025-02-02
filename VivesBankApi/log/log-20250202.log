@@ -2,3 +2,78 @@
 SELECT "MigrationId", "ProductVersion"
 FROM "__EFMigrationsHistory"
 ORDER BY "MigrationId";
+[2025-02-02 22:36:59.870] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 22:42:15.125] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 22:43:46.261] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 22:49:29.331] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 22:54:23.494] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 22:54:41.519] [ERR] [VivesBankApi.Utils.Backup.BackupService] Error exporting data to ZIP
+VivesBankApi.Backup.Exceptions.BackupException+BackupDirectoryNotFoundException: The directory El directorio C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\StorageServiceTemp no existe. does not exist.
+   at VivesBankApi.Utils.Backup.BackupService.ExportToZip(BackUpRequest zipFilePath) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 56
+[2025-02-02 22:57:27.549] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 22:57:49.757] [ERR] [VivesBankApi.Utils.Backup.BackupService] Error exporting data to ZIP
+System.UnauthorizedAccessException: Access to the path 'C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\uploads' is denied.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategyCore(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.Open(String path, FileMode mode)
+   at VivesBankApi.Utils.Backup.BackupService.ExportToZip(BackUpRequest zipFilePath) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 67
+[2025-02-02 22:59:47.057] [ERR] [VivesBankApi.Utils.Backup.BackupService] Error exporting data to ZIP
+System.UnauthorizedAccessException: Access to the path 'C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\uploads' is denied.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategyCore(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.Open(String path, FileMode mode)
+   at VivesBankApi.Utils.Backup.BackupService.ExportToZip(BackUpRequest zipFilePath) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 67
+[2025-02-02 23:00:57.480] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 23:01:21.736] [ERR] [VivesBankApi.Utils.Backup.BackupService] Error exporting data to ZIP
+System.UnauthorizedAccessException: Access to the path 'C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\uploads' is denied.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategyCore(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.Open(String path, FileMode mode)
+   at VivesBankApi.Utils.Backup.BackupService.ExportToZip(BackUpRequest zipFilePath) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 67
+[2025-02-02 23:02:41.560] [ERR] [VivesBankApi.Utils.Backup.BackupService] Error exporting data to ZIP
+System.UnauthorizedAccessException: Access to the path 'C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\backup' is denied.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategyCore(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.Open(String path, FileMode mode)
+   at VivesBankApi.Utils.Backup.BackupService.ExportToZip(BackUpRequest zipFilePath) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 67
+[2025-02-02 23:04:49.505] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 23:05:06.825] [ERR] [VivesBankApi.Utils.Backup.BackupService] Error exporting data to ZIP
+System.UnauthorizedAccessException: Access to the path 'C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\backup' is denied.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategyCore(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.Open(String path, FileMode mode)
+   at VivesBankApi.Utils.Backup.BackupService.ExportToZip(BackUpRequest zipFilePath) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 67

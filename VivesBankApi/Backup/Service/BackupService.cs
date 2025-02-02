@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.IO;
 using System.Reactive.Linq;
+using VivesBankApi.Backup;
 using VivesBankApi.Backup.Exceptions;
 using VivesBankApi.Backup.Service;
 using VivesBankApi.Rest.Clients.Service;
@@ -8,6 +9,7 @@ using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Product.Base.Service;
 using VivesBankApi.Rest.Product.CreditCard.Service;
+using VivesBankApi.Rest.Product.Service;
 using VivesBankApi.Rest.Users.Service;
 using Path = System.IO.Path;
 
@@ -17,21 +19,21 @@ namespace VivesBankApi.Utils.Backup
     {
         private static readonly string TempDirName = "StorageServiceTemp";
         private readonly ILogger<BackupService> _logger;
-        private readonly ClientService _clientService;
-        private readonly UserService _userService;
-        private readonly ProductService _productService;
-        private readonly CreditCardService _creditCardService;
-        private readonly AccountService _bankAccountService;
-        private readonly MovimientoService _movementService;
+        private readonly IClientService _clientService;
+        private readonly IUserService _userService;
+        private readonly IProductService _productService;
+        private readonly ICreditCardService _creditCardService;
+        private readonly IAccountsService _bankAccountService;
+        private readonly IMovimientoService _movementService;
 
         public BackupService(
             ILogger<BackupService> logger,
-            ClientService clientService,
-            UserService userService,
-            ProductService productService,
-            CreditCardService creditCardService,
-            AccountService bankAccountService,
-            MovimientoService movementService)
+            IClientService clientService,
+            IUserService userService,
+            IProductService productService,
+            ICreditCardService creditCardService,
+            IAccountsService bankAccountService,
+            IMovimientoService movementService)
         {
             _logger = logger;
             _clientService = clientService;
@@ -42,7 +44,7 @@ namespace VivesBankApi.Utils.Backup
             _movementService = movementService;
         }
 
-        public async Task ExportToZip(string zipFilePath)
+        public async Task ExportToZip(BackUpRequest zipFilePath)
         {
             _logger.LogInformation("Exporting data to ZIP: {ZipFilePath}", zipFilePath);
             var tempDir = Path.Combine(Directory.GetCurrentDirectory(), TempDirName);
@@ -51,14 +53,18 @@ namespace VivesBankApi.Utils.Backup
             {
                 if (!Directory.Exists(tempDir))
                 {
-                    throw new BackupException.BackupDirectoryNotFoundException($"El directorio {tempDir} no existe.");
+                    if (!Directory.Exists(tempDir))
+                    {
+                        _logger.LogInformation("Creating directory: {TempDir}", tempDir);
+                        Directory.CreateDirectory(tempDir);
+                    }
                 }
 
                 Directory.CreateDirectory(tempDir);
 
                 await ExportJsonFiles(tempDir);
 
-                using (var zip = new ZipArchive(File.Open(zipFilePath, FileMode.Create), ZipArchiveMode.Create))
+                using (var zip = new ZipArchive(File.Open(zipFilePath.FilePath, FileMode.Create), ZipArchiveMode.Create))
                 {
                     foreach (var filePath in Directory.GetFiles(tempDir))
                     {
@@ -75,14 +81,14 @@ namespace VivesBankApi.Utils.Backup
             }
         }
 
-        public async Task ImportFromZip(string zipFilePath)
+        public async Task ImportFromZip(BackUpRequest zipFilePath)
         {
-            _logger.LogInformation("Importing data from ZIP: {ZipFilePath}", zipFilePath);
+            _logger.LogInformation($"Importing data from ZIP: {zipFilePath.FilePath}");
             var tempDir = Path.Combine(Directory.GetCurrentDirectory(), TempDirName);
 
             try
             {
-                if (!File.Exists(zipFilePath))
+                if (!File.Exists(zipFilePath.FilePath))
                 {
                     throw new BackupException.BackupFileNotFoundException($"El archivo {zipFilePath} no fue encontrado.");
                 }
@@ -102,11 +108,11 @@ namespace VivesBankApi.Utils.Backup
             }
         }
 
-        private void ExtractZip(string zipFilePath, string tempDir)
+        private void ExtractZip(BackUpRequest zipFilePath, string tempDir)
         {
             try
             {
-                using (var zip = ZipFile.OpenRead(zipFilePath))
+                using (var zip = ZipFile.OpenRead(zipFilePath.FilePath))
                 {
                     foreach (var entry in zip.Entries)
                     {

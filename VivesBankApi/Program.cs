@@ -43,6 +43,7 @@
     using Quartz.Impl;
     using Quartz.Spi;
     using VivesBankApi.Backup.Service;
+    using VivesBankApi.Rest.Clients.Storage.Service;
     using VivesBankApi.Rest.Movimientos.Jobs;
     using VivesBankApi.Rest.Movimientos.Storage;
     using VivesBankApi.Rest.Product.Base.Service;
@@ -321,7 +322,10 @@
         myBuilder.Services.AddSingleton<IWebsocketHandler, WebSocketHandler>();
         myBuilder.Services.AddHttpContextAccessor(); 
     // BACKUP
+        myBuilder.Services.AddScoped<FileStorageConfig>();
         myBuilder.Services.AddScoped<IBackupService, BackupService>();
+        myBuilder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
         
         myBuilder.Services.AddScoped(typeof(IGenericStorageJson<>), typeof(GenericStorageJson<>)); // Si tienes interfaces genéricas
 
