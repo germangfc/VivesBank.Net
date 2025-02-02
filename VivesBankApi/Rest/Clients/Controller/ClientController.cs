@@ -4,7 +4,9 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Mappers;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.Config;
-using VivesBankApi.Rest.Clients.storage.JSON;
+using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
+using VivesBankApi.Rest.Movimientos.Services.Movimientos;
+using VivesBankApi.Rest.Movimientos.Storage;
 using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Clients.Controller;
@@ -13,13 +15,20 @@ namespace VivesBankApi.Rest.Clients.Controller;
 public class ClientController : ControllerBase
 {
     private readonly IClientService _clientService;
-    private readonly IClientStorageJson _storage;
     private ILogger _logger;
+    private readonly IMovimientoService _movimientoService;
+    private readonly IMovimientoStoragePDF _movimientoStoragePDF;
     
-    public ClientController(IClientService clientService, ILogger<ClientController> logger, IClientStorageJson storage)
+    public ClientController(
+        IClientService clientService, 
+        ILogger<ClientController> logger, 
+        IMovimientoService movimientoService,
+        IMovimientoStoragePDF movimientoStoragePDF
+    )
     {
+        _movimientoService = movimientoService;
+        _movimientoStoragePDF = movimientoStoragePDF;
         _clientService = clientService;
-        _storage = storage;
         _logger = logger;
     }
 
@@ -64,6 +73,10 @@ public class ClientController : ControllerBase
     [Authorize("ClientPolicy")]
     public async Task<ActionResult<ClientResponse>> GetMyClientData()
     {
+        if (!User.Identity.IsAuthenticated)
+        {
+            return Unauthorized();
+        }
         _logger.LogInformation("Getting my client data");
         return await _clientService.GettingMyClientData();
     }
@@ -96,7 +109,7 @@ public class ClientController : ControllerBase
     
     [HttpPut("me")]
     [Authorize("ClientPolicy")]
-    public async Task<ActionResult<ClientResponse>> UpdateMeAsClient(ClientUpdateRequest request)
+    public async Task<ActionResult<ClientResponse>> UpdateMeAsClient([FromBody] ClientUpdateRequest request)
     {
         _logger.LogInformation($"Updating client registered on the system");
         if (!ModelState.IsValid)
@@ -116,7 +129,7 @@ public class ClientController : ControllerBase
         try
         {
             var user = await _clientService.GettingMyClientData();
-            var fileStream = await _storage.ExportOnlyMeData(user.FromDtoResponse());
+            var fileStream = await _clientService.ExportOnlyMeData(user.FromDtoResponse());
             return File(fileStream, "application/json", "user.json");
         }
         catch (Exception ex)
@@ -124,6 +137,18 @@ public class ClientController : ControllerBase
             _logger.LogError($"Error exporting client: {ex.Message}");
             return StatusCode(500, new { message = "Error exporting client", details = ex.Message });
         }
+    }
+    
+    [HttpGet("me/export/transactions")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> ExportPdf()
+    {
+        _logger.LogInformation("Exporting client's transactions as a PDF file");
+        var client = await _clientService.GettingMyClientData();
+        var movimientos = await _movimientoService.FindAllMovimientosByClientAsync(client.Id);
+        var fileStream = await _movimientoStoragePDF.Export(movimientos);
+
+        return File(fileStream, "application/pdf", "Movimientos.pdf");
     }
     
     

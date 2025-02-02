@@ -1,6 +1,6 @@
 ﻿namespace VivesBankApi.Rest.Product.CreditCard.Generators;
 
-public class NumberGenerator
+public class NumberGenerator : INumberGenerator
 {
     public virtual string GenerateCreditCardNumber()
     {
