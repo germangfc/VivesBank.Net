@@ -1,7 +1,9 @@
-﻿using System.Text;
+﻿using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework.Legacy;
+using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 
 namespace Tests.Rest.Product.CreditCard.Controller;
 
@@ -17,7 +19,7 @@ using VivesBankApi.Rest.Product.CreditCard.Service;
 [TestFixture]
 public class CreditCardControllerTest
 {
-    private Mock<ICreditCardService> _mockService;
+    private Mock<ICreditCardService> _creditCardService;
     private Mock<ILogger<CreditCardController>> _mockLogger;
     private CreditCardController _controller;
 
@@ -25,35 +27,116 @@ public class CreditCardControllerTest
     [SetUp]
     public void SetUp()
     {
-        _mockService = new Mock<ICreditCardService>();
+        _creditCardService = new Mock<ICreditCardService>();
         _mockLogger = new Mock<ILogger<CreditCardController>>();
-        _controller = new CreditCardController(_mockService.Object, _mockLogger.Object);
+        _controller = new CreditCardController(_creditCardService.Object, _mockLogger.Object);
     }
 
     [Test]
     public async Task GetAllCardsAdminAsyncReturnsOk()
     {
-        var cards = new List<CreditCardAdminResponse>
+        // Arrange
+        var pageNumber = 1;
+        var pageSize = 10;
+        var fullName = "";
+        var isDeleted = (bool?)null;
+        var direction = "asc";
+
+        var fakeCards = new List<CreditCardAdminResponse>
         {
-            new() { Id = "1", CardNumber = "1234" },
-            new() { Id = "2", CardNumber = "5678" }
+            new CreditCardAdminResponse { Id = "1", IsDeleted = false },
+            new CreditCardAdminResponse { Id = "2", IsDeleted = true }
         };
-        
-        var result = await _controller.GetAllCardsAdminAsync();
 
+        _creditCardService
+            .Setup(s => s.GetAllCreditCardAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction))
+            .ReturnsAsync(fakeCards);
+
+        // Act
+        var result = await _controller.GetAllCardsAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction);
+
+        // Assert
         var okResult = result.Result as OkObjectResult;
-        ClassicAssert.IsNotNull(okResult);
+        ClassicAssert.NotNull(okResult);
         ClassicAssert.AreEqual(200, okResult.StatusCode);
-        ClassicAssert.AreEqual(cards, okResult.Value);
-    }
 
+        var returnedCards = okResult.Value as List<CreditCardAdminResponse>;
+        ClassicAssert.NotNull(returnedCards);
+        ClassicAssert.AreEqual(2, returnedCards.Count);
+    }
+    
+    [Test]
+    public async Task GetAllCardsAdminAsync_FiltersByFullName()
+    {
+        // Arrange
+        var pageNumber = 1;
+        var pageSize = 10;
+        var fullName = "123456";
+        var isDeleted = (bool?)null;
+        var direction = "asc";
+
+        var fakeCards = new List<CreditCardAdminResponse>
+        {
+            new CreditCardAdminResponse { Id = "1", CardNumber = "123456", IsDeleted = false }
+        };
+
+        _creditCardService
+            .Setup(s => s.GetAllCreditCardAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction))
+            .ReturnsAsync(fakeCards);
+
+        // Act
+        var result = await _controller.GetAllCardsAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction);
+
+        // Assert
+        var okResult = result.Result as OkObjectResult;
+        ClassicAssert.NotNull(okResult);
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+
+        var returnedCards = okResult.Value as List<CreditCardAdminResponse>;
+        ClassicAssert.NotNull(returnedCards);
+        ClassicAssert.AreEqual(1, returnedCards.Count);
+        ClassicAssert.AreEqual("123456", returnedCards[0].CardNumber);
+    }
+    
+    [Test]
+    public async Task GetAllCardsAdminAsync_FiltersByIsDeleted()
+    {
+        // Arrange
+        var pageNumber = 1;
+        var pageSize = 10;
+        var fullName = "";
+        var isDeleted = true;
+        var direction = "asc";
+
+        var fakeCards = new List<CreditCardAdminResponse>
+        {
+            new CreditCardAdminResponse { Id = "2", CardNumber = "1234", IsDeleted = true }
+        };
+
+        _creditCardService
+            .Setup(s => s.GetAllCreditCardAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction))
+            .ReturnsAsync(fakeCards);
+
+        // Act
+        var result = await _controller.GetAllCardsAdminAsync(pageNumber, pageSize, fullName, isDeleted, direction);
+
+        // Assert
+        var okResult = result.Result as OkObjectResult;
+        ClassicAssert.NotNull(okResult);
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+
+        var returnedCards = okResult.Value as List<CreditCardAdminResponse>;
+        ClassicAssert.NotNull(returnedCards);
+        ClassicAssert.AreEqual(1, returnedCards.Count);
+        ClassicAssert.IsTrue(returnedCards[0].IsDeleted);
+    }
     [Test]
     public async Task GetCardByIdAdminAsyncReturnsOk()
     {
         var cardId = "1";
         var card = new CreditCardAdminResponse { Id = cardId, CardNumber = "1234" };
 
-        _mockService.Setup(service => service.GetCreditCardByIdAdminAsync(cardId)).ReturnsAsync(card);
+        _creditCardService.Setup(service => service.GetCreditCardByIdAdminAsync(cardId)).ReturnsAsync(card);
 
         var result = await _controller.GetCardByIdAdminAsync(cardId);
 
@@ -67,14 +150,12 @@ public class CreditCardControllerTest
     public async Task GetCardByIdAdminAsyncNotExist()
     {
         var cardId = "99";
-        _mockService.Setup(service => service.GetCreditCardByIdAdminAsync(cardId)).ReturnsAsync((CreditCardAdminResponse?)null);
+        _creditCardService
+            .Setup(service => service.GetCreditCardByIdAdminAsync(cardId))
+            .ThrowsAsync(new CreditCardException.CreditCardNotFoundException(cardId)); // Lanza excepción
 
-        var result = await _controller.GetCardByIdAdminAsync(cardId);
-
-        var okResult = result.Result as OkObjectResult;
-        ClassicAssert.IsNotNull(okResult);
-        ClassicAssert.AreEqual(200, okResult.StatusCode);
-        ClassicAssert.IsNull(okResult.Value);
+        Assert.ThrowsAsync<CreditCardException.CreditCardNotFoundException>(() =>
+            _controller.GetCardByIdAdminAsync(cardId));
     }
 
     [Test]
@@ -83,7 +164,7 @@ public class CreditCardControllerTest
         var createRequest = new CreditCardRequest { CardNumber = "1234" };
         var createdCard = new CreditCardClientResponse { Id = "1", CardNumber = "1234" };
 
-        _mockService.Setup(service => service.CreateCreditCardAsync(createRequest)).ReturnsAsync(createdCard);
+        _creditCardService.Setup(service => service.CreateCreditCardAsync(createRequest)).ReturnsAsync(createdCard);
 
         var result = await _controller.CreateCardAsync(createRequest);
 
@@ -99,7 +180,7 @@ public class CreditCardControllerTest
     public async Task DeleteCardAsyncReturnsNoContent()
     {
         var cardId = "1";
-        _mockService.Setup(service => service.DeleteCreditCardAsync(cardId)).Returns(Task.CompletedTask);
+        _creditCardService.Setup(service => service.DeleteCreditCardAsync(cardId)).Returns(Task.CompletedTask);
 
         var result = await _controller.DeleteCardAsync(cardId);
 
@@ -112,7 +193,7 @@ public class CreditCardControllerTest
     public async Task DeleteCardAsync_WhenCardNotExists_ReturnsNotFound()
     {
         var cardId = "99";
-        _mockService.Setup(service => service.DeleteCreditCardAsync(cardId))
+        _creditCardService.Setup(service => service.DeleteCreditCardAsync(cardId))
             .ThrowsAsync(new System.Collections.Generic.KeyNotFoundException()); 
 
         var result = await _controller.DeleteCardAsync(cardId);
