@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Reactive.Linq;
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -159,6 +160,36 @@ public class CreditCardControllerTest
     }
 
     [Test]
+    public async Task GetMyCreditCards_Successfull()
+    {
+        var userId = "1";
+        var cards = new List<CreditCardClientResponse>
+        {
+            new CreditCardClientResponse { Id = "1", CardNumber = "1234" },
+            new CreditCardClientResponse { Id = "2", CardNumber = "5678" }
+        };
+
+        _creditCardService.Setup(service => service.GetMyCreditCardsAsync()).ReturnsAsync(cards);
+
+        var result = await _controller.GetMyCardsAsync();
+
+        var okResult = result.Result as OkObjectResult;
+        ClassicAssert.IsNotNull(okResult);
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+        ClassicAssert.AreEqual(cards, okResult.Value);
+    }
+
+    [Test]
+    public async Task GetMyCreditCards_ThrowsException()
+    {
+        _creditCardService.Setup(service => service.GetMyCreditCardsAsync()).ThrowsAsync(new Exception("Error"));
+
+        Assert.ThrowsAsync<Exception>(() =>
+            _controller.GetMyCardsAsync());
+    }
+    
+
+    [Test]
     public async Task CreateCardAsyncReturnsCreated()
     {
         var createRequest = new CreditCardRequest { CardNumber = "1234" };
@@ -173,6 +204,114 @@ public class CreditCardControllerTest
         ClassicAssert.AreEqual(201, createdAtActionResult.StatusCode);
         ClassicAssert.AreEqual("GetCardByIdAdminAsync", createdAtActionResult.ActionName);
         ClassicAssert.AreEqual(createdCard, createdAtActionResult.Value);
+    }
+
+    [Test]
+    public async Task CreateCardAsync_BadRequestPin_UnderLimit()
+    {
+        var invalidRequest = new CreditCardRequest() 
+        { 
+            Pin = "12", 
+            AccountIban = "123456789012343"
+        };
+        
+        _controller.ModelState.AddModelError("Pin", "The pin must be of 4 characters");
+        
+        var result = await _controller.CreateCardAsync(invalidRequest);
+        
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+        
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("Pin"), Is.True);
+    }
+
+    [Test]
+    public async Task CreateCardAsync_BadRequestPin_OverLimit()
+    {
+        var invalidRequest = new CreditCardRequest() 
+        { 
+            Pin = "12345", 
+            AccountIban = "123456789012343"
+        };
+        
+        _controller.ModelState.AddModelError("Pin", "The pin must be of 4 characters");
+        
+        var result = await _controller.CreateCardAsync(invalidRequest);
+        
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+        
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("Pin"), Is.True);
+    }
+
+    [Test]
+    public async Task UpdateMyCreditCard_Successfully()
+    {
+        var cardId = "1";
+        var updateRequest = new CreditCardUpdateRequest { Pin = "1234" };
+        var updatedCard = new CreditCardClientResponse { Id = cardId, Pin = "1234" };
+
+        _creditCardService.Setup(service => service.UpdateCreditCardAsync(cardId, updateRequest)).ReturnsAsync(updatedCard);
+
+        var result = await _controller.UpdateCardAsync(cardId, updateRequest);
+
+        var okResult = result.Result as OkObjectResult;
+        ClassicAssert.IsNotNull(okResult);
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+        ClassicAssert.AreEqual(updatedCard, okResult.Value);
+    }
+
+    [Test]
+    public async Task UpdateMyCreditCard_ThrowsException()
+    {
+        var cardId = "1";
+        var updateRequest = new CreditCardUpdateRequest { Pin = "1234" };
+        _creditCardService.Setup(service => service.UpdateCreditCardAsync(cardId, updateRequest)).ThrowsAsync(new Exception("Error"));
+
+        Assert.ThrowsAsync<Exception>(() =>
+            _controller.UpdateCardAsync(cardId, updateRequest));
+    }
+
+    [Test]
+    public async Task UpdateMyCreditCard_BadRequestPin_UnderLimit()
+    {
+        var cardId = "1";
+        var updateRequest = new CreditCardUpdateRequest { Pin = "123" };
+        _controller.ModelState.AddModelError("Pin", "The pin must be of 4 characters");
+        
+        var result = await _controller.UpdateCardAsync(cardId, updateRequest);
+        
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+        
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("Pin"), Is.True);
+    }
+
+    [Test]
+    public async Task UpdateMyCreditCard_BadRequestPin_AboveLimit()
+    {
+        var cardId = "1";
+        var updateRequest = new CreditCardUpdateRequest { Pin = "12345" };
+        _controller.ModelState.AddModelError("Pin", "The pin must be of 4 characters");
+        
+        var result = await _controller.UpdateCardAsync(cardId, updateRequest);
+        
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.StatusCode, Is.EqualTo(400));
+        
+        var errors = badRequestResult.Value as SerializableError;
+        Assert.That(errors, Is.Not.Null);
+        Assert.That(errors!.ContainsKey("Pin"), Is.True);
     }
 
     
@@ -206,33 +345,50 @@ public class CreditCardControllerTest
     [Test]
     public async Task ImportCreditCardsFromJson_WhenValidFile_ReturnsOkResult()
     {
-        // Arrange
-        var mockFile = new Mock<IFormFile>();
+           
+               
+            var mockFile = new Mock<IFormFile>();
 
-        var fileContent = "[{\"Id\": \"1\", \"AccountId\": \"1\", \"CardNumber\": \"1234567890123456\", \"Pin\": \"123\", \"Cvc\": \"123\", \"ExpirationDate\": \"2025-12-31\", \"CreatedAt\": \"2023-01-01T00:00:00\", \"UpdatedAt\": \"2023-01-01T00:00:00\", \"IsDeleted\": false}]";
-        var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+            var fileContent = "[{\"Id\": \"1\", \"AccountId\": \"1\", \"CardNumber\": \"1234567890123456\", \"Pin\": \"123\", \"Cvc\": \"123\", \"ExpirationDate\": \"2025-12-31\", \"CreatedAt\": \"2023-01-01T00:00:00\", \"UpdatedAt\": \"2023-01-01T00:00:00\", \"IsDeleted\": false}]";
+            var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
 
-        mockFile.Setup(f => f.OpenReadStream()).Returns(fileStream);
-        mockFile.Setup(f => f.Length).Returns(fileStream.Length);
-        mockFile.Setup(f => f.FileName).Returns("creditcards.json");
-        mockFile.Setup(f => f.ContentType).Returns("application/json");
+            mockFile.Setup(f => f.OpenReadStream()).Returns(fileStream);
+            mockFile.Setup(f => f.Length).Returns(fileStream.Length);
+            mockFile.Setup(f => f.FileName).Returns("creditcards.json");
+            mockFile.Setup(f => f.ContentType).Returns("application/json");
 
-        var creditCardServiceMock = new Mock<ICreditCardService>();
-        var loggerMock = new Mock<ILogger<CreditCardController>>();
+            var creditCardServiceMock = new Mock<ICreditCardService>();
+            var loggerMock = new Mock<ILogger<CreditCardController>>();
 
-        var controller = new CreditCardController(creditCardServiceMock.Object, loggerMock.Object);
+            var controller = new CreditCardController(creditCardServiceMock.Object, loggerMock.Object);
+            
+            var creditCards = new List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>
+            {
+                new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard()
+                {
+                    Id = "1",
+                    AccountId = "1",
+                    CardNumber = "1234567890123456",
+                    Pin = "123",
+                    Cvc = "123",
+                    ExpirationDate = DateOnly.FromDateTime(DateTime.Now)
+                }
+            };
+            
+            creditCardServiceMock.Setup(service => service.Import(mockFile.Object))
+                .Returns(creditCards.ToObservable());
+        
+            var result = await controller.ImportCreditCardsFromJson(mockFile.Object);
+            
+            Assert.That(result, Is.InstanceOf<OkObjectResult>());
 
-        var result = await controller.ImportCreditCardsFromJson(mockFile.Object);
-
-        ClassicAssert.IsInstanceOf<OkObjectResult>(result);  
-
-        var okResult = result as OkObjectResult;
-        ClassicAssert.IsNotNull(okResult);
-        var creditCards = okResult.Value as List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>;
-        ClassicAssert.IsNotNull(creditCards);
-        ClassicAssert.AreEqual(1, creditCards.Count);
-        ClassicAssert.AreEqual("1", creditCards[0].Id);
-        ClassicAssert.AreEqual("1234567890123456", creditCards[0].CardNumber);
-        ClassicAssert.AreEqual("123", creditCards[0].Pin);
+            var okResult = result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null);
+            var returnedCards = okResult.Value as List<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>;
+            Assert.That(returnedCards, Is.Not.Null);
+            Assert.That(returnedCards.Count, Is.EqualTo(1));
+            Assert.That(returnedCards[0].Id, Is.EqualTo("1"));
+            Assert.That(returnedCards[0].CardNumber, Is.EqualTo("1234567890123456"));
+            Assert.That(returnedCards[0].Pin, Is.EqualTo("123"));
     }
 }

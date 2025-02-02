@@ -59,8 +59,12 @@ public class CreditCardController : ControllerBase
 
     [HttpPost]
     [Authorize("ClientPolicy")]
-    public async Task<ActionResult<CreditCardClientResponse>> CreateCardAsync(CreditCardRequest createRequest)
+    public async Task<ActionResult<CreditCardClientResponse>> CreateCardAsync([FromBody]CreditCardRequest createRequest)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState); 
+        }
         _logger.LogInformation($"Creating card: {createRequest}");
         var card = await _creditCardService.CreateCreditCardAsync(createRequest);
         return CreatedAtAction(nameof(GetCardByIdAdminAsync), new { cardId = card.Id }, card);
@@ -69,8 +73,12 @@ public class CreditCardController : ControllerBase
     [HttpPut("{number}")]
     [Authorize("ClientPolicy")]
     public async Task<ActionResult<CreditCardClientResponse>> UpdateCardAsync(string number,
-        CreditCardUpdateRequest updateRequest)
+      [FromBody]  CreditCardUpdateRequest updateRequest)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         _logger.LogInformation($"Updating card with id {number}");
         var card = await _creditCardService.UpdateCreditCardAsync(number, updateRequest);
 
