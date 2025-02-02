@@ -7,4 +7,5 @@ public class FileStorageConfig
     public List<string> AllowedFileTypes { get; set; } = [".jpg", ".jpeg", ".png"];
     public bool RemoveAll { get; set; } = false;
     public string SomeProperty { get; set; }
+    
 }
