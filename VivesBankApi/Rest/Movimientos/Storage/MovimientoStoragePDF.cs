@@ -1,4 +1,5 @@
-﻿using VivesBankApi.Rest.Movimientos.Models;
+﻿using iText.Kernel.Colors;
+using VivesBankApi.Rest.Movimientos.Models;
 
 namespace VivesBankApi.Rest.Movimientos.Storage;
 
@@ -20,54 +21,68 @@ public class MovimientoStoragePDF : IMovimientoStoragePDF
     {
         _logger = logger;
     }
-
+    
     public async Task<FileStream> Export(List<Movimiento> entities)
     {
-        _logger.LogInformation($"Exporting {typeof(Movimiento).Name} to a PDF file");
-        
-        var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "pdf");
+        _logger.LogInformation("Exporting Movimientos to PDF");
 
-        if (!Directory.Exists(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-        }
-        
-        var fileName = $"MovimientoExport-" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") + ".pdf";
-        var filePath = Path.Combine(directoryPath, fileName);
+        string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "pdf");
+        Directory.CreateDirectory(directoryPath);
 
-        using (PdfWriter writer = new PdfWriter(filePath))
-        using (PdfDocument pdf = new PdfDocument(writer))
-        using (Document document = new Document(pdf))
+        string fileName = $"MovimientoExport-{DateTime.UtcNow:yyyyMMdd_HHmmss}.pdf";
+        string filePath = Path.Combine(directoryPath, fileName);
+
+        using (var writer = new PdfWriter(filePath))
+        using (var pdf = new PdfDocument(writer))
+        using (var document = new Document(pdf))
         {
+            PdfFont boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+            
             document.Add(new Paragraph("Movimientos Report")
-                .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
-                .SetFontSize(16));
+                .SetFont(boldFont)
+                .SetFontSize(16)
+                .SetTextAlignment(TextAlignment.CENTER)
+                .SetMarginBottom(20));
             
             Table table = new Table(UnitValue.CreatePercentArray(4)).UseAllAvailableWidth();
-            table.AddHeaderCell("ID");
-            table.AddHeaderCell("Cliente GUID");
-            table.AddHeaderCell("Tipo");
-            table.AddHeaderCell("Fecha");
-
+            table.SetMarginBottom(30);
+            
+            string[] headers = { "ID", "Tipo", "Cantidad (€)", "Fecha" };
+            foreach (var header in headers)
+            {
+                table.AddHeaderCell(new Cell()
+                    .Add(new Paragraph(header).SetFont(boldFont))
+                    .SetBackgroundColor(ColorConstants.LIGHT_GRAY)
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetPadding(5));
+            }
+            
             foreach (var movimiento in entities)
             {
-                table.AddCell(movimiento.Id ?? "N/A");
-                table.AddCell(movimiento.ClienteGuid);
-                
-                string tipo = movimiento.Domiciliacion != null ? "Domiciliación" :
-                              movimiento.IngresoDeNomina != null ? "Ingreso Nómina" :
-                              movimiento.PagoConTarjeta != null ? "Pago Tarjeta" :
-                              movimiento.Transferencia != null ? "Transferencia" : "Desconocido";
-                table.AddCell(tipo);
+                string tipo = "Desconocido";
+                decimal? cantidad = null;
 
-                table.AddCell(movimiento.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A");
+                if (movimiento.Domiciliacion != null) { tipo = "Domiciliación"; cantidad = movimiento.Domiciliacion.Cantidad; }
+                else if (movimiento.IngresoDeNomina != null) { tipo = "Ingreso Nómina"; cantidad = movimiento.IngresoDeNomina.Cantidad; }
+                else if (movimiento.PagoConTarjeta != null) { tipo = "Pago Tarjeta"; cantidad = movimiento.PagoConTarjeta.Cantidad; }
+                else if (movimiento.Transferencia != null) { tipo = "Transferencia"; cantidad = movimiento.Transferencia.Cantidad; }
+
+                table.AddCell(new Cell().Add(new Paragraph(movimiento.Id ?? "N/A")).SetTextAlignment(TextAlignment.CENTER));
+                table.AddCell(new Cell().Add(new Paragraph(tipo)).SetTextAlignment(TextAlignment.CENTER));
+                table.AddCell(new Cell().Add(new Paragraph(cantidad.HasValue ? $"{cantidad}€" : "N/A")).SetTextAlignment(TextAlignment.CENTER));
+                table.AddCell(new Cell().Add(new Paragraph(movimiento.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A")).SetTextAlignment(TextAlignment.CENTER));
             }
 
             document.Add(table);
+            
+            document.Add(new Paragraph("Gracias por su confianza en nuestro banco.")
+                .SetFont(boldFont)
+                .SetFontSize(12)
+                .SetTextAlignment(TextAlignment.CENTER)
+                .SetMarginTop(20));
         }
 
         _logger.LogInformation($"File written to: {filePath}");
-        
         return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 }
