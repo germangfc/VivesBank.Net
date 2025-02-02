@@ -4,6 +4,9 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Mappers;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.Config;
+using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
+using VivesBankApi.Rest.Movimientos.Services.Movimientos;
+using VivesBankApi.Rest.Movimientos.Storage;
 using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Clients.Controller;
@@ -13,9 +16,18 @@ public class ClientController : ControllerBase
 {
     private readonly IClientService _clientService;
     private ILogger _logger;
+    private readonly IMovimientoService _movimientoService;
+    private readonly IMovimientoStoragePDF _movimientoStoragePDF;
     
-    public ClientController(IClientService clientService, ILogger<ClientController> logger)
+    public ClientController(
+        IClientService clientService, 
+        ILogger<ClientController> logger, 
+        IMovimientoService movimientoService,
+        IMovimientoStoragePDF movimientoStoragePDF
+    )
     {
+        _movimientoService = movimientoService;
+        _movimientoStoragePDF = movimientoStoragePDF;
         _clientService = clientService;
         _logger = logger;
     }
@@ -125,6 +137,18 @@ public class ClientController : ControllerBase
             _logger.LogError($"Error exporting client: {ex.Message}");
             return StatusCode(500, new { message = "Error exporting client", details = ex.Message });
         }
+    }
+    
+    [HttpGet("me/export/transactions")]
+    [Authorize("ClientPolicy")]
+    public async Task<IActionResult> ExportPdf()
+    {
+        _logger.LogInformation("Exporting client's transactions as a PDF file");
+        var client = await _clientService.GettingMyClientData();
+        var movimientos = await _movimientoService.FindAllMovimientosByClientAsync(client.Id);
+        var fileStream = await _movimientoStoragePDF.Export(movimientos);
+
+        return File(fileStream, "application/pdf", "Movimientos.pdf");
     }
     
     
