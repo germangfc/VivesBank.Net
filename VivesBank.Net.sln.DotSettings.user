@@ -64,6 +64,9 @@
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.UpdateCreditCardAsync_CreditCardNotFound&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f2fd869c_002Db915_002D48e8_002Da3c0_002Dfb269cb1f480/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GetAllClientsAsync_ReturnsPagedClients" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Project Location="C:\2DAW\DesWebEntServ\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	
 	
 	
