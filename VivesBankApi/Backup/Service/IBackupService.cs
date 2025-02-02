@@ -3,5 +3,5 @@
 public interface IBackupService
 {
     Task ImportFromZip(BackUpRequest zipFilePath);
-    Task ExportToZip(BackUpRequest zipFilePath);
+    Task<string> ExportToZip(BackUpRequest zipRequest);
 }
