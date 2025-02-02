@@ -1005,7 +1005,7 @@ public class ClientServiceTests
         var ex = Assert.ThrowsAsync<FileNotFoundException>(() => _clientService.GetFileAsync(fileName));
         Assert.That(ex.Message, Is.EqualTo($"File not found: {fileName}"));
     }
-    
+
 
     [Test]
     public void UpdateClientPhotoDniAsync_ShouldThrowClientNotFoundException_WhenClientNotFound()
@@ -1017,9 +1017,11 @@ public class ClientServiceTests
         _clientRepositoryMock.Setup(repo => repo.GetByIdAsync(clientId)).ReturnsAsync((Client)null);
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.UpdateClientPhotoDniAsync(clientId, fileMock.Object));
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() =>
+            _clientService.UpdateClientPhotoDniAsync(clientId, fileMock.Object));
         Assert.That(ex.Message, Is.EqualTo($"Client not found by id El cliente con ClientId {clientId} no existe."));
-      
+    }
+
     [Test]
     public async Task Export()
     {

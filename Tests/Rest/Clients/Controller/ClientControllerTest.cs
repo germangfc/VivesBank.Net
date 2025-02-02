@@ -12,6 +12,8 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.JSON;
+using VivesBankApi.Rest.Movimientos.Services.Movimientos;
+using VivesBankApi.Rest.Movimientos.Storage;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Utils.GenericStorage.JSON;
 
@@ -22,6 +24,8 @@ public class ClientControllerTest
     private Mock<IClientService> _service;
     private ClientStorageJson _storage;
     private Mock<ILogger<ClientController>> _logger;
+    private Mock<IMovimientoStoragePDF> _movimientoStoragePdf;
+    private Mock<IMovimientoService> _movimientoService;
     private ClientController _clientController;
 
     [SetUp]
@@ -32,7 +36,9 @@ public class ClientControllerTest
             NullLogger<ClientStorageJson>.Instance 
         );
         _logger = new Mock<ILogger<ClientController>>();
-        _clientController = new ClientController(_service.Object, _logger.Object, _storage);
+        _movimientoStoragePdf = new Mock<IMovimientoStoragePDF>();
+        _movimientoService = new Mock<IMovimientoService>();
+        _clientController = new ClientController(_service.Object, _logger.Object, _movimientoService.Object, _movimientoStoragePdf.Object);
     }
 
     
