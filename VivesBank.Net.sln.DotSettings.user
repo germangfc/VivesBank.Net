@@ -29,6 +29,7 @@
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.DeleteMeAsClient_ShouldLogicDeleteClient&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.DeleteMeAsClient_NotFound&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest.DeleteMeAsClient_UsreNotFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Controller.ClientControllerTest&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=297c12cc_002D716f_002D4313_002Db098_002Dc161b1a30057/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="CreateClient_WithAExistingUser_ShouldReturnException" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
