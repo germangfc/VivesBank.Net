@@ -202,7 +202,7 @@ public class CreditCardService : ICreditCardService
         var myCardToDelete = myCreditCards.FirstOrDefault(card => card.CardNumber == number)??
                            throw new CreditCardException.CreditCardNotFoundByCardNumberException(number);
         _cache.KeyDeleteAsync(myCardToDelete.Id);
-        var deletedCard = await _creditCardRepository.GetByCardNumber(number) ?? throw new CreditCardException.CreditCardNotFoundException(number);
+        var deletedCard = await _creditCardRepository.GetByCardNumber(number) ?? throw new CreditCardException.CreditCardNotFoundByCardNumberException(number);
         deletedCard.IsDeleted = true;
         await _creditCardRepository.UpdateAsync(deletedCard);
         

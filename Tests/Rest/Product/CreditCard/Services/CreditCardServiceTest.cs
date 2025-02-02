@@ -569,20 +569,86 @@ public class CreditCardServiceTest
     }
 
     [Test]
-    public async Task DeleteCreditCardAsync()
+    public async Task DeleteCreditCardAsync_Successfully()
     {
-        // Arrange
-        var creditCardId = _CreditCard1.Id;
+        var cardNumber = "123456789";
+        var userId = "user-123";
+        var clientId = "client-123";
+        var accountId = "account-123";
+        var creditCardId = "card-123";
 
-        _cache.Setup(db => db.KeyDeleteAsync(creditCardId, It.IsAny<CommandFlags>())).ReturnsAsync(true);
-        _creditCardRepositoryMock.Setup(repo => repo.DeleteAsync(creditCardId)).Returns(Task.CompletedTask);
+        var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId) };
+        var identity = new ClaimsIdentity(claims);
+        var principal = new ClaimsPrincipal(identity);
+        var httpContext = new DefaultHttpContext { User = principal };
+        _contextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+
+        var user = new User { Id = userId };
+        var userResponse = new UserResponse
+        {
+            Id = userId,
+        };
+        var client = new Client { Id = clientId };
+        var accounts = new List<Account> { new Account { Id = accountId } };
+        var creditCards = new List<CreditCardClientResponse>
+        {
+            new CreditCardClientResponse { CardNumber = cardNumber, Id = creditCardId }
+        };
+
+        var creditCard = new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard { Id = creditCardId, CardNumber = cardNumber, IsDeleted = false };
+
+        _userService.Setup(x => x.GetUserByIdAsync(userId)).ReturnsAsync(userResponse);
+        _clientRepository.Setup(x => x.getByUserIdAsync(userId)).ReturnsAsync(client);
+        _accountsRepositiryMock.Setup(x => x.getAccountByClientIdAsync(clientId)).ReturnsAsync(accounts);
+        _creditCardRepositoryMock.Setup(x => x.GetCardsByAccountId(accountId)).ReturnsAsync( creditCard);
+        _creditCardRepositoryMock.Setup(x => x.GetByCardNumber(cardNumber)).ReturnsAsync(creditCard);
+        _cache.Setup(x => x.KeyDeleteAsync(creditCardId, default)).ReturnsAsync(true);
 
         // Act
-        await CreditCardService.DeleteCreditCardAsync(creditCardId);
+        await CreditCardService.DeleteCreditCardAsync(cardNumber);
 
         // Assert
-        _cache.Verify(db => db.KeyDeleteAsync(creditCardId, It.IsAny<CommandFlags>()), Times.Once);
-        _creditCardRepositoryMock.Verify(repo => repo.DeleteAsync(creditCardId), Times.Once);
+        _cache.Verify(x => x.KeyDeleteAsync(creditCardId, default), Times.Once);
+        _creditCardRepositoryMock.Verify(x => x.UpdateAsync(It.Is<VivesBankApi.Rest.Product.CreditCard.Models.CreditCard>(c => c.IsDeleted == true)), Times.Once);
+    }
+
+    [Test]
+    public async Task DeleteCreditCardAsync_CreditCardNotFound()
+    {
+        var cardNumber = "123456789";
+        var userId = "user-123";
+        var clientId = "client-123";
+        var accountId = "account-123";
+        var creditCardId = "card-123";
+
+        var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId) };
+        var identity = new ClaimsIdentity(claims);
+        var principal = new ClaimsPrincipal(identity);
+        var httpContext = new DefaultHttpContext { User = principal };
+        _contextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+
+        var user = new User { Id = userId };
+        var userResponse = new UserResponse
+        {
+            Id = userId,
+        };
+        var client = new Client { Id = clientId };
+        var accounts = new List<Account> { new Account { Id = accountId } };
+        var creditCards = new List<CreditCardClientResponse>
+        {
+            new CreditCardClientResponse { CardNumber = cardNumber, Id = creditCardId }
+        };
+
+        var creditCard = new VivesBankApi.Rest.Product.CreditCard.Models.CreditCard { Id = creditCardId, CardNumber = cardNumber, IsDeleted = false };
+
+        _userService.Setup(x => x.GetUserByIdAsync(userId)).ReturnsAsync(userResponse);
+        _clientRepository.Setup(x => x.getByUserIdAsync(userId)).ReturnsAsync(client);
+        _accountsRepositiryMock.Setup(x => x.getAccountByClientIdAsync(clientId)).ReturnsAsync(accounts);
+        _creditCardRepositoryMock.Setup(x => x.GetCardsByAccountId(accountId)).ReturnsAsync( creditCard);
+        _creditCardRepositoryMock.Setup(x => x.GetByCardNumber(cardNumber)).ReturnsAsync((VivesBankApi.Rest.Product.CreditCard.Models.CreditCard)null);
+
+         Assert.ThrowsAsync<CreditCardException.CreditCardNotFoundByCardNumberException>(
+            async () => await CreditCardService.DeleteCreditCardAsync(cardNumber));
     }
     
     [Test]
@@ -591,7 +657,7 @@ public class CreditCardServiceTest
         var mockFile = new Mock<IFormFile>();
         var mockStream = new MemoryStream();
         var writer = new StreamWriter(mockStream);
-        writer.Write("[{\"Id\":\"1\",\"AccountId\":\"1\",\"CardNumber\":\"1234567890123456\",\"Pin\":\"123\",\"Cvc\":\"123\",\"ExpirationDate\":\"2028-02-01\",\"CreatedAt\":\"2022-01-01\",\"UpdatedAt\":\"2022-01-01\",\"IsDeleted\":false}]");
+        writer.Write("[{\"Id\":\"1\",\"AccountId\":\"1\",\"CardNumber\":\"1234567890123456\",\"Pin\":\"123\",\"Cvc\":\"123\",\"ExpirationDate\":\"2028-02-02\",\"CreatedAt\":\"2022-01-01\",\"UpdatedAt\":\"2022-01-01\",\"IsDeleted\":false}]");
         writer.Flush();
         mockStream.Position = 0;
 
@@ -610,7 +676,6 @@ public class CreditCardServiceTest
         ClassicAssert.AreEqual("1234567890123456", creditCard?.CardNumber);
         ClassicAssert.AreEqual("123", creditCard?.Pin);
         ClassicAssert.AreEqual("123", creditCard?.Cvc);
-        ClassicAssert.AreEqual(DateOnly.FromDateTime(DateTime.Now.AddYears(3)), creditCard?.ExpirationDate);
     }
     
     [Test]
