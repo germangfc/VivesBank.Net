@@ -1,158 +1,171 @@
 ﻿using System.IO.Compression;
-using System.Reactive.Linq;
-using Newtonsoft.Json;
-using VivesBankApi.Rest.Clients.Models;
-using VivesBankApi.Rest.Clients.Repositories;
-using VivesBankApi.Rest.Movimientos.Models;
-using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
-using VivesBankApi.Rest.Product.BankAccounts.Models;
-using VivesBankApi.Rest.Product.BankAccounts.Repositories;
-using VivesBankApi.Rest.Product.Base.Models;
-using VivesBankApi.Rest.Product.CreditCard.Models;
-using VivesBankApi.Rest.Users.Models;
-using VivesBankApi.Rest.Users.Repository;
-using VivesBankApi.Utils.GenericStorage.JSON;
+using System.IO;
+using VivesBankApi.Backup.Exceptions;
+using VivesBankApi.Rest.Clients.Service;
+using VivesBankApi.Rest.Movimientos.Services.Movimientos;
+using VivesBankApi.Rest.Product.BankAccounts.Services;
+using VivesBankApi.Rest.Product.Base.Service;
+using VivesBankApi.Rest.Product.CreditCard.Service;
+using VivesBankApi.Rest.Users.Service;
 using Path = System.IO.Path;
 
-namespace VivesBankApi.Backup.Service;
-
-public class BackupService : IBackupService
+namespace VivesBankApi.Utils.Backup
 {
-    private readonly ILogger _logger;
-    
-    
-    private const string TempDirName = "StorageServiceTemp";
-    private static readonly FileInfo DefaultBackupFile = new FileInfo("backup.zip");
-
-    private readonly IGenericStorageJson<Client> _genericStorageClient;
-    private readonly IGenericStorageJson<User> _genericStorageUser;
-    private readonly IGenericStorageJson<CreditCard> _genericStorageCreditCard;
-    private readonly IGenericStorageJson<Account> _genericStorageBankAccount;
-    private readonly IGenericStorageJson<Product> _genericStorageProduct;
-    private readonly IGenericStorageJson<Movimiento> _genericStorageMovement;
-
-    private readonly IClientRepository _clientRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IAccountsRepository _accountRepository;
-    private readonly IProductRepository _productRepository;
-    private readonly ICreditCardRepository _creditCardRepository;
-    private readonly IMovimientoRepository _movimientosRepository;
-
-    public BackupService(
-        IGenericStorageJson<Client> genericStorageClient,
-        IGenericStorageJson<User> genericStorageUser,
-        IGenericStorageJson<CreditCard> genericStorageCreditCard,
-        IGenericStorageJson<Account> genericStorageBankAccount,
-        IGenericStorageJson<Product> genericStorageProduct,
-        IGenericStorageJson<Movimiento> genericStorageMovement,
-        
-        IClientRepository clientRepository,
-        IUserRepository userRepository,
-        IAccountsRepository accountRepository,
-        IProductRepository productRepository,
-        ICreditCardRepository creditCardRepository,
-        IMovimientoRepository movimientosRepository)
+    public class BackupService
     {
-        _genericStorageClient = genericStorageClient;
-        _genericStorageUser = genericStorageUser;
-        _genericStorageCreditCard = genericStorageCreditCard;
-        _genericStorageBankAccount = genericStorageBankAccount;
-        _genericStorageProduct = genericStorageProduct;
-        _genericStorageMovement = genericStorageMovement;
+        private static readonly string TempDirName = "StorageServiceTemp";
+        private readonly ILogger<BackupService> _logger;
+        private readonly ClientService _clientService;
+        private readonly UserService _userService;
+        private readonly ProductService _productService;
+        private readonly CreditCardService _creditCardService;
+        private readonly AccountService _bankAccountService;
+        private readonly MovimientoService _movementService;
 
-        _clientRepository = clientRepository;
-        _userRepository = userRepository;
-        _accountRepository = accountRepository;
-        _productRepository = productRepository;
-        _creditCardRepository = creditCardRepository;
-        _movimientosRepository = movimientosRepository;
-    }
-
-    
-    public async Task ImportFromZipAsync(FileInfo zipFile)
-    {
-        _logger.LogInformation("Importing data from ZIP: {ZipFileName}", zipFile.Name);
-
-        try
+        public BackupService(
+            ILogger<BackupService> logger,
+            ClientService clientService,
+            UserService userService,
+            ProductService productService,
+            CreditCardService creditCardService,
+            AccountService bankAccountService,
+            MovimientoService movementService)
         {
-            string tempDir = Path.Combine(Path.GetTempPath(), TempDirName);
-            Directory.CreateDirectory(tempDir);
+            _logger = logger;
+            _clientService = clientService;
+            _userService = userService;
+            _productService = productService;
+            _creditCardService = creditCardService;
+            _bankAccountService = bankAccountService;
+            _movementService = movementService;
+        }
 
-            using (ZipArchive archive = ZipFile.OpenRead(zipFile.FullName))
+        public async Task ExportToZip(string zipFilePath)
+        {
+            _logger.LogInformation("Exporting data to ZIP: {ZipFilePath}", zipFilePath);
+            var tempDir = Path.Combine(Directory.GetCurrentDirectory(), TempDirName);
+
+            try
             {
-                foreach (var entry in archive.Entries)
+                if (!Directory.Exists(tempDir))
                 {
-                    string filePath = Path.Combine(tempDir, Path.GetFileName(entry.FullName));
-
-                    Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                
-                    entry.ExtractToFile(filePath, overwrite: true);
+                    throw new BackupException.BackupDirectoryNotFoundException($"El directorio {tempDir} no existe.");
                 }
-            }
 
-            // Importar archivos JSON de manera genérica
-            await ImportJsonAsync<Client>(_genericStorageClient, Path.Combine(tempDir, "clients.json"));
-            await ImportJsonAsync<User>(_genericStorageUser, Path.Combine(tempDir, "users.json"));
-            await ImportJsonAsync<CreditCard>(_genericStorageCreditCard, Path.Combine(tempDir, "creditCards.json"));
-            await ImportJsonAsync<Account>(_genericStorageBankAccount, Path.Combine(tempDir, "bankAccounts.json"));
-            await ImportJsonAsync<Product>(_genericStorageProduct, Path.Combine(tempDir, "products.json"));
-            await ImportJsonAsync<Movimiento>(_genericStorageMovement, Path.Combine(tempDir, "movements.json"));
+                Directory.CreateDirectory(tempDir);
 
-            _logger.LogInformation("Data imported successfully from ZIP: {ZipFileName}", zipFile.Name);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error importing data from ZIP");
-            throw;
-        }
-    }
+                await ExportJsonFiles(tempDir);
 
-    
-
-
-    public async Task ExportToZipAsync(FileInfo zipFile)
-    {
-        _logger.LogInformation("Exporting data to ZIP: {ZipFileName}", zipFile.Name);
-    
-        try
-        {
-            string tempDir = Path.Combine(Path.GetTempPath(), TempDirName);
-            Directory.CreateDirectory(tempDir);
-
-            await ExportJsonAsync(Path.Combine(tempDir, "clients.json"), await _clientRepository.GetAllAsync());
-            await ExportJsonAsync(Path.Combine(tempDir, "users.json"), await _userRepository.GetAllAsync());
-            await ExportJsonAsync(Path.Combine(tempDir, "creditCards.json"), await _creditCardRepository.GetAllAsync());
-            await ExportJsonAsync(Path.Combine(tempDir, "bankAccounts.json"), await _accountRepository.GetAllAsync());
-            await ExportJsonAsync(Path.Combine(tempDir, "products.json"), await _productRepository.GetAllAsync());
-            await ExportJsonAsync(Path.Combine(tempDir, "movements.json"), await _movimientosRepository.GetAllMovimientosAsync());
-            
-            using (FileStream zipToCreate = new FileStream(zipFile.FullName, FileMode.Create))
-            using (ZipArchive archive = new ZipArchive(zipToCreate, ZipArchiveMode.Create, true))
-            {
-                foreach (var filePath in Directory.GetFiles(tempDir))
+                using (var zip = new ZipArchive(File.Open(zipFilePath, FileMode.Create), ZipArchiveMode.Create))
                 {
-                    string fileName = Path.GetFileName(filePath);
-                    var entry = archive.CreateEntry(fileName, CompressionLevel.Optimal);
-                    using (var entryStream = entry.Open())
-                    using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                    foreach (var filePath in Directory.GetFiles(tempDir))
                     {
-                        await fileStream.CopyToAsync(entryStream);
+                        zip.CreateEntryFromFile(filePath, Path.GetFileName(filePath));
+                    }
+                }
+
+                _logger.LogInformation("Data exported successfully to ZIP: {ZipFilePath}", zipFilePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error exporting data to ZIP");
+                throw new BackupException.BackupPermissionException("Hubo un error al intentar exportar los datos. Verifique los permisos o el directorio de destino.", ex);
+            }
+        }
+
+        public async Task ImportFromZip(string zipFilePath)
+        {
+            _logger.LogInformation("Importing data from ZIP: {ZipFilePath}", zipFilePath);
+            var tempDir = Path.Combine(Directory.GetCurrentDirectory(), TempDirName);
+
+            try
+            {
+                if (!File.Exists(zipFilePath))
+                {
+                    throw new BackupException.BackupFileNotFoundException($"El archivo {zipFilePath} no fue encontrado.");
+                }
+
+                Directory.CreateDirectory(tempDir);
+
+                ExtractZip(zipFilePath, tempDir);
+
+                await ImportJsonFiles(tempDir);
+
+                _logger.LogInformation("Data imported successfully from ZIP: {ZipFilePath}", zipFilePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error importing data from ZIP");
+                throw new BackupException.BackupPermissionException("Hubo un error al intentar importar los datos. Verifique el archivo ZIP o los permisos.", ex);
+            }
+        }
+
+        private void ExtractZip(string zipFilePath, string tempDir)
+        {
+            try
+            {
+                using (var zip = ZipFile.OpenRead(zipFilePath))
+                {
+                    foreach (var entry in zip.Entries)
+                    {
+                        var filePath = Path.Combine(tempDir, entry.FullName);
+                        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+                        entry.ExtractToFile(filePath, true);
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting ZIP file");
+                throw new BackupException.BackupPermissionException("Hubo un error al extraer el archivo ZIP.", ex);
+            }
+        }
 
-            _logger.LogInformation("Data exported successfully to ZIP: {ZipFileName}", zipFile.Name);
-        }
-        catch (Exception ex)
+        private async Task ExportJsonFiles(string directoryPath)
         {
-            _logger.LogError(ex, "Error exporting data to ZIP");
-            throw;
+            try
+            {
+                var clientEntities = await _clientService.GetAll();
+                var userEntities = await _userService.GetAll();
+                var productEntities = await _productService.GetAll();
+                var creditCardEntities = await _creditCardService.GetAll();
+                var bankAccountEntities = await _bankAccountService.GetAll();
+                var movementEntities = await _movementService.FindAllMovimientosAsync();
+
+                await _clientService.Export(clientEntities);
+                await _userService.Export(userEntities);
+                await _creditCardService.Export(creditCardEntities);
+                await _bankAccountService.Export(bankAccountEntities);
+                await _productService.Export(productEntities);
+                await _movementService.Export(movementEntities);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error exporting JSON files");
+                throw new BackupException.BackupPermissionException("Hubo un error al exportar los archivos JSON.", ex);
+            }
         }
-    }
-    
-    private async Task ExportJsonAsync<T>(string filePath, IEnumerable<T> data)
-    {
-        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-        await File.WriteAllTextAsync(filePath, json);
+
+        private async Task ImportJsonFiles(string directoryPath)
+        {
+            try
+            {
+                _logger.LogInformation("Importing JSON files from {DirectoryPath}", directoryPath);
+
+                var clientEntities = await _clientService.ImportFromFile(Path.Combine(directoryPath, "clients.json"));
+                var userEntities = await _userService.ImportFromFile(Path.Combine(directoryPath, "users.json"));
+                var creditCardEntities = await _creditCardService.ImportFromFile(Path.Combine(directoryPath, "creditCards.json"));
+                var bankAccountEntities = await _bankAccountService.ImportFromFile(Path.Combine(directoryPath, "bankAccounts.json"));
+                var productEntities = await _productService.ImportFromFile(Path.Combine(directoryPath, "products.json"));
+                var movementEntities = await _movementService.ImportFromFile(Path.Combine(directoryPath, "movements.json"));
+
+                _logger.LogInformation("JSON import completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error importing JSON files");
+                throw new BackupException.BackupPermissionException("Hubo un error al importar los archivos JSON.", ex);
+            }
+        }
     }
 }

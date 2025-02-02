@@ -10,6 +10,8 @@ public interface ICreditCardService : IGenericStorageJson<Models.CreditCard>
         string fullName,
         bool? isDeleted,
         string direction);
+    Task<List<Models.CreditCard>> GetAll();
+
     //Task<List<CreditCardClientResponse>> GetAllCreditCardClientAsync();
     Task<List<CreditCardClientResponse?>> GetMyCreditCardsAsync();
     Task<CreditCardAdminResponse?> GetCreditCardByIdAdminAsync(string id);
