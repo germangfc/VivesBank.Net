@@ -1,8 +1,10 @@
 using VivesBankApi.Rest.Clients.Dto;
+using VivesBankApi.Rest.Clients.Models;
+using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace VivesBankApi.Rest.Clients.Service;
 
-public interface IClientService
+public interface IClientService : IGenericStorageJson<Client>
 {
     public Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber,
@@ -29,6 +31,9 @@ public interface IClientService
 
     Task<FileStream> GettingMyProfilePhotoAsync();
     Task<string> UpdateMyProfilePhotoAsync(IFormFile file);
+    
+    //Json
+    Task<FileStream> ExportOnlyMeData(Client user);
 
     //Funciones para storage remoto FTP
     Task<string> SaveFileToFtpAsync(IFormFile file, string dni);
