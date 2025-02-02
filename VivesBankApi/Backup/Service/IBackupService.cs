@@ -1,6 +1,6 @@
 ﻿namespace VivesBankApi.Backup.Service;
 
 public interface IBackupService {
-    Task importFromZip(IFormFile zipFile);
-    Task exportToZip(FileInfo zipFile);
+    Task ImportFromZipAsync(FileInfo zipFile);
+    Task ExportToZipAsync(FileInfo zipFile);
 }

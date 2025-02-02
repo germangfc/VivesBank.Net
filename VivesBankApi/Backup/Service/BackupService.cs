@@ -1,15 +1,17 @@
 ﻿using System.IO.Compression;
+using System.Reactive.Linq;
 using Newtonsoft.Json;
+using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
-using VivesBankApi.Rest.Clients.Service;
+using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
-using VivesBankApi.Rest.Movimientos.Services.Movimientos;
+using VivesBankApi.Rest.Product.BankAccounts.Models;
 using VivesBankApi.Rest.Product.BankAccounts.Repositories;
-using VivesBankApi.Rest.Product.BankAccounts.Services;
-using VivesBankApi.Rest.Product.CreditCard.Service;
-using VivesBankApi.Rest.Product.Service;
+using VivesBankApi.Rest.Product.Base.Models;
+using VivesBankApi.Rest.Product.CreditCard.Models;
+using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Repository;
-using VivesBankApi.Rest.Users.Service;
+using VivesBankApi.Utils.GenericStorage.JSON;
 using Path = System.IO.Path;
 
 namespace VivesBankApi.Backup.Service;
@@ -18,15 +20,16 @@ public class BackupService : IBackupService
 {
     private readonly ILogger _logger;
     
+    
     private const string TempDirName = "StorageServiceTemp";
     private static readonly FileInfo DefaultBackupFile = new FileInfo("backup.zip");
 
-    private readonly IClientService _clientService;
-    private readonly IUserService _userService;
-    private readonly IAccountsService _accountService;
-    private readonly IProductService _productService;
-    private readonly ICreditCardService _creditCardService;
-    private readonly IMovimientoService _movimientosService;
+    private readonly IGenericStorageJson<Client> _genericStorageClient;
+    private readonly IGenericStorageJson<User> _genericStorageUser;
+    private readonly IGenericStorageJson<CreditCard> _genericStorageCreditCard;
+    private readonly IGenericStorageJson<Account> _genericStorageBankAccount;
+    private readonly IGenericStorageJson<Product> _genericStorageProduct;
+    private readonly IGenericStorageJson<Movimiento> _genericStorageMovement;
 
     private readonly IClientRepository _clientRepository;
     private readonly IUserRepository _userRepository;
@@ -36,32 +39,35 @@ public class BackupService : IBackupService
     private readonly IMovimientoRepository _movimientosRepository;
 
     public BackupService(
-        IClientService clientService,
-        IUserService userService,
-        IAccountsService bankAccountService,
-        IProductService productService,
-        ICreditCardService creditCardService,
-        IMovimientoService movementsService,
+        IGenericStorageJson<Client> genericStorageClient,
+        IGenericStorageJson<User> genericStorageUser,
+        IGenericStorageJson<CreditCard> genericStorageCreditCard,
+        IGenericStorageJson<Account> genericStorageBankAccount,
+        IGenericStorageJson<Product> genericStorageProduct,
+        IGenericStorageJson<Movimiento> genericStorageMovement,
+        
         IClientRepository clientRepository,
         IUserRepository userRepository,
-        IAccountsRepository bankAccountRepository,
+        IAccountsRepository accountRepository,
         IProductRepository productRepository,
         ICreditCardRepository creditCardRepository,
-        IMovimientoRepository movementsRepository)
+        IMovimientoRepository movimientosRepository)
     {
-        _clientService = clientService;
-        _userService = userService;
-        _accountService = bankAccountService;
-        _productService = productService;
-        _creditCardService = creditCardService;
-        _movimientosService = movementsService;
+        _genericStorageClient = genericStorageClient;
+        _genericStorageUser = genericStorageUser;
+        _genericStorageCreditCard = genericStorageCreditCard;
+        _genericStorageBankAccount = genericStorageBankAccount;
+        _genericStorageProduct = genericStorageProduct;
+        _genericStorageMovement = genericStorageMovement;
+
         _clientRepository = clientRepository;
         _userRepository = userRepository;
-        _accountRepository = bankAccountRepository;
+        _accountRepository = accountRepository;
         _productRepository = productRepository;
         _creditCardRepository = creditCardRepository;
-        _movimientosRepository = movementsRepository;
+        _movimientosRepository = movimientosRepository;
     }
+
     
     public async Task ImportFromZipAsync(FileInfo zipFile)
     {
@@ -72,24 +78,25 @@ public class BackupService : IBackupService
             string tempDir = Path.Combine(Path.GetTempPath(), TempDirName);
             Directory.CreateDirectory(tempDir);
 
-            // Extract ZIP files
             using (ZipArchive archive = ZipFile.OpenRead(zipFile.FullName))
             {
                 foreach (var entry in archive.Entries)
                 {
-                    string filePath = Path.Combine(tempDir, entry.FullName);
+                    string filePath = Path.Combine(tempDir, Path.GetFileName(entry.FullName));
+
                     Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+                
                     entry.ExtractToFile(filePath, overwrite: true);
                 }
             }
 
-            // Import JSON files
-            await _clientService.ImportJsonAsync(Path.Combine(tempDir, "clients.json"));
-            await _userService.ImportJsonAsync(Path.Combine(tempDir, "users.json"));
-            await _creditCardService.ImportJsonAsync(Path.Combine(tempDir, "creditCards.json"));
-            await _accountService.ImportJsonAsync(Path.Combine(tempDir, "bankAccounts.json"));
-            await _productService.ImportJsonAsync(Path.Combine(tempDir, "products.json"));
-            await _movimientosService.ImportJsonAsync(Path.Combine(tempDir, "movements.json"));
+            // Importar archivos JSON de manera genérica
+            await ImportJsonAsync<Client>(_genericStorageClient, Path.Combine(tempDir, "clients.json"));
+            await ImportJsonAsync<User>(_genericStorageUser, Path.Combine(tempDir, "users.json"));
+            await ImportJsonAsync<CreditCard>(_genericStorageCreditCard, Path.Combine(tempDir, "creditCards.json"));
+            await ImportJsonAsync<Account>(_genericStorageBankAccount, Path.Combine(tempDir, "bankAccounts.json"));
+            await ImportJsonAsync<Product>(_genericStorageProduct, Path.Combine(tempDir, "products.json"));
+            await ImportJsonAsync<Movimiento>(_genericStorageMovement, Path.Combine(tempDir, "movements.json"));
 
             _logger.LogInformation("Data imported successfully from ZIP: {ZipFileName}", zipFile.Name);
         }
@@ -99,9 +106,11 @@ public class BackupService : IBackupService
             throw;
         }
     }
+
     
 
-    public async Task exportToZip(FileInfo zipFile)
+
+    public async Task ExportToZipAsync(FileInfo zipFile)
     {
         _logger.LogInformation("Exporting data to ZIP: {ZipFileName}", zipFile.Name);
     
