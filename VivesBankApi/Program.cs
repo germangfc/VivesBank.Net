@@ -44,6 +44,7 @@
     using Quartz.Spi;
     using VivesBankApi.Rest.Clients.storage.JSON;
     using VivesBankApi.Rest.Movimientos.Jobs;
+    using VivesBankApi.Rest.Movimientos.Storage;
     using VivesBankApi.Rest.Product.Base.Service;
 
     Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
@@ -283,6 +284,7 @@
     // MOVIMIENTO
         myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>(); 
         myBuilder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
+        myBuilder.Services.AddScoped<IMovimientoStoragePDF, MovimientoStoragePDF>();
     // MOVIMIENTO QUERIES
         myBuilder.Services.AddScoped<IMovimientoMeQueriesService, MovimientoMeQueriesService>();
 
