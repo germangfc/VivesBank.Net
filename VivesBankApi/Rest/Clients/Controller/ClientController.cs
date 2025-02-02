@@ -4,7 +4,6 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Mappers;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.Config;
-using VivesBankApi.Rest.Clients.storage.JSON;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Movimientos.Storage;
@@ -16,15 +15,13 @@ namespace VivesBankApi.Rest.Clients.Controller;
 public class ClientController : ControllerBase
 {
     private readonly IClientService _clientService;
+    private ILogger _logger;
     private readonly IMovimientoService _movimientoService;
     private readonly IMovimientoStoragePDF _movimientoStoragePDF;
-    private readonly IClientStorageJson _storage;
-    private ILogger _logger;
     
     public ClientController(
         IClientService clientService, 
         ILogger<ClientController> logger, 
-        IClientStorageJson storage,
         IMovimientoService movimientoService,
         IMovimientoStoragePDF movimientoStoragePDF
     )
@@ -32,7 +29,6 @@ public class ClientController : ControllerBase
         _movimientoService = movimientoService;
         _movimientoStoragePDF = movimientoStoragePDF;
         _clientService = clientService;
-        _storage = storage;
         _logger = logger;
     }
 
@@ -133,7 +129,7 @@ public class ClientController : ControllerBase
         try
         {
             var user = await _clientService.GettingMyClientData();
-            var fileStream = await _storage.ExportOnlyMeData(user.FromDtoResponse());
+            var fileStream = await _clientService.ExportOnlyMeData(user.FromDtoResponse());
             return File(fileStream, "application/json", "user.json");
         }
         catch (Exception ex)

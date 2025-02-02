@@ -1,9 +1,10 @@
 ﻿using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Models;
+using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace VivesBankApi.Rest.Users.Service;
 
-public interface IUserService
+public interface IUserService : IGenericStorageJson<User>
 {
     Task<PagedList<UserResponse>> GetAllUsersAsync(
         int pageNumber, 
