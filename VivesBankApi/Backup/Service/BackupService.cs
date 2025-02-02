@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.IO;
 using VivesBankApi.Backup.Exceptions;
+using VivesBankApi.Backup.Service;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
@@ -11,7 +12,7 @@ using Path = System.IO.Path;
 
 namespace VivesBankApi.Utils.Backup
 {
-    public class BackupService
+    public class BackupService : IBackupService
     {
         private static readonly string TempDirName = "StorageServiceTemp";
         private readonly ILogger<BackupService> _logger;

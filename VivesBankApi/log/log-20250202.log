@@ -19,3 +19,15 @@ System.NotImplementedException: The method or operation is not implemented.
    at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
    at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
    at ApiFunkosCS.Utils.ExceptionMiddleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Utils\ExceptionMiddleware\GlobalExceptionMiddleware.cs:line 17
+[2025-02-02 19:24:03.847] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (63ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 20:25:09.165] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (50ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 20:55:13.584] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (59ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
