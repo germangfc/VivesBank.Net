@@ -17,6 +17,7 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6669d0a8_002Da515_002D48e9_002Dabce_002D363188ded8f1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="UpdateCreditCardAsync_CreditCardNotFound" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.UpdateCreditCardAsync_CreditCardNotFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Product.CreditCard.Service.CreditCardServiceTest.UpdateCreditCardAsync_InvalidPin&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=96840bbd_002Dfed0_002D4e9f_002D9c9e_002D8fb80dab8c72/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetCreditCardsPaginated_ShouldReturn_ListaVacia" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
