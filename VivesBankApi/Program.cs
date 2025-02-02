@@ -42,9 +42,12 @@
     using Quartz;
     using Quartz.Impl;
     using Quartz.Spi;
+    using VivesBankApi.Backup.Service;
     using VivesBankApi.Rest.Movimientos.Jobs;
     using VivesBankApi.Rest.Movimientos.Storage;
     using VivesBankApi.Rest.Product.Base.Service;
+    using VivesBankApi.Utils.Backup;
+    using VivesBankApi.Utils.GenericStorage.JSON;
 
     Console.OutputEncoding = Encoding.UTF8; // Configura la codificación de salida de la consola a UTF-8 para mostrar caracteres especiales.
 
@@ -316,7 +319,13 @@
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();
         myBuilder.Services.AddScoped<IUserService, UserService>();
         myBuilder.Services.AddSingleton<IWebsocketHandler, WebSocketHandler>();
-        myBuilder.Services.AddHttpContextAccessor();
+        myBuilder.Services.AddHttpContextAccessor(); 
+    // BACKUP
+        myBuilder.Services.AddScoped<IBackupService, BackupService>();
+        
+        myBuilder.Services.AddScoped(typeof(IGenericStorageJson<>), typeof(GenericStorageJson<>)); // Si tienes interfaces genéricas
+
+
     // API FRANKFURTER 
         string frankfurterBaseUrl = configuration["Frankfurter:BaseUrl"];
         if (string.IsNullOrEmpty(frankfurterBaseUrl))

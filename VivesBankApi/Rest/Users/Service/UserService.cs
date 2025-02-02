@@ -46,6 +46,11 @@ public class UserService : GenericStorageJson<User>, IUserService
         _httpContextAccessor = httpContextAccessor;
     }
     
+    public async Task<List<User>> GetAll()
+    {
+        return await _userRepository.GetAllAsync();
+    }
+    
     public async Task<PagedList<UserResponse>> GetAllUsersAsync(
         int pageNumber, 
         int pageSize,

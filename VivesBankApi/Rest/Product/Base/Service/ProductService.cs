@@ -8,26 +8,37 @@ using VivesBankApi.Rest.Product.Base.Exception;
 using VivesBankApi.Rest.Product.Base.Mapper;
 using VivesBankApi.Rest.Product.Base.Validators;
 using VivesBankApi.Rest.Product.Service;
+using VivesBankApi.Utils.GenericStorage.JSON;
 using VivesBankApi.WebSocket.Model;
 using VivesBankApi.WebSocket.Service;
 
 namespace VivesBankApi.Rest.Product.Base.Service;
 
-public class ProductService : IProductService
+public class ProductService : GenericStorageJson<Models.Product>, IProductService
 {
-    private readonly ILogger<ProductService> _logger;
     private readonly IProductRepository _productRepository;
     private readonly ProductValidator _productValidator;
     private readonly IWebsocketHandler _websocketHandler;
     private readonly IDatabase _cache;
-    
-    public ProductService(ILogger<ProductService> logger, IProductRepository productRepository, ProductValidator productValidator, IConnectionMultiplexer connection, IWebsocketHandler websocketHandler)
+
+    // Constructor de ProductService
+    public ProductService(
+        ILogger<ProductService> logger, 
+        IProductRepository productRepository, 
+        ProductValidator productValidator, 
+        IConnectionMultiplexer connection, 
+        IWebsocketHandler websocketHandler)
+        : base(logger)
     {
-        _logger = logger;
         _productRepository = productRepository;
         _productValidator = productValidator;
         _cache = connection.GetDatabase();
         _websocketHandler = websocketHandler;
+    }
+    
+    public async Task<List<Models.Product>> GetAll()
+    {
+        return await _productRepository.GetAllAsync();
     }
     
     public async Task<List<ProductResponse>> GetAllProductsAsync()
