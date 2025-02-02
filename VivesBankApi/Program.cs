@@ -42,7 +42,6 @@
     using Quartz;
     using Quartz.Impl;
     using Quartz.Spi;
-    using VivesBankApi.Rest.Clients.storage.JSON;
     using VivesBankApi.Rest.Movimientos.Jobs;
     using VivesBankApi.Rest.Product.Base.Service;
 
@@ -307,7 +306,6 @@
         myBuilder.Services.AddScoped<IClientService, ClientService>();
         myBuilder.Services.AddScoped<FileStorageConfig>();
         myBuilder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
-        myBuilder.Services.AddScoped<IClientStorageJson, ClientStorageJson>();
         
     // USUARIO
         myBuilder.Services.AddScoped<IUserRepository, UserRepository>();

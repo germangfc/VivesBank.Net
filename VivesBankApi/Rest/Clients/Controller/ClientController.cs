@@ -4,7 +4,6 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Mappers;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Clients.storage.Config;
-using VivesBankApi.Rest.Clients.storage.JSON;
 using Path = System.IO.Path;
 
 namespace VivesBankApi.Rest.Clients.Controller;
@@ -13,13 +12,11 @@ namespace VivesBankApi.Rest.Clients.Controller;
 public class ClientController : ControllerBase
 {
     private readonly IClientService _clientService;
-    private readonly IClientStorageJson _storage;
     private ILogger _logger;
     
-    public ClientController(IClientService clientService, ILogger<ClientController> logger, IClientStorageJson storage)
+    public ClientController(IClientService clientService, ILogger<ClientController> logger)
     {
         _clientService = clientService;
-        _storage = storage;
         _logger = logger;
     }
 
@@ -120,7 +117,7 @@ public class ClientController : ControllerBase
         try
         {
             var user = await _clientService.GettingMyClientData();
-            var fileStream = await _storage.ExportOnlyMeData(user.FromDtoResponse());
+            var fileStream = await _clientService.ExportOnlyMeData(user.FromDtoResponse());
             return File(fileStream, "application/json", "user.json");
         }
         catch (Exception ex)
