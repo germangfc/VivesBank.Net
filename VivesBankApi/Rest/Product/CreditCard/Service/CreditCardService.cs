@@ -19,48 +19,38 @@ using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace VivesBankApi.Rest.Product.CreditCard.Service;
 
-public class CreditCardService(
-    ICreditCardRepository creditCardRepository,
-    ILogger<CreditCardService> logger,
-    CvcGenerator cvcGenerator,
-    ExpirationDateGenerator expirationDateGenerator,
-    NumberGenerator numberGenerator,
-    IAccountsRepository accountsRepository,
-    IConnectionMultiplexer connectionMultiplexer,
-    IHttpContextAccessor httpContextAccessor,
-    IUserService userService,
-    IClientRepository clientRepository)
-    : GenericStorageJson<Models.CreditCard>(logger), ICreditCardService
+public class CreditCardService
+    : GenericStorageJson<Models.CreditCard>, ICreditCardService
 {
-    private readonly ICreditCardRepository _creditCardRepository = creditCardRepository;
-    private readonly ILogger _logger = logger;
-    private readonly CvcGenerator _cvcGenerator = cvcGenerator;
-    private readonly ExpirationDateGenerator _expirationDateGenerator = expirationDateGenerator;
-    private readonly NumberGenerator _numberGenerator = numberGenerator;
-    private readonly IAccountsRepository _accountsRepository = accountsRepository;
-    private readonly IDatabase _cache = connectionMultiplexer.GetDatabase();
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-    private readonly IUserService _userService = userService;
-    private readonly IClientRepository _clientRepository = clientRepository;
-
-    
-    public async Task<List<Models.CreditCard>> GetAll()
     private readonly ICreditCardRepository _creditCardRepository;
-    private readonly ILogger _logger;
+    private readonly ILogger<CreditCardService> _logger;
     private readonly ICvcGenerator _cvcGenerator;
     private readonly IExpirationDateGenerator _expirationDateGenerator;
     private readonly INumberGenerator _numberGenerator;
     private readonly IAccountsRepository _accountsRepository;
-    private readonly IDatabase _cache;
+    private readonly IConnectionMultiplexer _connectionMultiplexer;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserService _userService;
     private readonly IClientRepository _clientRepository;
+    private readonly IDatabase _cache;
+    public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, ICvcGenerator cvcGenerator, IExpirationDateGenerator expirationDateGenerator, INumberGenerator numberGenerator, IAccountsRepository accountsRepository, IConnectionMultiplexer connectionMultiplexer, IHttpContextAccessor httpContextAccessor, IUserService userService, IClientRepository clientRepository) : base(logger)
+    {
+        _creditCardRepository = creditCardRepository;
+        _logger = logger;
+        _cvcGenerator = cvcGenerator;
+        _expirationDateGenerator = expirationDateGenerator;
+        _numberGenerator = numberGenerator;
+        _accountsRepository = accountsRepository;
+        _cache = connectionMultiplexer.GetDatabase();
+        _httpContextAccessor = httpContextAccessor;
+        _userService = userService;
+        _clientRepository = clientRepository;
+    }
 
-    public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, ICvcGenerator cvcGenerator, IExpirationDateGenerator expirationDateGenerator, INumberGenerator numberGenerator, IAccountsRepository accountsRepository, IConnectionMultiplexer connectionMultiplexer, IHttpContextAccessor httpContextAccessor, IUserService userService, IClientRepository clientRepository)
+    public async Task<List<Models.CreditCard>> GetAll()
     {
         return await _creditCardRepository.GetAllAsync();
     }
-
     public async Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync(
         int pageNumber, int pageSize, string fullName, bool? isDeleted, string direction)
     {

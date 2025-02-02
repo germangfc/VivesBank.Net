@@ -109,7 +109,7 @@ public class AccountMappersTests
         ClassicAssert.IsNotNull(response);
         ClassicAssert.AreEqual(account.Id, response.Id);
         ClassicAssert.AreEqual(account.IBAN, response.IBAN);
-        ClassicAssert.AreEqual(account.ClientId, response.clientID);
+        ClassicAssert.AreEqual(account.ClientId, response.ClientID);
         ClassicAssert.AreEqual(account.ProductId, response.productID);
         ClassicAssert.AreEqual(account.AccountType, response.AccountType);
         ClassicAssert.AreEqual(account.InterestRate, response.InterestRate);
