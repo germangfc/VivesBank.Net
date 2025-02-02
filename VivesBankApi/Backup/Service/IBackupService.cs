@@ -2,6 +2,6 @@
 
 public interface IBackupService
 {
-    Task ImportFromZip(string zipFilePath);
-    Task ExportToZip(string zipFilePath);
+    Task ImportFromZip(BackUpRequest zipFilePath);
+    Task ExportToZip(BackUpRequest zipFilePath);
 }

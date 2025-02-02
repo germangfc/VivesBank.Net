@@ -2,6 +2,8 @@
 using VivesBankApi.Utils.Backup;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using VivesBankApi.Backup;
+using VivesBankApi.Backup.Service;
 
 namespace VivesBankApi.Controllers
 {
@@ -10,8 +12,8 @@ namespace VivesBankApi.Controllers
     
     public class BackupController : ControllerBase
     {
-        private readonly BackupService _backupService;
-        public BackupController(BackupService backupService)
+        private readonly IBackupService _backupService;
+        public BackupController(IBackupService backupService)
         {
             _backupService = backupService;
         }
@@ -19,7 +21,7 @@ namespace VivesBankApi.Controllers
         [HttpPost("export")]
         [Authorize("AdminPolicy")]
 
-        public async Task<IActionResult> ExportToZip([FromBody] string zipFilePath)
+        public async Task<IActionResult> ExportToZip([FromBody] BackUpRequest zipFilePath)
         {
             await _backupService.ExportToZip(zipFilePath);
             return Ok(new { Message = "Backup exported successfully." });
@@ -27,7 +29,7 @@ namespace VivesBankApi.Controllers
 
         [HttpPost("import")]
         [Authorize("AdminPolicy")]
-        public async Task<IActionResult> ImportFromZip([FromBody] string zipFilePath)
+        public async Task<IActionResult> ImportFromZip([FromBody] BackUpRequest zipFilePath)
         {
             await _backupService.ImportFromZip(zipFilePath);
             return Ok(new { Message = "Backup imported successfully." });
