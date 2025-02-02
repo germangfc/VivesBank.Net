@@ -57,6 +57,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 case IngresoNominaInvalidAmountException:
                 case PagoTarjetaInvalidAmountException:
                 case TransferInvalidAmountException:
+                case TransferSameIbanException:
                 case InvalidSourceIbanException:
                 case InvalidCardNumberException:
                 case InvalidDestinationIbanException:
@@ -93,6 +94,12 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     break;
                 case UserAlreadyExistsException:
                     statusCode = HttpStatusCode.Conflict;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                /************************** CREDIT CARD EXCEPTIONS *****************************************************/
+                case CreditCardException.CreditCardNotAssignedException:
+                    statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;

@@ -14,6 +14,7 @@ public interface IClientService : IGenericStorageJson<Client>
         string direction);
 
     Task<ClientResponse> GetClientByIdAsync(string id);
+    Task<ClientResponse> GetClientByUserIdAsync(string userId);
     Task<ClientResponse> GettingMyClientData();
     Task<String> CreateClientAsync(ClientRequest request);
     Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request);

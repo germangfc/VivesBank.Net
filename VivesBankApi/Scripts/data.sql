@@ -107,11 +107,35 @@ INSERT INTO "BankAccounts" (
              'eJTX-_GjsQ',
              'gCJCp7lRW4Q',                         
              'ES7620770024003102575766',   
-             0.00,                        
+             1500.00,                        
              0,                     
              NOW(),                        
              NOW(),                       
              false                         
+         );
+
+INSERT INTO "BankAccounts" (
+    "Id",
+    "ProductId",
+    "ClientId",
+    "TarjetaId",
+    "IBAN",
+    "Balance",
+    "AccountType",
+    "CreatedAt",
+    "UpdatedAt",
+    "IsDeleted"
+) VALUES (
+             'aB_ynBQklw',
+             'Z-QnRlm7XQ',
+             'eJTX-_GjsQ',
+             'gCJCp7lRW4Q',
+             'ES9121000418450200051332',
+             1000.00,
+             0,
+             NOW(),
+             NOW(),
+             false
          );
 
 INSERT INTO "CreditCards" (
@@ -119,7 +143,7 @@ INSERT INTO "CreditCards" (
 ) VALUES (
              'gCJCp7lRW4Q', -- ID generado
              'mT_ynBQklw', -- AccountId asociado
-             '1234567812345678', -- Número de tarjeta
+             '4111111111111111', -- Número de tarjeta
              '1234',             -- PIN
              '123',              -- CVC
              '2028-12-31',       -- Fecha de expiración
