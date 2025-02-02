@@ -10,7 +10,7 @@ public class AccountCompleteResponse
     [Required(ErrorMessage = "The IBAN of the account must be specified")]
     public string IBAN { get; set; }
     [Required(ErrorMessage = "The id of the client who owns the account must be specified")]
-    public String clientID { get; set; }
+    public String ClientID { get; set; }
     [Required (ErrorMessage = "The id of the product must be specified")]
     public String productID { get; set; }
     [Required (ErrorMessage = "The account type must be specified")]

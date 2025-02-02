@@ -6,8 +6,8 @@ namespace VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 public interface IMovimientoRepository
 {
     Task<List<Movimiento>> GetAllMovimientosAsync();
-    Task<Movimiento> GetMovimientoByIdAsync(String id);
-    Task<Movimiento> GetMovimientoByGuidAsync(string guid);
+    Task<Movimiento?> GetMovimientoByIdAsync(String id);
+    Task<Movimiento?> GetMovimientoByGuidAsync(string guid);
     Task<List<Movimiento>> GetMovimientosByClientAsync(string clienteId);
     Task<Movimiento> AddMovimientoAsync(Movimiento movimiento);
     Task<Movimiento> UpdateMovimientoAsync(String id, Movimiento movimiento);

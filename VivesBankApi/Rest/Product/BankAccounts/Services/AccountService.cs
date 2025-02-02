@@ -15,15 +15,15 @@ using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
+using VivesBankApi.Utils.GenericStorage.JSON;
 using VivesBankApi.Utils.IbanGenerator;
 using VivesBankApi.WebSocket.Model;
 using VivesBankApi.WebSocket.Service;
 
 namespace VivesBankApi.Rest.Product.BankAccounts.Services;
 
-public class AccountService : IAccountsService
+public class AccountService : GenericStorageJson<Account>, IAccountsService
 {
-    private readonly ILogger<AccountService> _logger;
     private readonly IAccountsRepository _accountsRepository;
     private readonly IClientRepository _clientRepository;
     private readonly IProductRepository _productRepository;
@@ -32,10 +32,19 @@ public class AccountService : IAccountsService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserService _userService;
     private readonly IWebsocketHandler _websocketHandler;
-    
-    public AccountService(ILogger<AccountService> logger, IIbanGenerator ibanGenerator,IClientRepository clientRepository,IProductRepository productRepository ,IAccountsRepository accountsRepository, IConnectionMultiplexer connection, IHttpContextAccessor httpContextAccessor, IUserService userService, IWebsocketHandler websocketHandler)
+
+    public AccountService(
+        ILogger<AccountService> logger, 
+        IIbanGenerator ibanGenerator,
+        IClientRepository clientRepository,
+        IProductRepository productRepository,
+        IAccountsRepository accountsRepository, 
+        IConnectionMultiplexer connection, 
+        IHttpContextAccessor httpContextAccessor, 
+        IUserService userService, 
+        IWebsocketHandler websocketHandler)
+        : base(logger)
     {
-        _logger = logger;
         _ibanGenerator = ibanGenerator;
         _accountsRepository = accountsRepository;
         _clientRepository = clientRepository;
@@ -45,6 +54,12 @@ public class AccountService : IAccountsService
         _userService = userService;
         _websocketHandler = websocketHandler;
     }
+    
+    public async Task<List<Account>> GetAll()
+    {
+        return await _accountsRepository.GetAllAsync();
+    }
+    
     public async Task<PageResponse<AccountResponse>> GetAccountsAsync(int pageNumber = 0, int pageSize = 10, string sortBy = "id", string direction = "asc")
     {
         _logger.LogInformation("Getting all accounts with pagination");
@@ -177,15 +192,15 @@ public class AccountService : IAccountsService
         await _cache.KeyDeleteAsync("account:" + accountToDelete.IBAN);
     }
 
-    public async Task<AccountResponse> UpdateAccountAsync(string id, UpdateAccountRequest request)
+    public async Task<AccountCompleteResponse> UpdateAccountAsync(string id, UpdateAccountRequest request)
     {
         _logger.LogInformation($"Updating account with id {id}");
         
         var account = await GetByIdAsync(id) ?? throw new AccountsExceptions.AccountNotFoundException(id);
         
-        if (await _productRepository.GetByNameAsync(request.ProductID) == null)
+        if (await _productRepository.GetByIdAsync(request.ProductID) == null)
             throw new AccountsExceptions.AccountNotUpdatedException(id);
-    
+        
         if (await _clientRepository.GetByIdAsync(request.ClientID) == null)
             throw new AccountsExceptions.AccountNotCreatedException();
 
@@ -195,13 +210,11 @@ public class AccountService : IAccountsService
         if (!Enum.IsDefined(typeof(AccountType), request.AccountType)) 
             throw new AccountsExceptions.AccountNotUpdatedException(id);
 
-        var updatingAccount = request.fromDtoRequest();
-        updatingAccount.Id = account.Id;
-        updatingAccount.UpdatedAt = DateTime.UtcNow;
-        updatingAccount.IsDeleted = account.IsDeleted;
-
-        await _accountsRepository.UpdateAsync(updatingAccount);
-        return updatingAccount.toResponse();
+        account.Balance = request.Balance;
+        account.UpdatedAt = DateTime.UtcNow;
+        
+        await _accountsRepository.UpdateAsync(account);
+        return account.toCompleteResponse();
         
     }
 

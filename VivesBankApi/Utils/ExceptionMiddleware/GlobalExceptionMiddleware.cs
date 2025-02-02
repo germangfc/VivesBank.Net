@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using VivesBankApi.Backup.Exceptions;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
@@ -57,6 +58,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                 case IngresoNominaInvalidAmountException:
                 case PagoTarjetaInvalidAmountException:
                 case TransferInvalidAmountException:
+                case TransferSameIbanException:
                 case InvalidSourceIbanException:
                 case InvalidCardNumberException:
                 case InvalidDestinationIbanException:
@@ -93,6 +95,12 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     break;
                 case UserAlreadyExistsException:
                     statusCode = HttpStatusCode.Conflict;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                /************************** CREDIT CARD EXCEPTIONS *****************************************************/
+                case CreditCardException.CreditCardNotAssignedException:
+                    statusCode = HttpStatusCode.BadRequest;
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;
@@ -143,6 +151,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     logger.LogWarning(exception, exception.Message);
                     break;
                 
+                
                 default:
                     logger.LogError(exception, "An unhandled exception occurred.");
                     break;
@@ -151,7 +160,26 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
               
                 
                 /************************** STORAGE EXCEPTIONS *****************************************************/
+                /************************** BACKUP *****************************************************/
+                case BackupException.BackupPermissionException:
+                    statusCode = HttpStatusCode.Forbidden;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                case BackupException.BackupDirectoryNotFoundException:
+                    statusCode = HttpStatusCode.NotFound;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
+                case BackupException.BackupFileNotFoundException:
+                    statusCode = HttpStatusCode.NotFound;
+                    errorResponse = new { message = exception.Message };
+                    logger.LogWarning(exception, exception.Message);
+                    break;
                 
+                default:
+                    logger.LogError(exception, "An unhandled exception occurred.");
+                    break;
 
             }
 

@@ -10,6 +10,32 @@ db.createUser({
 });
 db = db.getSiblingDB("banco");
 
+db.domiciliaciones.insertMany([
+    {
+        Guid: "4xhulUiLnM0",
+        ClienteGuid: "eJTX-_GjsQ",
+        IbanOrigen: "ES7620770024003102575766",
+        IbanDestino: "ES03210004181464024209",
+        Cantidad: 50,
+        NombreAcreedor: "Gimnasio",
+        FechaInicio: new Date("2024-01-01T00:00:00Z"),
+        Periodicidad: "MENSUAL",
+        Activa: true,
+        UltimaEjecucion: new Date("2024-01-01T00:00:00Z")
+    },
+    {
+        Guid: "908N3_SfI6Y",
+        ClienteGuid: "eJTX-_GjsQ",
+        IbanOrigen: "ES9121000418450200051332",
+        IbanDestino: "ES6621000418401234567891",
+        Cantidad: 100,
+        NombreAcreedor: "Teléfono",
+        FechaInicio: new Date("2024-01-01T00:00:00Z"),
+        Periodicidad: "ANUAL",
+        Activa: true,
+        UltimaEjecucion: new Date("2024-01-01T00:00:00Z")
+    }
+]);
 db.movimientos.insertMany([
     {
         ClienteGuid: "123e4567-e89b-12d3-a456-426614174000",
@@ -39,7 +65,7 @@ db.movimientos.insertMany([
             IbanOrigen: "ES9820385778983000760237",
             Cantidad: 2000.00,
             NombreEmpresa: "Empresa ABC",
-            CifEmpresa: "B12345678"
+            CifEmpresa: "B76543214"
         },
         PagoConTarjeta: null,
         Transferencia: null,

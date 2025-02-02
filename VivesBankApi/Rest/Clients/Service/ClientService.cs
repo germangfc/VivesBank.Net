@@ -61,6 +61,12 @@ public class ClientService : GenericStorageJson<Client>, IClientService
         _fileStorageRemoteConfig = configuration.GetSection("FileStorageRemoteConfig").Get<FileStorageRemoteConfig>();
         _ftpService = ftpService; 
     } 
+    
+    public async Task<List<Client>> GetAll()
+    {
+        return await _clientRepository.GetAllAsync();
+    }
+    
     public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber, 
         int pageSize,
@@ -95,6 +101,13 @@ public class ClientService : GenericStorageJson<Client>, IClientService
     {
         _logger.LogInformation($"Getting Client by id {id}");
         var res = await GetByIdAsync(id) ?? throw new ClientExceptions.ClientNotFoundException(id);
+        return res.ToResponse();
+    }
+
+    public async Task<ClientResponse> GetClientByUserIdAsync(string userId)
+    {
+        _logger.LogInformation($"Getting client by user id {userId}");
+        var res = await _clientRepository.getByUserIdAsync(userId) ?? throw new ClientExceptions.ClientNotFoundException(userId);
         return res.ToResponse();
     }
 
@@ -552,7 +565,7 @@ public class ClientService : GenericStorageJson<Client>, IClientService
             return true;
         }
     }
-    
+
     public async Task<string> UpdateClientPhotoDniAsync(string clientId, IFormFile file)
     {
         try
