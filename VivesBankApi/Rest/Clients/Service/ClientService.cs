@@ -8,13 +8,14 @@ using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Mappers;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
-using VivesBankApi.Rest.Clients.storage;
 using VivesBankApi.Rest.Clients.storage.Config;
+using VivesBankApi.Rest.Clients.Storage.Service;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Users.Service;
+using VivesBankApi.Utils.GenericStorage.JSON;
 using VivesBankApi.WebSocket.Model;
 using VivesBankApi.WebSocket.Service;
 using Path = System.IO.Path;
@@ -22,7 +23,7 @@ using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace VivesBankApi.Rest.Clients.Service;
 
-public class ClientService : IClientService
+public class ClientService : GenericStorageJson<Client>, IClientService
 {
     private readonly ILogger _logger;
     private readonly IClientRepository _clientRepository;
@@ -35,7 +36,7 @@ public class ClientService : IClientService
     private readonly IWebsocketHandler _websocketHandler;
     private readonly FileStorageRemoteConfig _fileStorageRemoteConfig;
     private readonly IConfiguration _configuration;
-    
+    private readonly IFileStorageService _ftpService; 
     public ClientService(
         ILogger<ClientService> logger,
         IUserService userService,
@@ -45,8 +46,9 @@ public class ClientService : IClientService
         FileStorageConfig fileStorageConfig,
         IWebsocketHandler websocketHandler,
         IJwtGenerator jwtGenerator,
-        IConfiguration configuration
-        )
+        IConfiguration configuration,
+        IFileStorageService ftpService 
+    ) : base(logger)
     {
         _jwtGenerator = jwtGenerator;
         _userService = userService; 
@@ -57,6 +59,7 @@ public class ClientService : IClientService
         _fileStorageConfig = fileStorageConfig;
         _websocketHandler = websocketHandler;
         _fileStorageRemoteConfig = configuration.GetSection("FileStorageRemoteConfig").Get<FileStorageRemoteConfig>();
+        _ftpService = ftpService; 
     } 
     public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber, 
@@ -329,29 +332,29 @@ public class ClientService : IClientService
 
 
     
-    public async Task<bool> DeleteFileAsync(string fileName)
-    {
-        _logger.LogInformation($"Deleting file: {fileName}");
-        try
+        public async Task<bool> DeleteFileAsync(string fileName)
         {
-            var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
-            
-            if (!File.Exists(filePath))
+            _logger.LogInformation($"Deleting file: {fileName}");
+            try
             {
-                _logger.LogWarning($"File not found: {filePath}");
-                return false;
+                var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
+                
+                if (!File.Exists(filePath))
+                {
+                    _logger.LogWarning($"File not found: {filePath}");
+                    return false;
+                }
+                
+                File.Delete(filePath);
+                _logger.LogInformation($"File deleted: {filePath}");
+                return true;
             }
-            
-            File.Delete(filePath);
-            _logger.LogInformation($"File deleted: {filePath}");
-            return true;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting file");
+                throw;
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting file");
-            throw;
-        }
-    }
 
     
 
@@ -556,9 +559,6 @@ public class ClientService : IClientService
             return true;
         }
     }
-
-
-
     
     public async Task<string> UpdateClientPhotoDniAsync(string clientId, IFormFile file)
     {
@@ -687,6 +687,27 @@ public class ClientService : IClientService
             Data = t
         };
         await _websocketHandler.NotifyUserAsync(userForFound.Id, notificacion);
+    }
+    
+    public async Task<FileStream> ExportOnlyMeData(Client client)
+    {
+        _logger.LogInformation($"Exporting Client to a JSON file");
+        var json = JsonConvert.SerializeObject(client, Formatting.Indented);
+        var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "Json");
+
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        var fileName = "Client_WithId_" + client.Id + "_" + "InSystem-" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") + ".json";
+        var filePath = Path.Combine(directoryPath, fileName);
+
+        await File.WriteAllTextAsync(filePath, json);
+
+        _logger.LogInformation($"File written to: {filePath}");
+
+        return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 
 }

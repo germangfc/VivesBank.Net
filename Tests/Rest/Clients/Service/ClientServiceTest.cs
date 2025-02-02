@@ -1,8 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.InteropServices.JavaScript;
+using System.Reactive.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
+using FluentFTP;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -11,12 +9,13 @@ using StackExchange.Redis;
 using VivesBankApi.Middleware.Jwt;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.storage.Config;
+using VivesBankApi.Rest.Clients.Storage.Service;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.WebSocket.Service;
-using IConfiguration = Castle.Core.Configuration.IConfiguration;
+using Path = System.IO.Path;
 using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace Tests.Rest.Clients.Service;
@@ -28,68 +27,76 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Users.Exceptions;
-using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Clients.Service;
 
 public class ClientServiceTests
 {
-    private Mock<IConnectionMultiplexer> _connection;
+    private Mock<IClientRepository> _clientRepositoryMock;
+    private Mock<IUserService> _userServiceMock;
+    private Mock<ILogger<ClientService>> _loggerMock;
+    private Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private Mock<IDatabase> _cache;
-    private readonly Mock<IClientRepository> _clientRepositoryMock;
-    private readonly Mock<IUserService> _userServiceMock;
-    private readonly Mock<ILogger<ClientService>> _loggerMock;
-    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-    private readonly Mock<IConfiguration> _configurationMock;
-    private readonly ClientService _clientService;
-    private readonly Mock<IJwtGenerator> _jwtGenerator;
-    private readonly Mock<IWebsocketHandler> _websocketHandler;
-    private readonly FileStorageConfig _fileStorageConfig;
-    private readonly FileStorageRemoteConfig _fileStorageRemoteConfig;
-    
+    private Mock<IJwtGenerator> _jwtGeneratorMock;
+    private Mock<IConnectionMultiplexer> _connectionMock;
+    private Mock<IConfiguration> _configurationMock;
+    private Mock<FileStorageConfig> _fileStorageConfigMock;
+    private Mock<IWebsocketHandler> _websocketHandlerMock;
+    private FileStorageConfig _fileStorageConfig;
+    private ClientService _clientService;
+    private Mock<IFileStorageService> _ftpServiceMock; 
+
     public ClientServiceTests()
     {
-        _connection = new Mock<IConnectionMultiplexer>();
-        _cache = new Mock<IDatabase>();
-        _connection.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_cache.Object);
+        _connectionMock = new Mock<IConnectionMultiplexer>();
+    _cache = new Mock<IDatabase>();
+    _connectionMock.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_cache.Object);
 
-        _clientRepositoryMock = new Mock<IClientRepository>();
-        _userServiceMock = new Mock<IUserService>();
-        _loggerMock = new Mock<ILogger<ClientService>>();
-        _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _websocketHandler = new Mock<IWebsocketHandler>();
-        _jwtGenerator = new Mock<IJwtGenerator>();
-        
-        var inMemorySettings = new Dictionary<string, string>
-        {
-            { "FileStorageRemoteConfig:FtpHost", "127.0.0.1" },
-            { "FileStorageRemoteConfig:FtpPort", "21" },
-            { "FileStorageRemoteConfig:FtpUsername", "myuser" },
-            { "FileStorageRemoteConfig:FtpPassword", "mypass" },
-            { "FileStorageRemoteConfig:FtpDirectory", "/home/vsftpd" },
-            { "FileStorageRemoteConfig:AllowedFileTypes:0", ".jpg" },
-            { "FileStorageRemoteConfig:AllowedFileTypes:1", ".png" },
-            { "FileStorageRemoteConfig:AllowedFileTypes:2", ".jpeg" },
-            { "FileStorageRemoteConfig:MaxFileSize", "10485760" } 
-        };
+    _clientRepositoryMock = new Mock<IClientRepository>();
+    _userServiceMock = new Mock<IUserService>();
+    _loggerMock = new Mock<ILogger<ClientService>>();
+    _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+    _websocketHandlerMock = new Mock<IWebsocketHandler>();
+    _jwtGeneratorMock = new Mock<IJwtGenerator>();
+    _ftpServiceMock = new Mock<IFileStorageService>();
+    _configurationMock = new Mock<IConfiguration>();
+    _fileStorageConfigMock = new Mock<FileStorageConfig>();
 
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(inMemorySettings)
-            .Build();
-        
-        _fileStorageConfig = new FileStorageConfig(); 
-        
-        _clientService = new ClientService(
-            _loggerMock.Object,
-            _userServiceMock.Object,
-            _clientRepositoryMock.Object,
-            _connection.Object,
-            _httpContextAccessorMock.Object,
-            _fileStorageConfig,
-            _websocketHandler.Object,
-            _jwtGenerator.Object,
-            configuration  
-        );
-    }
+    var inMemorySettings = new Dictionary<string, string>
+    {
+        { "FileStorageRemoteConfig:FtpHost", "127.0.0.1" },
+        { "FileStorageRemoteConfig:FtpPort", "21" },
+        { "FileStorageRemoteConfig:FtpUsername", "myuser" },
+        { "FileStorageRemoteConfig:FtpPassword", "mypass" },
+        { "FileStorageRemoteConfig:FtpDirectory", "/home/vsftpd" },
+        { "FileStorageRemoteConfig:AllowedFileTypes:0", ".jpg" },
+        { "FileStorageRemoteConfig:AllowedFileTypes:1", ".png" },
+        { "FileStorageRemoteConfig:AllowedFileTypes:2", ".jpeg" },
+        { "FileStorageRemoteConfig:MaxFileSize", "10485760" } 
+    };
+
+    var configuration = new ConfigurationBuilder()
+        .AddInMemoryCollection(inMemorySettings)
+        .Build();
+
+    _configurationMock.Setup(x => x.GetSection("FileStorageRemoteConfig"))
+                      .Returns(configuration.GetSection("FileStorageRemoteConfig"));
+
+    _fileStorageConfig = new FileStorageConfig();
+    configuration.Bind("FileStorageRemoteConfig", _fileStorageConfig);
+
+    _clientService = new ClientService(
+        _loggerMock.Object,
+        _userServiceMock.Object,
+        _clientRepositoryMock.Object,
+        _connectionMock.Object,
+        _httpContextAccessorMock.Object,
+        _fileStorageConfigMock.Object,
+        _websocketHandlerMock.Object,
+        _jwtGeneratorMock.Object,
+        _configurationMock.Object,
+        _ftpServiceMock.Object
+    );
+}
     
     
     [SetUp]
@@ -348,7 +355,7 @@ public class ClientServiceTests
             .Returns(Task.CompletedTask);
         
         var jwtToken = "generatedJwtToken";
-        _jwtGenerator.Setup(x => x.GenerateJwtToken(It.IsAny<User>()))
+        _jwtGeneratorMock.Setup(x => x.GenerateJwtToken(It.IsAny<User>()))
             .Returns(jwtToken);
         
         var result = await _clientService.CreateClientAsync(request);
@@ -454,30 +461,47 @@ public class ClientServiceTests
     }
 
     [Test]
-    public async Task CreateClient_NonExistingUser()
+    public void CreateClient_NonExistingUser()
     {
+        // Arrange
         var clientRequest = new ClientRequest();
         var userId = "user123";
-        
+
         var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
         claimsPrincipalMock.Setup(c => c.FindFirst(ClaimTypes.NameIdentifier)).Returns(new Claim(ClaimTypes.NameIdentifier, userId));
         _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(claimsPrincipalMock.Object);
-        
-        var userResponse = new UserResponse
-        {
-            Id = "random",
-            Dni = "dadad",
-            Role = Role.User.ToString(),
-            CreatedAt = DateTime.UtcNow,
-        };
-        _userServiceMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync(userResponse);
-        
-        var result = Assert.ThrowsAsync<UserNotFoundException>(
-            () => _clientService.CreateClientAsync(clientRequest)
-        );
 
+        _userServiceMock.Setup(repo => repo.GetUserByIdAsync(userId)).ThrowsAsync(new UserNotFoundException(userId));
+
+        // Act & Assert
+        var result = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.CreateClientAsync(clientRequest));
         Assert.That(result.Message, Is.EqualTo($"The user with id: {userId} was not found"));
     }
+    
+    [Test]
+    public async Task CreateClient_UserNotFound_ThrowsUserNotFoundException()
+    {
+        // Arrange
+        var clientRequest = new ClientRequest();
+        var userId = "user123";
+
+        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(c => c.FindFirst(ClaimTypes.NameIdentifier))
+            .Returns(new Claim(ClaimTypes.NameIdentifier, userId));
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User)
+            .Returns(claimsPrincipalMock.Object);
+
+        _userServiceMock.Setup(repo => repo.GetUserByIdAsync(userId))
+            .ReturnsAsync((UserResponse)null); // Simula que el usuario no existe
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(
+            async () => await _clientService.CreateClientAsync(clientRequest)
+        );
+
+        Assert.That(ex.Message, Is.EqualTo($"The user with id: {userId} was not found"));
+    }
+
     
 
     [Test]
@@ -636,7 +660,55 @@ public class ClientServiceTests
         _clientRepositoryMock.Verify(c => c.UpdateAsync(client), Times.Once); 
         _userServiceMock.Verify(u => u.DeleteUserAsync(userId,  true), Times.Once);
     }
+    
+    [Test]
+    public async Task GettingMyProfilePhotoAsync_ShouldReturnFileStream_WhenPhotoExists()
+    {
+        var userId = "123";
+        var client = new Client { Id = userId, Photo = "profile.jpg" };
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }));
+        
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = claims });
+        _clientRepositoryMock.Setup(x => x.getByUserIdAsync(userId)).ReturnsAsync(client);
+        
+        string filePath = Path.Combine(_fileStorageConfig.UploadDirectory, client.Photo);
+        File.WriteAllText(filePath, "test data"); 
+        
+        var result = await _clientService.GettingMyProfilePhotoAsync();
+        
+        ClassicAssert.NotNull(result);
+        ClassicAssert.True(result is FileStream, "The result is not FileStream");
 
+        result.Dispose();
+        File.Delete(filePath);
+    }
+
+    [Test]
+    public async Task GettingMyProfilePhotoAsync_ShouldThrowFileNotFoundException_WhenPhotoDoesNotExist()
+    {
+        // Arrange
+        var userId = "123";
+        var client = new Client { Id = userId, Photo = "nonexistent.jpg" };
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }));
+        
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = claims });
+        _clientRepositoryMock.Setup(x => x.getByUserIdAsync(userId)).ReturnsAsync(client);
+        
+        Assert.ThrowsAsync<FileNotFoundException>(() => _clientService.GettingMyProfilePhotoAsync());
+    }
+    
+    [Test]
+    public async Task GettingMyProfilePhotoAsync_ShouldThrowClientNotFoundException_WhenClientDoesNotExist()
+    {
+        var userId = "123";
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }));
+        
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = claims });
+        _clientRepositoryMock.Setup(x => x.getByUserIdAsync(userId)).ReturnsAsync((Client)null);
+        
+        Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.GettingMyProfilePhotoAsync());
+    }
+    
     [Test]
     public void DeleteMeAsClient_ShouldReturn_ClientNotfoundException()
     {
@@ -677,4 +749,410 @@ public class ClientServiceTests
         var result =  Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.DeleteMe());
     }
     
+    
+    [Test]
+    public void SaveFileAsync_FileExceedsMaxSize_ThrowsFileStorageException()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(_fileStorageConfig.MaxFileSize + 1);
+        fileMock.Setup(f => f.FileName).Returns("test.jpg");
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<FileStorageExceptions>(
+            async () => await _clientService.SaveFileAsync(fileMock.Object, "baseFile")
+        );
+
+        Assert.That(ex.Message, Is.EqualTo("El tamaño del fichero excede del máximo permitido"));
+    }
+    
+    [Test]
+    public void SaveFileAsync_FileTypeNotAllowed_ThrowsFileStorageException()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(500);
+        fileMock.Setup(f => f.FileName).Returns("test.exe"); // Tipo no permitido
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<FileStorageExceptions>(
+            async () => await _clientService.SaveFileAsync(fileMock.Object, "baseFile")
+        );
+
+        Assert.That(ex.Message, Is.EqualTo("Tipo de fichero no permitido"));
+    }
+    
+    [Test]
+    public async Task SaveFileAsync_ValidFile_ReturnsFileName()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(1024); // 1 KB file
+        fileMock.Setup(f => f.FileName).Returns("test.jpg");
+        fileMock.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var baseFileName = "user-file";
+
+        // Act
+        var result = await _clientService.SaveFileAsync(fileMock.Object, baseFileName);
+
+        // Assert
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.IsTrue(result.Contains(baseFileName));
+        ClassicAssert.IsTrue(result.EndsWith(".jpg"));
+    }
+    
+    [Test]
+    public async Task SaveFileAsync_DirectoryDoesNotExist_CreatesDirectory()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(1024); // 1 KB file
+        fileMock.Setup(f => f.FileName).Returns("test.jpg");
+        fileMock.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var baseFileName = "user-file";
+        var uploadPath = Path.Combine(_fileStorageConfig.UploadDirectory);
+
+        // Ensure the directory does not exist initially
+        if (Directory.Exists(uploadPath))
+        {
+            Directory.Delete(uploadPath, true);
+        }
+
+        // Act
+        await _clientService.SaveFileAsync(fileMock.Object, baseFileName);
+
+        // Assert
+        ClassicAssert.IsTrue(Directory.Exists(uploadPath));
+    }
+    
+    [Test]
+    public async Task UpdateClientDniPhotoAsync_FileNotFoundException()
+    {
+        // Arrange
+        string clientId = "123";
+
+        // Act & Assert
+        Assert.ThrowsAsync<FileNotFoundException>(() => _clientService.UpdateClientDniPhotoAsync(clientId, null));
+    }
+    
+    
+    [Test]
+    public async Task UpdateClientDniPhotoAsync_ShouldThrowClientNotFoundException_WhenClientDoesNotExist()
+    {
+        // Arrange
+        string clientId = "123";
+        
+        var fileMock = new Mock<IFormFile>();
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+        writer.Write("dummy content");
+        writer.Flush();
+        stream.Position = 0;
+
+        fileMock.Setup(f => f.OpenReadStream()).Returns(stream);
+        fileMock.Setup(f => f.Length).Returns(stream.Length);
+        fileMock.Setup(f => f.FileName).Returns("dni-photo.png");
+
+        // Simulamos que el cliente no existe
+        _clientRepositoryMock.Setup(repo => repo.GetByIdAsync(clientId))
+            .ReturnsAsync((Client)null);
+
+        // Act & Assert
+        Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(
+            () => _clientService.UpdateClientDniPhotoAsync(clientId, fileMock.Object)
+        );
+    }
+    
+    [Test]
+    public async Task UpdateClientDniPhotoAsync_ShouldThrowUserNotFoundException_WhenUserNotFound()
+    {
+        // Arrange
+        var clientId = "123";
+        var fileMock = new Mock<IFormFile>();
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+        writer.Write("dummy content");
+        writer.Flush();
+        stream.Position = 0;
+
+        fileMock.Setup(f => f.OpenReadStream()).Returns(stream);
+        fileMock.Setup(f => f.Length).Returns(stream.Length);
+        fileMock.Setup(f => f.FileName).Returns("dni-photo.png");
+
+        var client = new Client { Id = clientId, UserId = "user1" };
+
+        _clientRepositoryMock.Setup(repo => repo.GetByIdAsync(clientId)).ReturnsAsync(client);
+        _userServiceMock.Setup(service => service.GetUserByIdAsync(client.UserId)).ReturnsAsync((UserResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.UpdateClientDniPhotoAsync(clientId, fileMock.Object));
+        Assert.That(ex.Message, Is.EqualTo($"The user with id: {client.UserId} was not found"));
+    }
+    
+    [Test]
+    public async Task UpdateClientDniPhotoAsync_ShouldUpdateDniPhotoSuccessfully()
+    {
+        // Arrange
+        var clientId = "123";
+        var userId = "user1";
+        var fileMock = new Mock<IFormFile>();
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+        writer.Write("dummy content");
+        writer.Flush();
+        stream.Position = 0;
+
+        fileMock.Setup(f => f.OpenReadStream()).Returns(stream);
+        fileMock.Setup(f => f.Length).Returns(stream.Length);
+        fileMock.Setup(f => f.FileName).Returns("dni-photo.png");
+
+        var client = new Client { Id = clientId, UserId = userId, PhotoDni = "old-dni-photo.png" };
+        var user = new UserResponse { Id = userId, Dni = "12345678X" };
+
+        _clientRepositoryMock.Setup(repo => repo.GetByIdAsync(clientId)).ReturnsAsync(client);
+        _userServiceMock.Setup(service => service.GetUserByIdAsync(userId)).ReturnsAsync(user);
+        _clientRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<Client>())).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _clientService.UpdateClientDniPhotoAsync(clientId, fileMock.Object);
+
+        // Assert
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.IsTrue(result.Contains("DNI-12345678X"));
+        _clientRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<Client>(c => c.PhotoDni == result)), Times.Once);
+        _clientRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<Client>(c => c.UpdatedAt != null)), Times.Once);
+    }
+    
+ 
+    [Test]
+    public async Task UpdateClientPhotoAsync_ShouldUpdatePhotoSuccessfully()
+    {
+        // Arrange
+        var clientId = "123";
+        var userId = "user1";
+        var fileMock = new Mock<IFormFile>();
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+        writer.Write("dummy content");
+        writer.Flush();
+        stream.Position = 0;
+
+        fileMock.Setup(f => f.OpenReadStream()).Returns(stream);
+        fileMock.Setup(f => f.Length).Returns(stream.Length);
+        fileMock.Setup(f => f.FileName).Returns("profile-photo.png");
+
+        var client = new Client { Id = clientId, UserId = userId, Photo = "old-photo.png" };
+        var user = new UserResponse { Id = userId, Dni = "12345678X" };
+
+        _clientRepositoryMock.Setup(repo => repo.GetByIdAsync(clientId)).ReturnsAsync(client);
+        _userServiceMock.Setup(service => service.GetUserByIdAsync(userId)).ReturnsAsync(user);
+        _clientRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<Client>())).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _clientService.UpdateClientPhotoAsync(clientId, fileMock.Object);
+
+        // Assert
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.IsTrue(result.Contains("PROFILE-12345678X"));
+        _clientRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<Client>(c => c.Photo == result)), Times.Once);
+        _clientRepositoryMock.Verify(repo => repo.UpdateAsync(It.Is<Client>(c => c.UpdatedAt != null)), Times.Once);
+    }
+    
+    [Test]
+    public void UpdateClientPhotoAsync_ShouldThrowFileNotFoundException_WhenFileIsNull()
+    {
+        // Arrange
+        var clientId = "123";
+        IFormFile file = null;
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<FileNotFoundException>(() => _clientService.UpdateClientPhotoAsync(clientId, file));
+        Assert.That(ex.Message, Is.EqualTo("No file was provided or the file is empty."));
+    }
+
+    [Test]
+    public void UpdateClientPhotoAsync_ShouldThrowFileNotFoundException_WhenFileIsEmpty()
+    {
+        // Arrange
+        var clientId = "123";
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(0);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<FileNotFoundException>(() => _clientService.UpdateClientPhotoAsync(clientId, fileMock.Object));
+        Assert.That(ex.Message, Is.EqualTo("No file was provided or the file is empty."));
+    }
+    
+    [Test]
+    public void UpdateClientPhotoAsync_ShouldThrowClientNotFoundException_WhenClientNotFound()
+    {
+        // Arrange
+        var clientId = "123";
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(100);
+        _clientRepositoryMock.Setup(repo => repo.GetByIdAsync(clientId)).ReturnsAsync((Client)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.UpdateClientPhotoAsync(clientId, fileMock.Object));
+        Assert.That(ex.Message, Is.EqualTo($"Client not found by id Client with ID {clientId} not found."));
+    }
+    
+    [Test]
+    public void UpdateClientPhotoAsync_ShouldThrowUserNotFoundException_WhenUserNotFound()
+    {
+        // Arrange
+        var clientId = "123";
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(100);
+        var client = new Client { Id = clientId, UserId = "user1" };
+        _clientRepositoryMock.Setup(repo => repo.GetByIdAsync(clientId)).ReturnsAsync(client);
+        _userServiceMock.Setup(service => service.GetUserByIdAsync(client.UserId)).ReturnsAsync((UserResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.UpdateClientPhotoAsync(clientId, fileMock.Object));
+        Assert.That(ex.Message, Is.EqualTo($"The user with id: {client.UserId} was not found"));
+    }
+    
+    
+    [Test]
+    public async Task GetFileAsync_ShouldReturnFileStream_WhenFileExists()
+    {
+        // Arrange
+        var fileName = "existing-file.txt";
+        var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
+        var fileContent = "dummy content";
+        await File.WriteAllTextAsync(filePath, fileContent);
+
+        // Act
+        var result = await _clientService.GetFileAsync(fileName);
+
+        // Assert
+        ClassicAssert.IsNotNull(result);
+        using (var reader = new StreamReader(result))
+        {
+            var content = await reader.ReadToEndAsync();
+            ClassicAssert.AreEqual(fileContent, content);
+        }
+
+        // Cleanup
+        result.Dispose();
+        File.Delete(filePath);
+    }
+    
+    [Test]
+    public void GetFileAsync_ShouldThrowFileNotFoundException_WhenFileDoesNotExist()
+    {
+        var fileName = "non-existing-file.txt";
+
+        var ex = Assert.ThrowsAsync<FileNotFoundException>(() => _clientService.GetFileAsync(fileName));
+        Assert.That(ex.Message, Is.EqualTo($"File not found: {fileName}"));
+    }
+
+
+    [Test]
+    public void UpdateClientPhotoDniAsync_ShouldThrowClientNotFoundException_WhenClientNotFound()
+    {
+        var clientId = "123";
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(100);
+        _clientRepositoryMock.Setup(repo => repo.GetByIdAsync(clientId)).ReturnsAsync((Client)null);
+
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() =>
+            _clientService.UpdateClientPhotoDniAsync(clientId, fileMock.Object));
+        Assert.That(ex.Message, Is.EqualTo($"Client not found by id El cliente con ClientId {clientId} no existe."));
+    }
+    
+    [Test]
+    public async Task UpdateMyProfilePhotoAsync_ShouldReturnFileName_WhenFileTypeIsAllowed()
+    {
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.FileName).Returns("profile.jpg");
+        fileMock.Setup(f => f.Length).Returns(1000);
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] 
+        {
+            new Claim(ClaimTypes.NameIdentifier, "userId123"),
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(user);
+
+        _clientRepositoryMock.Setup(x => x.getByUserIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(new Client { UserId = "userId123" });
+
+        _userServiceMock.Setup(x => x.GetUserByIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(new UserResponse { Id = "userId123", Dni = "123456789" });
+
+        var expectedFileName = "PROFILE-123456789-20250202.jpg";  
+        _ftpServiceMock.Setup(x => x.SaveFileAsync(It.IsAny<IFormFile>(), It.IsAny<string>()))
+            .ReturnsAsync(expectedFileName);  
+
+        var clientService = new ClientService(
+            _loggerMock.Object,
+            _userServiceMock.Object,
+            _clientRepositoryMock.Object,
+            _connectionMock.Object,
+            _httpContextAccessorMock.Object,
+            _fileStorageConfigMock.Object,
+            _websocketHandlerMock.Object,
+            _jwtGeneratorMock.Object,
+            _configurationMock.Object,
+            _ftpServiceMock.Object
+        );
+
+        var result = await clientService.UpdateMyProfilePhotoAsync(fileMock.Object);
+
+        ClassicAssert.AreEqual(expectedFileName, result); 
+        _clientRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Client>()), Times.Once); 
+
+    }
+
+
+
+    
+    [Test]
+    public void UpdateMyProfilePhotoAsync_ShouldThrowException_WhenFileTypeNotAllowed()
+    {
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.FileName).Returns("profile.txt");
+        fileMock.Setup(f => f.Length).Returns(1000);
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "userId123"),
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(user);
+    
+        _clientRepositoryMock.Setup(x => x.getByUserIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(new Client { UserId = "userId123" });
+
+        _userServiceMock.Setup(x => x.GetUserByIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(new UserResponse { Id = "userId123", Dni = "123456789" });
+    
+        Assert.ThrowsAsync<FileStorageExceptions>(() => _clientService.UpdateMyProfilePhotoAsync(fileMock.Object));
+    }
+
+
+    
+    [Test]
+    public async Task Export()
+    {
+        var client = new Client { Id = "1", FullName = "John Doe", Adress = "Address 1", IsDeleted = false };
+
+        var result = await _clientService.ExportOnlyMeData(client);
+
+        var formFile = new FormFile(result, 0, result.Length, "something", "test.json"  );
+        var secondResult = await _clientService.Import(formFile).ToList();
+        ClassicAssert.IsInstanceOf<FileStream>(result);
+        ClassicAssert.AreEqual(client.Id, secondResult[0].Id);
+        ClassicAssert.AreEqual(client.FullName, secondResult[0].FullName);
+        ClassicAssert.AreEqual(client.UserId, secondResult[0].UserId);
+        ClassicAssert.AreEqual(client.Adress, secondResult[0].Adress);
+        
+        await result.DisposeAsync();
+    }
 }

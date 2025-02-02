@@ -28,7 +28,7 @@ public class NumberGeneratorTest
     {
         var cardNumber = new[] { 4, 5, 6, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2 };
 
-        var checkDigit = _numberGenerator.CalculateLuhnCheckDigit(cardNumber);
+        var checkDigit = _numberGenerator.checkNumber(cardNumber);
 
         Assert.That(checkDigit, Is.EqualTo(2));
     }
