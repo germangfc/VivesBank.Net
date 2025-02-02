@@ -181,8 +181,7 @@ public class AccountService : IAccountsService
     {
         _logger.LogInformation($"Updating account with id {id}");
         
-        var account = await _accountsRepository.GetByIdAsync(id);
-        if (account == null) throw new AccountsExceptions.AccountNotFoundException(id);
+        var account = await GetByIdAsync(id) ?? throw new AccountsExceptions.AccountNotFoundException(id);
         
         if (await _productRepository.GetByNameAsync(request.ProductID) == null)
             throw new AccountsExceptions.AccountNotUpdatedException(id);
