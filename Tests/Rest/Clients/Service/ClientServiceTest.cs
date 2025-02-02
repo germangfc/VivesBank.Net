@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices.JavaScript;
 using System.Security.Claims;
 using System.Text;
@@ -697,6 +698,7 @@ public class ClientServiceTests
         var result =  Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.DeleteMe());
     }
     
+
     
     
     
@@ -1017,6 +1019,27 @@ public class ClientServiceTests
         // Act & Assert
         var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.UpdateClientPhotoDniAsync(clientId, fileMock.Object));
         Assert.That(ex.Message, Is.EqualTo($"Client not found by id El cliente con ClientId {clientId} no existe."));
+      
+    [Test]
+    public async Task Export()
+    {
+        //Arrange
+        var client = new Client { Id = "1", FullName = "John Doe", Adress = "Address 1", IsDeleted = false };
+
+        //Act
+        var result = await _clientService.ExportOnlyMeData(client);
+
+        //Assert
+        var formFile = new FormFile(result, 0, result.Length, "something", "test.json"  );
+        var secondResult = await _clientService.Import(formFile).ToList();
+        ClassicAssert.IsInstanceOf<FileStream>(result);
+        ClassicAssert.AreEqual(client.Id, secondResult[0].Id);
+        ClassicAssert.AreEqual(client.FullName, secondResult[0].FullName);
+        ClassicAssert.AreEqual(client.UserId, secondResult[0].UserId);
+        ClassicAssert.AreEqual(client.Adress, secondResult[0].Adress);
+        
+        //Clean up
+        await result.DisposeAsync();
     }
     
 }
