@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using System.IO;
+using System.Reactive.Linq;
 using VivesBankApi.Backup.Exceptions;
 using VivesBankApi.Backup.Service;
 using VivesBankApi.Rest.Clients.Service;

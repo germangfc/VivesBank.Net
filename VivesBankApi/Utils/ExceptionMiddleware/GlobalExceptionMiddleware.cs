@@ -150,15 +150,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;
-                
-                
-                default:
-                    logger.LogError(exception, "An unhandled exception occurred.");
-                    break;
-               
-                
-              
-                
+             
                 /************************** STORAGE EXCEPTIONS *****************************************************/
                 /************************** BACKUP *****************************************************/
                 case BackupException.BackupPermissionException:
