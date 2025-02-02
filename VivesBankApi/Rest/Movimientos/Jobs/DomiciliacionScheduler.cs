@@ -17,45 +17,71 @@ namespace VivesBankApi.Rest.Movimientos.Jobs;
 
 using Quartz;
 
-public class DomiciliacionScheduler(
-    IDomiciliacionRepository domiciliacionRepository,
-    IMovimientoRepository movimientoRepository,
-    IAccountsService accountsService,
-    IUserService userService,
-    IClientService clientService,
-    ILogger<DomiciliacionScheduler> logger,
-    IWebsocketHandler websocketHandler
-) :IJob
+public class DomiciliacionScheduler : IJob
 {
+    private readonly IDomiciliacionRepository _domiciliacionRepository;
+    private readonly IMovimientoRepository _movimientoRepository;
+    private readonly IAccountsService _accountsService;
+    private readonly IUserService _userService;
+    private readonly IClientService _clientService;
+    private readonly ILogger<DomiciliacionScheduler> _logger;
+    private readonly IWebsocketHandler _websocketHandler;
+    public IServiceProvider ServiceProvider { get; set; }
+
+    public DomiciliacionScheduler(
+        IDomiciliacionRepository domiciliacionRepository,
+        IMovimientoRepository movimientoRepository,
+        IAccountsService accountsService,
+        IUserService userService,
+        IClientService clientService,
+        ILogger<DomiciliacionScheduler> logger,
+        IWebsocketHandler websocketHandler)
+    {
+        _domiciliacionRepository = domiciliacionRepository;
+        _movimientoRepository = movimientoRepository;
+        _accountsService = accountsService;
+        _userService = userService;
+        _clientService = clientService;
+        _logger = logger;
+        _websocketHandler = websocketHandler;
+    }
     public async Task Execute(IJobExecutionContext context)
     {
-        logger.LogInformation("Processing scheduled direct debits (domiciliaciones)"); 
-        
-        // Filtrar domiciliaciones activas que requieren ejecución
-        var domiciliaciones = (await domiciliacionRepository.GetAllDomiciliacionesActivasAsync())
-            .Where(d => RequiereEjecucion(d, DateTime.Now))
-            .ToList();
+        _logger.LogInformation("Processing scheduled direct debits (domiciliaciones)");
+        // Asignar el ServiceProvider desde el JobDataMap
+        ServiceProvider = context.JobDetail.JobDataMap["ServiceProvider"] as IServiceProvider;
 
-        logger.LogInformation($"Número de domiciliaciones activas: {domiciliaciones.Count}");
-
-        foreach (var domiciliacion in domiciliaciones)
+        using (var scope = ServiceProvider.CreateScope())
         {
-            try
+            // Filtrar domiciliaciones activas que requieren ejecución
+            var domiciliaciones = (await _domiciliacionRepository.GetAllDomiciliacionesActivasAsync())
+                .Where(d => RequiereEjecucion(d, DateTime.Now))
+                .ToList();
+
+            _logger.LogInformation($"Número de domiciliaciones activas: {domiciliaciones.Count}");
+
+            foreach (var domiciliacion in domiciliaciones)
             {
-                var now = DateTime.UtcNow;
-                var originAccount = await accountsService.GetCompleteAccountByIbanAsync(domiciliacion.IbanOrigen);
-                if (originAccount == null) throw new AccountsExceptions.AccountNotFoundByIban(domiciliacion.IbanOrigen);
-                await EjecutarDomiciliacionAsync(domiciliacion, originAccount, now);
-                domiciliacion.UltimaEjecucion = now;
-                await domiciliacionRepository.UpdateDomiciliacionAsync(domiciliacion.Id, domiciliacion);
-            }
-            catch (DomiciliacionAccountInsufficientBalanceException)
-            {
-                logger.LogWarning($"Insufficient balance for Client: {domiciliacion.ClienteGuid}, Account: {domiciliacion.IbanOrigen}");
-            }
-            catch (Exception ex) 
-            {
-                logger.LogWarning($"Error processing direct debit: {domiciliacion.Guid}, Account: {domiciliacion.IbanOrigen}: {ex.Message}");
+                try
+                {
+                    var now = DateTime.UtcNow;
+                    var originAccount = await _accountsService.GetCompleteAccountByIbanAsync(domiciliacion.IbanOrigen);
+                    if (originAccount == null)
+                        throw new AccountsExceptions.AccountNotFoundByIban(domiciliacion.IbanOrigen);
+                    await EjecutarDomiciliacionAsync(domiciliacion, originAccount, now);
+                    domiciliacion.UltimaEjecucion = now;
+                    await _domiciliacionRepository.UpdateDomiciliacionAsync(domiciliacion.Id, domiciliacion);
+                }
+                catch (DomiciliacionAccountInsufficientBalanceException)
+                {
+                    _logger.LogWarning(
+                        $"Insufficient balance for Client: {domiciliacion.ClienteGuid}, Account: {domiciliacion.IbanOrigen}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        $"Error processing direct debit: {domiciliacion.Guid}, Account: {domiciliacion.IbanOrigen}: {ex.Message}");
+                }
             }
         }
 
@@ -64,13 +90,13 @@ public class DomiciliacionScheduler(
 
     private async Task EjecutarDomiciliacionAsync(Domiciliacion domiciliacion, AccountCompleteResponse originAccount, DateTime date)
     {
-        logger.LogInformation($"Executing direct debit Client: {domiciliacion.ClienteGuid}, Company: {domiciliacion.NombreAcreedor}, Quantity: {domiciliacion.Cantidad}");
+        _logger.LogInformation($"Executing direct debit Client: {domiciliacion.ClienteGuid}, Company: {domiciliacion.NombreAcreedor}, Quantity: {domiciliacion.Cantidad}");
 
         // Obtener la cuenta donde se cargará la domiciliación
         /*var originAccount = await accountsService.GetCompleteAccountByIbanAsync(domiciliacion.IbanOrigen);
         if (originAccount == null) throw new AccountsExceptions.AccountNotFoundByIban(domiciliacion.IbanOrigen);*/
 
-        logger.LogInformation($"Executing direct debit Client on account: {originAccount.IBAN}");
+        _logger.LogInformation($"Executing direct debit Client on account: {originAccount.IBAN}");
         // Comprobación saldo suficiente
         if (originAccount.Balance < domiciliacion.Cantidad) throw new DomiciliacionAccountInsufficientBalanceException(domiciliacion.IbanOrigen);
 
@@ -80,8 +106,8 @@ public class DomiciliacionScheduler(
         var newBalanceOrigin = originAccount.Balance - domiciliacion.Cantidad; 
         var updateAccountRequestOrigin = originAccount.toUpdateAccountRequest();
         updateAccountRequestOrigin.Balance = newBalanceOrigin;
-        var updatedAccountOrigin = await accountsService.UpdateAccountAsync(originAccount.Id, updateAccountRequestOrigin);
-        logger.LogInformation($"New balance origin account after direct debit execution: {updatedAccountOrigin.Balance}");
+        var updatedAccountOrigin = await _accountsService.UpdateAccountAsync(originAccount.Id, updateAccountRequestOrigin);
+        _logger.LogInformation($"New balance origin account after direct debit execution: {updatedAccountOrigin.Balance}");
 
         // Registrar el movimiento
         var movimiento = new Movimiento
@@ -93,14 +119,14 @@ public class DomiciliacionScheduler(
             IsDeleted = false
         };
         
-        logger.LogInformation("Saving direct debit movement");
-        await movimientoRepository.AddMovimientoAsync(movimiento);
+        _logger.LogInformation("Saving direct debit movement");
+        await _movimientoRepository.AddMovimientoAsync(movimiento);
 
         // Notificar la domiciliación
-        var cliente = await clientService.GetClientByIdAsync(domiciliacion.ClienteGuid);
+        var cliente = await _clientService.GetClientByIdAsync(domiciliacion.ClienteGuid);
         if (cliente is null) throw new ClientExceptions.ClientNotFoundException(domiciliacion.ClienteGuid);
 
-        var user = await userService.GetUserByIdAsync(cliente.UserId);
+        var user = await _userService.GetUserByIdAsync(cliente.UserId);
         await EnviarNotificacionExecuteAsync(user, movimiento);
         
     }
@@ -118,14 +144,14 @@ public class DomiciliacionScheduler(
  
     /*public async Task ExecuteMal(IJobExecutionContext context)
     {
-        logger.LogInformation("Processing scheduled direct debits (domiciliaciones)"); 
+        _logger.LogInformation("Processing scheduled direct debits (domiciliaciones)"); 
         
         // Filtrar domiciliaciones activas que requieren ejecución
-        var domiciliaciones = (await domiciliacionRepository.GetAllDomiciliacionesActivasAsync())
+        var domiciliaciones = (await _domiciliacionRepository.GetAllDomiciliacionesActivasAsync())
             .Where(d => RequiereEjecucion(d, DateTime.Now))
             .ToList();
 
-        logger.LogInformation($"Número de domiciliaciones activas: {domiciliaciones.Count}");
+        _logger.LogInformation($"Número de domiciliaciones activas: {domiciliaciones.Count}");
 
         // Lanzamos asíncronamente las actualizaciones. Foreach no las lanza asíncronamente y 
         // no actualiza una domiciliación hasta que no termine la anterior
@@ -139,7 +165,7 @@ public class DomiciliacionScheduler(
             
             // Añadimos cada actualización de la domiciliación a la lista de tareas
             domiciliacion.UltimaEjecucion = now;
-            tasks.Add(domiciliacionRepository.UpdateDomiciliacionAsync(domiciliacion.Id, domiciliacion));
+            tasks.Add(_domiciliacionRepository.UpdateDomiciliacionAsync(domiciliacion.Id, domiciliacion));
         }
 
         // Esperamos a que todas las tareas de actualización de domiciliacion terminen para continuar 
@@ -154,6 +180,6 @@ public class DomiciliacionScheduler(
             CreatedAt = DateTime.Now,
             Data = t
         };
-        await websocketHandler.NotifyUserAsync(userResponse.Id, notificacion);
+        await _websocketHandler.NotifyUserAsync(userResponse.Id, notificacion);
     }
 }
