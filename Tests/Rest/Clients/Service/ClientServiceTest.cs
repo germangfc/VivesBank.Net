@@ -1,5 +1,9 @@
 using System.Reactive.Linq;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 using FluentFTP;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -43,62 +47,88 @@ public class ClientServiceTests
     private Mock<IWebsocketHandler> _websocketHandlerMock;
     private FileStorageConfig _fileStorageConfig;
     private ClientService _clientService;
+    private IContainer _ftpContainer;
     private Mock<IFileStorageService> _ftpServiceMock; 
-
+    
     public ClientServiceTests()
     {
         _connectionMock = new Mock<IConnectionMultiplexer>();
-    _cache = new Mock<IDatabase>();
-    _connectionMock.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_cache.Object);
+        _cache = new Mock<IDatabase>();
+        _connectionMock.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_cache.Object);
+        _clientRepositoryMock = new Mock<IClientRepository>();
+        _userServiceMock = new Mock<IUserService>();
+        _loggerMock = new Mock<ILogger<ClientService>>();
+        _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        _websocketHandlerMock = new Mock<IWebsocketHandler>();
+        _jwtGeneratorMock = new Mock<IJwtGenerator>();
+        _fileStorageConfigMock = new Mock<FileStorageConfig>();
+        _ftpServiceMock = new Mock<IFileStorageService>();
+    }
 
-    _clientRepositoryMock = new Mock<IClientRepository>();
-    _userServiceMock = new Mock<IUserService>();
-    _loggerMock = new Mock<ILogger<ClientService>>();
-    _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-    _websocketHandlerMock = new Mock<IWebsocketHandler>();
-    _jwtGeneratorMock = new Mock<IJwtGenerator>();
-    _ftpServiceMock = new Mock<IFileStorageService>();
-    _configurationMock = new Mock<IConfiguration>();
-    _fileStorageConfigMock = new Mock<FileStorageConfig>();
-
-    var inMemorySettings = new Dictionary<string, string>
+    [OneTimeSetUp]
+    public async Task InitializeAsync()
     {
-        { "FileStorageRemoteConfig:FtpHost", "127.0.0.1" },
-        { "FileStorageRemoteConfig:FtpPort", "21" },
-        { "FileStorageRemoteConfig:FtpUsername", "myuser" },
-        { "FileStorageRemoteConfig:FtpPassword", "mypass" },
-        { "FileStorageRemoteConfig:FtpDirectory", "/home/vsftpd" },
-        { "FileStorageRemoteConfig:AllowedFileTypes:0", ".jpg" },
-        { "FileStorageRemoteConfig:AllowedFileTypes:1", ".png" },
-        { "FileStorageRemoteConfig:AllowedFileTypes:2", ".jpeg" },
-        { "FileStorageRemoteConfig:MaxFileSize", "10485760" } 
-    };
+        var baseDirectory = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetCurrentDirectory()).ToString()).ToString()).ToString()).ToString();
+        var folderPath = Directory.GetDirectories(baseDirectory, "*", SearchOption.AllDirectories)
+            .FirstOrDefault(dir => dir.EndsWith("ftp_data", StringComparison.OrdinalIgnoreCase));
+        _ftpContainer = new ContainerBuilder()
+            .WithImage("fauria/vsftpd")
+            .WithPortBinding(21, 21)
+            .WithPortBinding(21000, 21000)
+            .WithEnvironment("FTP_USER", "myuser")
+            .WithEnvironment("FTP_PASS", "mypass")
+            .WithEnvironment("PASV_ADDRESS", "127.0.0.1")
+            .WithEnvironment("PASV_MIN_PORT", "21000")
+            .WithEnvironment("PASV_MAX_PORT", "21000")
+            .WithEnvironment("FTP_HOME", "/home/vsftpd")
+            .WithBindMount(folderPath, "/home/vsftpd")
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(21))
+            .Build();
+        
+        await _ftpContainer.StartAsync();
+        
+        var inMemorySettings = new Dictionary<string, string>
+        {
+            { "FileStorageRemoteConfig:FtpHost", _ftpContainer.Hostname },
+            { "FileStorageRemoteConfig:FtpPort", _ftpContainer.GetMappedPublicPort(21).ToString() },
+            { "FileStorageRemoteConfig:FtpUsername", "myuser" },
+            { "FileStorageRemoteConfig:FtpPassword", "mypass" },
+            { "FileStorageRemoteConfig:FtpDirectory", "/home/vsftpd" },
+            { "FileStorageRemoteConfig:AllowedFileTypes:0", ".jpg" },
+            { "FileStorageRemoteConfig:AllowedFileTypes:1", ".png" },
+            { "FileStorageRemoteConfig:AllowedFileTypes:2", ".jpeg" },
+            { "FileStorageRemoteConfig:MaxFileSize", "10485760" } 
+        };
+        
+        
 
-    var configuration = new ConfigurationBuilder()
-        .AddInMemoryCollection(inMemorySettings)
-        .Build();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings)
+            .Build();
 
-    _configurationMock.Setup(x => x.GetSection("FileStorageRemoteConfig"))
-                      .Returns(configuration.GetSection("FileStorageRemoteConfig"));
+        _fileStorageConfig = new FileStorageConfig();
+        configuration.Bind("FileStorageRemoteConfig", _fileStorageConfig);
 
-    _fileStorageConfig = new FileStorageConfig();
-    configuration.Bind("FileStorageRemoteConfig", _fileStorageConfig);
+        _clientService = new ClientService(
+            _loggerMock.Object,
+            _userServiceMock.Object,
+            _clientRepositoryMock.Object,
+            _connectionMock.Object,
+            _httpContextAccessorMock.Object,
+            _fileStorageConfig,
+            _websocketHandlerMock.Object,
+            _jwtGeneratorMock.Object,
+            configuration,
+            _ftpServiceMock.Object
+        );
+    }
 
-    _clientService = new ClientService(
-        _loggerMock.Object,
-        _userServiceMock.Object,
-        _clientRepositoryMock.Object,
-        _connectionMock.Object,
-        _httpContextAccessorMock.Object,
-        _fileStorageConfigMock.Object,
-        _websocketHandlerMock.Object,
-        _jwtGeneratorMock.Object,
-        _configurationMock.Object,
-        _ftpServiceMock.Object
-    );
-}
-    
-    
+    [OneTimeTearDown]
+    public async Task DisposeAsync()
+    {
+        await _ftpContainer.DisposeAsync();
+    }
+  
     [SetUp]
     public void Setup()
     {
@@ -107,7 +137,7 @@ public class ClientServiceTests
         _clientRepositoryMock.Reset();
         _cache.Reset();
     }
-    
+
     [TearDown]
     public void TearDown()
     {
@@ -118,6 +148,68 @@ public class ClientServiceTests
     }
     
     [Test]
+  
+    public async Task SaveFileToFtpAsync_ValidFile_UploadsSuccessfully()
+    {
+        // Arrange
+        var fileName = "testfile.png";
+        var fileContent = "Hello, FTP!";
+        var fileMock = new Mock<IFormFile>();
+        
+        var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+        fileMock.Setup(f => f.OpenReadStream()).Returns(memoryStream);
+        fileMock.Setup(f => f.FileName).Returns(fileName);
+        fileMock.Setup(f => f.Length).Returns(memoryStream.Length);
+
+        // Act
+        var result = await _clientService.SaveFileToFtpAsync(fileMock.Object, fileName);
+
+        // Assert
+        ClassicAssert.AreEqual(fileName, result);
+    }
+
+    [Test]
+    public async Task DeleteFileFromFtpAsync_FileExists_DeletesSuccessfully()
+    {
+        // Arrange
+        var fileName = "testfile.png";
+
+        var fileMock = new Mock<IFormFile>();
+        var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes("Temporary file"));
+        fileMock.Setup(f => f.OpenReadStream()).Returns(memoryStream);
+        fileMock.Setup(f => f.FileName).Returns(fileName);
+        fileMock.Setup(f => f.Length).Returns(memoryStream.Length);
+
+        await _clientService.SaveFileToFtpAsync(fileMock.Object, fileName);
+
+        // Act
+        var result = await _clientService.DeleteFileFromFtpAsync(fileName);
+
+        // Assert
+        ClassicAssert.IsTrue(result);
+    }
+    
+    [Test]
+    public async Task GettingMyDniPhotoFromFtpAsync_ValidClient_ReturnsFileStream()
+    {
+        // Arrange
+        var clientId = "123";
+        var fileName = "defaultDni.png";
+        
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(It.IsAny<string>())).ReturnsAsync(new Client { PhotoDni = fileName }); 
+        var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, clientId)
+        }));
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(claimsPrincipal);
+
+        // Act
+        var fileStream = await _clientService.GettingMyDniPhotoFromFtpAsync();
+
+        // Assert
+        ClassicAssert.IsNotNull(fileStream);
+    }
+
     public async Task GetAll_ShouldReturnListOfClients()
     {
         // Arrange
@@ -1165,24 +1257,11 @@ public class ClientServiceTests
         _userServiceMock.Setup(x => x.GetUserByIdAsync(It.IsAny<string>()))
             .ReturnsAsync(new UserResponse { Id = "userId123", Dni = "123456789" });
 
-        var expectedFileName = "PROFILE-123456789-20250202.jpg";  
+        var expectedFileName = "PROFILE-123456789-20250203.jpg";  
         _ftpServiceMock.Setup(x => x.SaveFileAsync(It.IsAny<IFormFile>(), It.IsAny<string>()))
             .ReturnsAsync(expectedFileName);  
-
-        var clientService = new ClientService(
-            _loggerMock.Object,
-            _userServiceMock.Object,
-            _clientRepositoryMock.Object,
-            _connectionMock.Object,
-            _httpContextAccessorMock.Object,
-            _fileStorageConfigMock.Object,
-            _websocketHandlerMock.Object,
-            _jwtGeneratorMock.Object,
-            _configurationMock.Object,
-            _ftpServiceMock.Object
-        );
-
-        var result = await clientService.UpdateMyProfilePhotoAsync(fileMock.Object);
+        
+        var result = await _clientService.UpdateMyProfilePhotoAsync(fileMock.Object);
 
         ClassicAssert.AreEqual(expectedFileName, result); 
         _clientRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Client>()), Times.Once); 
