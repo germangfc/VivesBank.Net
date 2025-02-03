@@ -9,8 +9,18 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1b30a4e2_002D2713_002D4eac_002D948e_002Df300efb2fceb/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\Users\raulf\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1d34d765_002D20ac_002D407b_002D81e9_002D1bd4936e3e94/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetLatestRatesAmountIsNegative #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Test.Currency.CurrencyControllerTests.GetLatestRatesAmountIsNegative&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3ca7ae3e_002D77ee_002D4533_002D9eff_002D56234f98ab16/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\Users\raulf\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5a61245c_002D6eae_002D44cd_002Db058_002De88d7cb8a4cd/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetLatestRatesAmountIsInvalid" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Test.Currency.CurrencyControllerTests.GetLatestRatesAmountIsInvalid&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5d99ed60_002D3a83_002D45bf_002D95dd_002Dc5ced79d410a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="UpdateMyProfilePhotoAsync_ShouldThrowException_WhenFileTypeNotAllowed" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
@@ -25,6 +35,11 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8a911f59_002Daf87_002D4839_002Dadc2_002Dab7a047243cd/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="UpdateMyProfilePhotoAsync_ShouldReturnFileName_WhenFileTypeIsAllowed #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.UpdateMyProfilePhotoAsync_ShouldReturnFileName_WhenFileTypeIsAllowed&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=b87e7142_002Dabae_002D4269_002Dae21_002D2d4d28d7362f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetLatestRatesAmountIsNegative" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Test.Currency.CurrencyControllerTests.GetLatestRatesAmountIsNegative&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d7b0b562_002D59d9_002D48be_002D9450_002Dc5cfedee8561/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="UpdateMyProfilePhotoAsync_ShouldReturnFileName_WhenFileTypeIsAllowed #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;

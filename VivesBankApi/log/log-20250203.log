@@ -16,3 +16,7 @@ System.IO.InvalidDataException: End of Central Directory record could not be fou
 VivesBankApi.Backup.Exceptions.BackupException+BackupPermissionException: message, innerException
    at VivesBankApi.Utils.Backup.BackupService.ExtractZip(BackUpRequest zipFilePath, String tempDir) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 137
    at VivesBankApi.Utils.Backup.BackupService.ImportFromZip(BackUpRequest zipFilePath) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 107
+[2025-02-03 13:13:07.192] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";

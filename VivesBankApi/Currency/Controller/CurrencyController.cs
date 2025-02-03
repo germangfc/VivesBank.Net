@@ -47,14 +47,14 @@ namespace ApiFranfurkt.Properties.Currency.Controller
             if (!decimal.TryParse(amount, out var parsedAmount) || parsedAmount <= 0)
             {
                 // Si la cantidad no es válida o es menor o igual a cero, devolver error 400 (Bad Request).
-                return BadRequest("Cantidad inválida. El valor debe ser un número positivo.");
+                return BadRequest("Invalid quantity. Value must be a positive number.");
             }
 
             // Validar que baseCurrency no sea nulo o vacío.
             if (string.IsNullOrWhiteSpace(baseCurrency))
             {
                 // Si la moneda base es nula o vacía, devolver error 400 (Bad Request).
-                return BadRequest("Moneda base inválida. Por favor, proporcione un código de moneda válido.");
+                return BadRequest("Invalid base currency. Please provide a valid currency code.");
             }
 
             // Validar el parámetro symbols si es proporcionado.
@@ -69,7 +69,7 @@ namespace ApiFranfurkt.Properties.Currency.Controller
                 if (symbolList.Any(string.IsNullOrWhiteSpace))
                 {
                     // Si alguno de los símbolos es inválido, devolver error 400 (Bad Request).
-                    return BadRequest("Parámetro de símbolos inválido. Por favor, proporcione códigos de moneda válidos separados por comas.");
+                    return BadRequest("Invalid symbol parameter. Please provide valid currency codes separated by commas.");
                 }
             }
 
@@ -100,7 +100,7 @@ namespace ApiFranfurkt.Properties.Currency.Controller
             catch (Exception ex)
             {
                 // Si ocurre un error al obtener las tasas de cambio, devolver un error 500 (Internal Server Error).
-                return StatusCode(500, $"Error al obtener las tasas de cambio: {ex.Message}");
+                return StatusCode(500, $"Error getting exchange rates: {ex.Message}");
             }
         }
     }
