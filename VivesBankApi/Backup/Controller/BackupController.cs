@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 using VivesBankApi.Utils.Backup;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -37,7 +38,7 @@ namespace VivesBankApi.Controllers
         
         [HttpPost("import")]
         [Authorize("AdminPolicy")]
-        public async Task<IActionResult> ImportFromZip([FromForm] IFormFile file)
+        public async Task<IActionResult> ImportFromZip([Required] IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
