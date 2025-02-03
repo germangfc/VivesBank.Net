@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -497,5 +498,125 @@ public class ClientControllerTest
         // Cleanup
         fileStream.Dispose();
         File.Delete(tempFilePath);
+    }
+    
+    [Test]
+    public async Task GetFileFromFtpAsync_ReturnsFileStreamResult_WhenFileExists()
+    {
+        // Arrange
+        var fileName = "testfile.png";
+        var tempFile = Path.GetTempFileName();
+        await File.WriteAllTextAsync(tempFile, "Fake file content");
+        var fileStream = new FileStream(tempFile, FileMode.Open, FileAccess.Read, FileShare.Delete);
+        
+        _service.Setup(s => s.GetFileFromFtpAsync(fileName)).ReturnsAsync(fileStream);
+
+        // Act
+        var result = await _clientController.GetFileFromFtpAsync(fileName);
+
+        // Assert
+        ClassicAssert.IsInstanceOf<FileStreamResult>(result);
+        var fileResult = result as FileStreamResult;
+        ClassicAssert.NotNull(fileResult);
+        ClassicAssert.AreEqual("image/png", fileResult.ContentType);
+    }
+
+    [Test]
+    public async Task GetFileFromFtpAsync_ReturnsNotFound_WhenFileDoesNotExist()
+    {
+        // Arrange
+        var fileName = "nonexistent.png";
+        _service.Setup(s => s.GetFileFromFtpAsync(fileName)).ReturnsAsync((FileStream)null);
+
+        // Act
+        var result = await _clientController.GetFileFromFtpAsync(fileName);
+
+        // Assert
+        ClassicAssert.IsInstanceOf<NotFoundObjectResult>(result);
+        var notFoundResult = result as NotFoundObjectResult;
+        ClassicAssert.AreEqual(404, notFoundResult.StatusCode);
+    }
+
+    [Test]
+    public async Task GetMyDniPhotoFromFtpAsync_ReturnsFileStreamResult_WhenFileExists()
+    {
+        // Arrange
+        var tempFile = Path.GetTempFileName();
+        await File.WriteAllTextAsync(tempFile, "Fake DNI photo content");
+        var fileStream = new FileStream(tempFile, FileMode.Open, FileAccess.Read, FileShare.Delete);
+        
+        _service.Setup(s => s.GettingMyDniPhotoFromFtpAsync()).ReturnsAsync(fileStream);
+
+        // Act
+        var result = await _clientController.GetMyDniPhotoFromFtpAsync();
+
+        // Assert
+        ClassicAssert.IsInstanceOf<FileStreamResult>(result);
+        var fileResult = result as FileStreamResult;
+        ClassicAssert.NotNull(fileResult);
+    }
+    
+    [Test]
+    public async Task UpdateClientDniPhotoFtpAsync_ValidFile_ReturnsOk()
+    {
+        // Arrange
+        var clientId = "123";
+        var fileName = "testDni.png";
+        var fileMock = new Mock<IFormFile>();
+        var fileContent = "test content";
+        var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+
+        fileMock.Setup(f => f.OpenReadStream()).Returns(memoryStream);
+        fileMock.Setup(f => f.FileName).Returns(fileName);
+        fileMock.Setup(f => f.Length).Returns(memoryStream.Length);
+
+        _service.Setup(s => s.UpdateClientPhotoDniAsync(clientId, It.IsAny<IFormFile>()))
+            .ReturnsAsync(fileName);
+
+        // Act
+        var result = await _clientController.UpdateClientDniPhotoFtpAsync(clientId, fileMock.Object);
+
+        // Assert
+        ClassicAssert.IsInstanceOf<OkObjectResult>(result);
+        var okResult = result as OkObjectResult;
+        ClassicAssert.NotNull(okResult);
+        ClassicAssert.AreEqual(200, okResult.StatusCode);
+    }
+
+    [Test]
+    public async Task UpdateClientDniPhotoFtpAsync_NoFileProvided_ReturnsBadRequest()
+    {
+        // Arrange
+        var clientId = "123";
+        IFormFile file = null;
+
+        // Act
+        var result = await _clientController.UpdateClientDniPhotoFtpAsync(clientId, file);
+
+        // Assert
+        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result);
+        var badRequestResult = result as BadRequestObjectResult;
+        ClassicAssert.NotNull(badRequestResult);
+        ClassicAssert.AreEqual(400, badRequestResult.StatusCode);
+        ClassicAssert.AreEqual("No file was provided or the file is empty.", badRequestResult.Value);
+    }
+
+    [Test]
+    public async Task UpdateClientDniPhotoFtpAsync_EmptyFile_ReturnsBadRequest()
+    {
+        // Arrange
+        var clientId = "123";
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(0);
+
+        // Act
+        var result = await _clientController.UpdateClientDniPhotoFtpAsync(clientId, fileMock.Object);
+
+        // Assert
+        ClassicAssert.IsInstanceOf<BadRequestObjectResult>(result);
+        var badRequestResult = result as BadRequestObjectResult;
+        ClassicAssert.NotNull(badRequestResult);
+        ClassicAssert.AreEqual(400, badRequestResult.StatusCode);
+        ClassicAssert.AreEqual("No file was provided or the file is empty.", badRequestResult.Value);
     }
 }
