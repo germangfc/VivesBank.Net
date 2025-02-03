@@ -39,7 +39,7 @@ public class IbanGeneratorTests
             var exception =  Assert.ThrowsAsync<AccountsExceptions.AccountIbanNotGeneratedException>(
                 () => _ibanGenerator.GenerateUniqueIbanAsync());
             
-            ClassicAssert.AreEqual("Iban Couldnt be created after 1000 tries", exception.Message);
+            ClassicAssert.AreEqual("IBAN couldn't be created after 1000 tries", exception.Message);
         }
 
         [Test]

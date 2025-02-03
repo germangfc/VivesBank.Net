@@ -12,6 +12,13 @@ using Newtonsoft.Json;
 namespace VivesBankApi.Rest.Product.CreditCard.Controller;
 
 
+/// <summary>
+/// Controlador que gestiona las operaciones relacionadas con tarjetas de crédito.
+/// Ofrece acciones tanto para usuarios administradores como para clientes,
+/// permitiendo operaciones como obtener, crear, actualizar y eliminar tarjetas de crédito,
+/// así como importar y exportar datos en formato JSON.
+/// </summary>
+/// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
 [ApiController]
 [Route("api/[controller]")]
 public class CreditCardController : ControllerBase
@@ -19,12 +26,27 @@ public class CreditCardController : ControllerBase
     private readonly ICreditCardService _creditCardService;
     private readonly ILogger _logger;
 
+    /// <summary>
+    /// Constructor que inyecta las dependencias del servicio de tarjetas de crédito y el logger.
+    /// </summary>
+    /// <param name="creditCardService">Servicio encargado de la lógica de negocio de las tarjetas de crédito.</param>
+    /// <param name="logger">Instancia de logger para registrar las operaciones realizadas.</param>
     public CreditCardController(ICreditCardService creditCardService, ILogger<CreditCardController> logger)
     {
         _creditCardService = creditCardService;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Obtiene todas las tarjetas de crédito para administradores con soporte de paginación y filtrado.
+    /// Requiere autenticación y autorización con la política "AdminPolicy".
+    /// </summary>
+    /// <param name="pageNumber">Número de página para la paginación.</param>
+    /// <param name="pageSize">Cantidad de elementos por página.</param>
+    /// <param name="fullName">Filtra por nombre completo.</param>
+    /// <param name="isDeleted">Filtra por tarjetas eliminadas o no.</param>
+    /// <param name="direction">Dirección de la ordenación (ascendente o descendente).</param>
+    /// <returns>Lista de tarjetas de crédito administradas.</returns>
     [HttpGet]
     [Authorize("AdminPolicy")]
     public async Task<ActionResult<List<CreditCardAdminResponse>>> GetAllCardsAdminAsync([FromQuery] int pageNumber = 0,
@@ -39,6 +61,12 @@ public class CreditCardController : ControllerBase
         return Ok(cards);
     }
 
+    /// <summary>
+    /// Obtiene una tarjeta de crédito específica por su identificador para administradores.
+    /// Requiere autenticación y autorización con la política "AdminPolicy".
+    /// </summary>
+    /// <param name="cardId">Identificador único de la tarjeta.</param>
+    /// <returns>Detalles de la tarjeta de crédito solicitada.</returns>
     [HttpGet("{cardId}")]
     [Authorize("AdminPolicy")]
     public async Task<ActionResult<CreditCardAdminResponse?>> GetCardByIdAdminAsync(string cardId)
@@ -48,6 +76,11 @@ public class CreditCardController : ControllerBase
         return Ok(card);
     }
 
+    /// <summary>
+    /// Obtiene las tarjetas de crédito asociadas al usuario actual.
+    /// Requiere autenticación y autorización con la política "ClientPolicy".
+    /// </summary>
+    /// <returns>Lista de tarjetas de crédito del cliente.</returns>
     [HttpGet("me")]
     [Authorize("ClientPolicy")]
     public async Task<ActionResult<List<CreditCardClientResponse>>> GetMyCardsAsync()
@@ -57,23 +90,36 @@ public class CreditCardController : ControllerBase
         return Ok(cards);
     }
 
+    /// <summary>
+    /// Crea una nueva tarjeta de crédito para el cliente.
+    /// Requiere autenticación y autorización con la política "ClientPolicy".
+    /// </summary>
+    /// <param name="createRequest">Datos para crear la nueva tarjeta.</param>
+    /// <returns>Detalles de la tarjeta de crédito creada.</returns>
     [HttpPost]
     [Authorize("ClientPolicy")]
-    public async Task<ActionResult<CreditCardClientResponse>> CreateCardAsync([FromBody]CreditCardRequest createRequest)
+    public async Task<ActionResult<CreditCardClientResponse>> CreateCardAsync([FromBody] CreditCardRequest createRequest)
     {
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState); 
+            return BadRequest(ModelState);
         }
         _logger.LogInformation($"Creating card: {createRequest}");
         var card = await _creditCardService.CreateCreditCardAsync(createRequest);
         return CreatedAtAction(nameof(GetCardByIdAdminAsync), new { cardId = card.Id }, card);
     }
 
+    /// <summary>
+    /// Actualiza una tarjeta de crédito existente.
+    /// Requiere autenticación y autorización con la política "ClientPolicy".
+    /// </summary>
+    /// <param name="number">Número de la tarjeta a actualizar.</param>
+    /// <param name="updateRequest">Nuevo estado de la tarjeta a actualizar.</param>
+    /// <returns>Detalles de la tarjeta actualizada.</returns>
     [HttpPut("{number}")]
     [Authorize("ClientPolicy")]
     public async Task<ActionResult<CreditCardClientResponse>> UpdateCardAsync(string number,
-      [FromBody]  CreditCardUpdateRequest updateRequest)
+      [FromBody] CreditCardUpdateRequest updateRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -90,6 +136,12 @@ public class CreditCardController : ControllerBase
         return Ok(card);
     }
 
+    /// <summary>
+    /// Elimina una tarjeta de crédito.
+    /// Requiere autenticación y autorización con la política "ClientPolicy".
+    /// </summary>
+    /// <param name="cardnumber">Número de la tarjeta a eliminar.</param>
+    /// <returns>Respuesta sin contenido si la eliminación fue exitosa.</returns>
     [HttpDelete("{cardnumber}")]
     [Authorize("ClientPolicy")]
     public async Task<IActionResult> DeleteCardAsync(string cardnumber)
@@ -108,6 +160,11 @@ public class CreditCardController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Importa tarjetas de crédito desde un archivo JSON.
+    /// </summary>
+    /// <param name="file">Archivo que contiene las tarjetas de crédito a importar.</param>
+    /// <returns>Lista de tarjetas de crédito importadas.</returns>
     [HttpPost("import")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> ImportCreditCardsFromJson([Required] IFormFile file)
@@ -132,13 +189,18 @@ public class CreditCardController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Exporta tarjetas de crédito a formato JSON o como archivo.
+    /// </summary>
+    /// <param name="asFile">Indica si los datos se deben devolver como archivo o como JSON.</param>
+    /// <returns>Las tarjetas de crédito exportadas en formato JSON o como archivo.</returns>
     [HttpPost("export")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> ExportCreditCardsToJson([FromQuery] bool asFile = true)
     {
         try
         {
-            _logger.LogInformation($"asFile value: {asFile}"); // Esto te ayudará a ver el valor de asFile en los logs
+            _logger.LogInformation($"asFile value: {asFile}");
 
             int pageNumber = 1;
             int pageSize = 100;
@@ -168,7 +230,7 @@ public class CreditCardController : ControllerBase
             if (!asFile)
             {
                 _logger.LogInformation("Returning credit cards as JSON, not as file.");
-                return Ok(creditCards); // Retorna los datos como JSON si asFile es falso
+                return Ok(creditCards); 
             }
 
             _logger.LogInformation("Returning credit cards as file.");

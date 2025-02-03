@@ -30,7 +30,7 @@ public class CurrencyControllerTests
 
         ClassicAssert.AreEqual(typeof(BadRequestObjectResult), result.GetType());
         var badRequestResult = result as BadRequestObjectResult;
-        ClassicAssert.AreEqual("Invalid amount. The value must be a positive number.", badRequestResult.Value);
+        ClassicAssert.AreEqual("Invalid quantity. Value must be a positive number.", badRequestResult.Value);
     }
 
     // Moneda base vacia.
@@ -54,7 +54,7 @@ public class CurrencyControllerTests
 
         ClassicAssert.AreEqual(typeof(BadRequestObjectResult), result.GetType());
         var badRequestResult = result as BadRequestObjectResult;
-        ClassicAssert.AreEqual("Invalid symbols parameter. Please provide valid currency codes separated by commas.",
+        ClassicAssert.AreEqual("Invalid symbol parameter. Please provide valid currency codes separated by commas.",
             badRequestResult.Value);
     }
 
@@ -146,6 +146,6 @@ public class CurrencyControllerTests
 
         ClassicAssert.AreEqual(typeof(BadRequestObjectResult), result.GetType());
         var badRequestResult = result as BadRequestObjectResult;
-        ClassicAssert.AreEqual("Invalid amount. The value must be a positive number.", badRequestResult.Value);
+        ClassicAssert.AreEqual("Invalid quantity. Value must be a positive number.", badRequestResult.Value);
     }
 }
