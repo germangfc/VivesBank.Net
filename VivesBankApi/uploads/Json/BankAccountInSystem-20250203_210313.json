@@ -1,0 +1,28 @@
+[
+  {
+    "Id": "mT_ynBQklw",
+    "ProductId": "Z-QnRlm7XQ",
+    "ClientId": "eJTX-_GjsQ",
+    "TarjetaId": null,
+    "IBAN": "ES7620770024003102575766",
+    "Balance": 0.0,
+    "AccountType": 0,
+    "InterestRate": 0.2,
+    "CreatedAt": "2025-02-03T21:03:13.3026064Z",
+    "UpdatedAt": "2025-02-03T21:03:13.3026067Z",
+    "IsDeleted": false
+  },
+  {
+    "Id": "aB_ynBQklw",
+    "ProductId": "Z-QnRlm7XQ",
+    "ClientId": "eJTX-_GjsQ",
+    "TarjetaId": null,
+    "IBAN": "ES9121000418450200051332",
+    "Balance": 0.0,
+    "AccountType": 0,
+    "InterestRate": 0.2,
+    "CreatedAt": "2025-02-03T21:03:13.3026077Z",
+    "UpdatedAt": "2025-02-03T21:03:13.3026077Z",
+    "IsDeleted": false
+  }
+]
