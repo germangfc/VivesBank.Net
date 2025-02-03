@@ -1,3 +1,4 @@
+
 ﻿namespace VivesBankApi.Backup.Exceptions;
 /// <summary>
 /// Clase base para excepciones relacionadas con el proceso de backup.
@@ -24,7 +25,7 @@ public abstract class BackupException : Exception
             /// </summary>
             /// <param name="zipFilePath">Ruta del archivo ZIP no encontrado.</param>
             public BackupFileNotFoundException(string zipFilePath)
-                : base($"The file {zipFilePath} was not found.") 
+                : base($"{zipFilePath}")
             {
             }
         }
@@ -40,6 +41,7 @@ public abstract class BackupException : Exception
             /// <param name="message">Mensaje descriptivo del error.</param>
             /// <param name="innerException">Excepcion interna que causo el error.</param>
             public BackupPermissionException(string message, Exception innerException)
+                : base("message, innerException")
                 : base("message, innerException") 
             {
             }
@@ -61,3 +63,4 @@ public abstract class BackupException : Exception
         }
         
     }
+}
