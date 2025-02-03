@@ -9,6 +9,7 @@ using VivesBankApi.Rest.Clients.Mappers;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Clients.storage.Config;
+using VivesBankApi.Rest.Clients.Storage.Service;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Exceptions;
 using VivesBankApi.Rest.Users.Mapper;
@@ -35,7 +36,7 @@ public class ClientService : GenericStorageJson<Client>, IClientService
     private readonly IWebsocketHandler _websocketHandler;
     private readonly FileStorageRemoteConfig _fileStorageRemoteConfig;
     private readonly IConfiguration _configuration;
-    
+    private readonly IFileStorageService _ftpService; 
     public ClientService(
         ILogger<ClientService> logger,
         IUserService userService,
@@ -45,8 +46,9 @@ public class ClientService : GenericStorageJson<Client>, IClientService
         FileStorageConfig fileStorageConfig,
         IWebsocketHandler websocketHandler,
         IJwtGenerator jwtGenerator,
-        IConfiguration configuration
-        ) : base(logger)
+        IConfiguration configuration,
+        IFileStorageService ftpService 
+    ) : base(logger)
     {
         _jwtGenerator = jwtGenerator;
         _userService = userService; 
@@ -57,7 +59,14 @@ public class ClientService : GenericStorageJson<Client>, IClientService
         _fileStorageConfig = fileStorageConfig;
         _websocketHandler = websocketHandler;
         _fileStorageRemoteConfig = configuration.GetSection("FileStorageRemoteConfig").Get<FileStorageRemoteConfig>();
+        _ftpService = ftpService; 
     } 
+    
+    public async Task<List<Client>> GetAll()
+    {
+        return await _clientRepository.GetAllAsync();
+    }
+    
     public async Task<PagedList<ClientResponse>> GetAllClientsAsync(
         int pageNumber, 
         int pageSize,
@@ -92,6 +101,13 @@ public class ClientService : GenericStorageJson<Client>, IClientService
     {
         _logger.LogInformation($"Getting Client by id {id}");
         var res = await GetByIdAsync(id) ?? throw new ClientExceptions.ClientNotFoundException(id);
+        return res.ToResponse();
+    }
+
+    public async Task<ClientResponse> GetClientByUserIdAsync(string userId)
+    {
+        _logger.LogInformation($"Getting client by user id {userId}");
+        var res = await _clientRepository.getByUserIdAsync(userId) ?? throw new ClientExceptions.ClientNotFoundException(userId);
         return res.ToResponse();
     }
 
@@ -322,29 +338,29 @@ public class ClientService : GenericStorageJson<Client>, IClientService
 
 
     
-    public async Task<bool> DeleteFileAsync(string fileName)
-    {
-        _logger.LogInformation($"Deleting file: {fileName}");
-        try
+        public async Task<bool> DeleteFileAsync(string fileName)
         {
-            var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
-            
-            if (!File.Exists(filePath))
+            _logger.LogInformation($"Deleting file: {fileName}");
+            try
             {
-                _logger.LogWarning($"File not found: {filePath}");
-                return false;
+                var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
+                
+                if (!File.Exists(filePath))
+                {
+                    _logger.LogWarning($"File not found: {filePath}");
+                    return false;
+                }
+                
+                File.Delete(filePath);
+                _logger.LogInformation($"File deleted: {filePath}");
+                return true;
             }
-            
-            File.Delete(filePath);
-            _logger.LogInformation($"File deleted: {filePath}");
-            return true;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting file");
+                throw;
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting file");
-            throw;
-        }
-    }
 
     
 
@@ -559,9 +575,6 @@ public class ClientService : GenericStorageJson<Client>, IClientService
         }
     }
 
-
-
-    
     public async Task<string> UpdateClientPhotoDniAsync(string clientId, IFormFile file)
     {
         try

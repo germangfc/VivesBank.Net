@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices.JavaScript;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -15,6 +13,7 @@ using StackExchange.Redis;
 using VivesBankApi.Middleware.Jwt;
 using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.storage.Config;
+using VivesBankApi.Rest.Clients.Storage.Service;
 using VivesBankApi.Rest.Users.Dtos;
 using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
@@ -32,7 +31,6 @@ using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Repositories;
 using VivesBankApi.Rest.Users.Exceptions;
-using VivesBankApi.Rest.Users.Repository;
 using VivesBankApi.Rest.Clients.Service;
 
 public class ClientServiceTests
@@ -41,26 +39,30 @@ public class ClientServiceTests
     private Mock<IUserService> _userServiceMock;
     private Mock<ILogger<ClientService>> _loggerMock;
     private Mock<IHttpContextAccessor> _httpContextAccessorMock;
-    private Mock<IConnectionMultiplexer> _connection;
     private Mock<IDatabase> _cache;
+    private Mock<IJwtGenerator> _jwtGeneratorMock;
+    private Mock<IConnectionMultiplexer> _connectionMock;
+    private Mock<IConfiguration> _configurationMock;
+    private Mock<FileStorageConfig> _fileStorageConfigMock;
     private Mock<IWebsocketHandler> _websocketHandlerMock;
-    private Mock<IJwtGenerator> _jwtGenerator;
     private FileStorageConfig _fileStorageConfig;
     private ClientService _clientService;
     private IContainer _ftpContainer;
+    private Mock<IFileStorageService> _ftpServiceMock; 
     
     public ClientServiceTests()
     {
-        _connection = new Mock<IConnectionMultiplexer>();
+        _connectionMock = new Mock<IConnectionMultiplexer>();
         _cache = new Mock<IDatabase>();
-        _connection.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_cache.Object);
-
+        _connectionMock.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_cache.Object);
         _clientRepositoryMock = new Mock<IClientRepository>();
         _userServiceMock = new Mock<IUserService>();
         _loggerMock = new Mock<ILogger<ClientService>>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _websocketHandlerMock = new Mock<IWebsocketHandler>();
-        _jwtGenerator = new Mock<IJwtGenerator>();
+        _jwtGeneratorMock = new Mock<IJwtGenerator>();
+        _fileStorageConfigMock = new Mock<FileStorageConfig>();
+        _ftpServiceMock = new Mock<IFileStorageService>();
     }
 
     [OneTimeSetUp]
@@ -111,12 +113,13 @@ public class ClientServiceTests
             _loggerMock.Object,
             _userServiceMock.Object,
             _clientRepositoryMock.Object,
-            _connection.Object,
+            _connectionMock.Object,
             _httpContextAccessorMock.Object,
             _fileStorageConfig,
             _websocketHandlerMock.Object,
-            _jwtGenerator.Object,
-            configuration  
+            _jwtGeneratorMock.Object,
+            configuration,
+            _ftpServiceMock.Object
         );
     }
 
@@ -125,7 +128,7 @@ public class ClientServiceTests
     {
         await _ftpContainer.DisposeAsync();
     }
-
+  
     [SetUp]
     public void Setup()
     {
@@ -145,6 +148,7 @@ public class ClientServiceTests
     }
     
     [Test]
+  
     public async Task SaveFileToFtpAsync_ValidFile_UploadsSuccessfully()
     {
         // Arrange
@@ -206,6 +210,25 @@ public class ClientServiceTests
         ClassicAssert.IsNotNull(fileStream);
     }
 
+    public async Task GetAll_ShouldReturnListOfClients()
+    {
+        // Arrange
+        var clients = new List<Client>
+        {
+            new Client { Id = "1", FullName = "John Doe", Adress = "Address 1" },
+            new Client { Id = "2", FullName = "Jane Smith", Adress = "Address 2" }
+        };
+        _clientRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(clients);
+
+        // Act
+        var result = await _clientService.GetAll();
+
+        // Assert
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.AreEqual(2, result.Count);
+        ClassicAssert.AreEqual("John Doe", result[0].FullName);
+        ClassicAssert.AreEqual("Jane Smith", result[1].FullName);
+    }
 
     [Test]
     public async Task GetAllClientsAsync_ReturnsPagedClients()
@@ -305,10 +328,10 @@ public class ClientServiceTests
     }
     
     [Test]
-    public async Task GetMyClientData_ShouldReturn_UserNotFoundException()
+    public void GetMyClientData_ShouldReturn_UserNotFoundException()
     {
+        // Arrange
         var userId = "user1";
-        var clientId = "client1";
         var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
         {
             new Claim(ClaimTypes.NameIdentifier, userId)
@@ -316,22 +339,21 @@ public class ClientServiceTests
         var httpContext = new DefaultHttpContext { User = claims };
         _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
 
-        var user = new UserResponse { Id = userId };
-        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ThrowsAsync(new UserNotFoundException(userId));
-        
-       var result = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.GettingMyClientData());
-       
-       ClassicAssert.AreEqual($"The user with id: {userId} was not found", result.Message);
-       
-       _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
-       _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(It.IsAny<string>()), Times.Never);
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync((UserResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.GettingMyClientData());
+        Assert.That(ex.Message, Is.EqualTo($"The user with id: {userId} was not found"));
+
+        _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
+        _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(It.IsAny<string>()), Times.Never);
     }
 
     [Test]
-    public async Task GetMyClientData_ShouldReturn_ClientNotFoundException()
+    public void GetMyClientData_ShouldReturn_ClientNotFoundException()
     {
+        // Arrange
         var userId = "user1";
-        var clientId = "client1";
         var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
         {
             new Claim(ClaimTypes.NameIdentifier, userId)
@@ -342,14 +364,14 @@ public class ClientServiceTests
         var user = new UserResponse { Id = userId };
         _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync(user);
 
-        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(userId)).ThrowsAsync(new ClientExceptions.ClientNotFoundException(clientId));
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(userId)).ReturnsAsync((Client)null);
 
-       var result = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.GettingMyClientData());
-       
-       ClassicAssert.AreEqual($"Client not found by id {clientId}", result.Message);
-       
-       _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
-       _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(userId), Times.Once);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.GettingMyClientData());
+        Assert.That(ex.Message, Is.EqualTo($"Client not found by id {userId}"));
+
+        _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
+        _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(userId), Times.Once);
     }
     
     [Test]
@@ -405,6 +427,36 @@ public class ClientServiceTests
         // Act & Assert
         Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.GetClientByIdAsync(clientId));
     }
+    
+    [Test]
+    public async Task GetClientByUserIdAsync_ShouldReturnClientResponse_WhenClientExists()
+    {
+        // Arrange
+        var userId = "user1";
+        var client = new Client { Id = "1", UserId = userId, FullName = "John Doe", Adress = "Address 1" };
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(userId)).ReturnsAsync(client);
+
+        // Act
+        var result = await _clientService.GetClientByUserIdAsync(userId);
+
+        // Assert
+        ClassicAssert.IsNotNull(result);
+        ClassicAssert.AreEqual(client.Id, result.Id);
+        ClassicAssert.AreEqual(client.FullName, result.Fullname);
+        ClassicAssert.AreEqual(client.Adress, result.Address);
+    }
+
+    [Test]
+    public void GetClientByUserIdAsync_ShouldThrowClientNotFoundException_WhenClientDoesNotExist()
+    {
+        // Arrange
+        var userId = "user1";
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(userId)).ReturnsAsync((Client)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.GetClientByUserIdAsync(userId));
+        Assert.That(ex.Message, Is.EqualTo($"Client not found by id {userId}"));
+    }
 
     [Test]
     public async Task CreateClientAsync_ShouldReturn_Token()
@@ -445,7 +497,7 @@ public class ClientServiceTests
             .Returns(Task.CompletedTask);
         
         var jwtToken = "generatedJwtToken";
-        _jwtGenerator.Setup(x => x.GenerateJwtToken(It.IsAny<User>()))
+        _jwtGeneratorMock.Setup(x => x.GenerateJwtToken(It.IsAny<User>()))
             .Returns(jwtToken);
         
         var result = await _clientService.CreateClientAsync(request);
@@ -750,7 +802,77 @@ public class ClientServiceTests
         _clientRepositoryMock.Verify(c => c.UpdateAsync(client), Times.Once); 
         _userServiceMock.Verify(u => u.DeleteUserAsync(userId,  true), Times.Once);
     }
+    
+    [Test]
+    public void DeleteMe_ShouldThrowUserNotFoundException_WhenUserDoesNotExist()
+    {
+        // Arrange
+        var userId = "user1";
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        }));
+        var httpContext = new DefaultHttpContext { User = claims };
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(httpContext);
 
+        _userServiceMock.Setup(u => u.GetUserByIdAsync(userId)).ReturnsAsync((UserResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.DeleteMe());
+        Assert.That(ex.Message, Is.EqualTo($"The user with id: {userId} was not found"));
+
+        _userServiceMock.Verify(u => u.GetUserByIdAsync(userId), Times.Once);
+        _clientRepositoryMock.Verify(repo => repo.getByUserIdAsync(It.IsAny<string>()), Times.Never);
+    }
+    
+    [Test]
+    public async Task GettingMyProfilePhotoAsync_ShouldReturnFileStream_WhenPhotoExists()
+    {
+        var userId = "123";
+        var client = new Client { Id = userId, Photo = "profile.jpg" };
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }));
+        
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = claims });
+        _clientRepositoryMock.Setup(x => x.getByUserIdAsync(userId)).ReturnsAsync(client);
+        
+        string filePath = Path.Combine(_fileStorageConfig.UploadDirectory, client.Photo);
+        File.WriteAllText(filePath, "test data"); 
+        
+        var result = await _clientService.GettingMyProfilePhotoAsync();
+        
+        ClassicAssert.NotNull(result);
+        ClassicAssert.True(result is FileStream, "The result is not FileStream");
+
+        result.Dispose();
+        File.Delete(filePath);
+    }
+
+    [Test]
+    public async Task GettingMyProfilePhotoAsync_ShouldThrowFileNotFoundException_WhenPhotoDoesNotExist()
+    {
+        // Arrange
+        var userId = "123";
+        var client = new Client { Id = userId, Photo = "nonexistent.jpg" };
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }));
+        
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = claims });
+        _clientRepositoryMock.Setup(x => x.getByUserIdAsync(userId)).ReturnsAsync(client);
+        
+        Assert.ThrowsAsync<FileNotFoundException>(() => _clientService.GettingMyProfilePhotoAsync());
+    }
+    
+    [Test]
+    public async Task GettingMyProfilePhotoAsync_ShouldThrowClientNotFoundException_WhenClientDoesNotExist()
+    {
+        var userId = "123";
+        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId) }));
+        
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = claims });
+        _clientRepositoryMock.Setup(x => x.getByUserIdAsync(userId)).ReturnsAsync((Client)null);
+        
+        Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.GettingMyProfilePhotoAsync());
+    }
+    
     [Test]
     public void DeleteMeAsClient_ShouldReturn_ClientNotfoundException()
     {
@@ -790,9 +912,6 @@ public class ClientServiceTests
         
         var result =  Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.DeleteMe());
     }
-    
-
-    
     
     
     [Test]
@@ -846,32 +965,6 @@ public class ClientServiceTests
         ClassicAssert.IsNotNull(result);
         ClassicAssert.IsTrue(result.Contains(baseFileName));
         ClassicAssert.IsTrue(result.EndsWith(".jpg"));
-    }
-    
-    [Test]
-    public async Task SaveFileAsync_DirectoryDoesNotExist_CreatesDirectory()
-    {
-        // Arrange
-        var fileMock = new Mock<IFormFile>();
-        fileMock.Setup(f => f.Length).Returns(1024); // 1 KB file
-        fileMock.Setup(f => f.FileName).Returns("test.jpg");
-        fileMock.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        var baseFileName = "user-file";
-        var uploadPath = Path.Combine(_fileStorageConfig.UploadDirectory);
-
-        // Ensure the directory does not exist initially
-        if (Directory.Exists(uploadPath))
-        {
-            Directory.Delete(uploadPath, true);
-        }
-
-        // Act
-        await _clientService.SaveFileAsync(fileMock.Object, baseFileName);
-
-        // Assert
-        ClassicAssert.IsTrue(Directory.Exists(uploadPath));
     }
     
     [Test]
@@ -1062,6 +1155,37 @@ public class ClientServiceTests
         Assert.That(ex.Message, Is.EqualTo($"The user with id: {client.UserId} was not found"));
     }
     
+    [Test]
+    public async Task DeleteFileAsync_ShouldReturnTrue_WhenFileExists()
+    {
+        // Arrange
+        var fileName = "existingFile.txt";
+        var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
+        File.WriteAllText(filePath, "Test content");
+
+        // Act
+        var result = await _clientService.DeleteFileAsync(fileName);
+
+        // Assert
+        ClassicAssert.IsTrue(result);
+        ClassicAssert.IsFalse(File.Exists(filePath));
+    }
+    
+    
+    [Test]
+    public async Task DeleteFileAsync_ShouldReturnFalse_WhenFileDoesNotExist()
+    {
+        // Arrange
+        var fileName = "nonExistingFile.txt";
+
+        // Act
+        var result = await _clientService.DeleteFileAsync(fileName);
+
+        // Assert
+        ClassicAssert.IsFalse(result);
+    }
+
+    
     
     [Test]
     public async Task GetFileAsync_ShouldReturnFileStream_WhenFileExists()
@@ -1088,13 +1212,13 @@ public class ClientServiceTests
         File.Delete(filePath);
     }
     
+    
+    
     [Test]
     public void GetFileAsync_ShouldThrowFileNotFoundException_WhenFileDoesNotExist()
     {
-        // Arrange
         var fileName = "non-existing-file.txt";
 
-        // Act & Assert
         var ex = Assert.ThrowsAsync<FileNotFoundException>(() => _clientService.GetFileAsync(fileName));
         Assert.That(ex.Message, Is.EqualTo($"File not found: {fileName}"));
     }
@@ -1103,28 +1227,167 @@ public class ClientServiceTests
     [Test]
     public void UpdateClientPhotoDniAsync_ShouldThrowClientNotFoundException_WhenClientNotFound()
     {
-        // Arrange
         var clientId = "123";
         var fileMock = new Mock<IFormFile>();
         fileMock.Setup(f => f.Length).Returns(100);
         _clientRepositoryMock.Setup(repo => repo.GetByIdAsync(clientId)).ReturnsAsync((Client)null);
 
-        // Act & Assert
         var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() =>
             _clientService.UpdateClientPhotoDniAsync(clientId, fileMock.Object));
         Assert.That(ex.Message, Is.EqualTo($"Client not found by id El cliente con ClientId {clientId} no existe."));
     }
+    
+    [Test]
+    public async Task UpdateMyProfilePhotoAsync_ShouldReturnFileName_WhenFileTypeIsAllowed()
+    {
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.FileName).Returns("profile.jpg");
+        fileMock.Setup(f => f.Length).Returns(1000);
 
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] 
+        {
+            new Claim(ClaimTypes.NameIdentifier, "userId123"),
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(user);
+
+        _clientRepositoryMock.Setup(x => x.getByUserIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(new Client { UserId = "userId123" });
+
+        _userServiceMock.Setup(x => x.GetUserByIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(new UserResponse { Id = "userId123", Dni = "123456789" });
+
+        var expectedFileName = "PROFILE-123456789-20250203.jpg";  
+        _ftpServiceMock.Setup(x => x.SaveFileAsync(It.IsAny<IFormFile>(), It.IsAny<string>()))
+            .ReturnsAsync(expectedFileName);  
+        
+        var result = await _clientService.UpdateMyProfilePhotoAsync(fileMock.Object);
+
+        ClassicAssert.AreEqual(expectedFileName, result); 
+        _clientRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Client>()), Times.Once); 
+
+    }
+
+
+
+    
+    [Test]
+    public void UpdateMyProfilePhotoAsync_ShouldThrowException_WhenFileTypeNotAllowed()
+    {
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.FileName).Returns("profile.txt");
+        fileMock.Setup(f => f.Length).Returns(1000);
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "userId123"),
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(user);
+    
+        _clientRepositoryMock.Setup(x => x.getByUserIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(new Client { UserId = "userId123" });
+
+        _userServiceMock.Setup(x => x.GetUserByIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(new UserResponse { Id = "userId123", Dni = "123456789" });
+    
+        Assert.ThrowsAsync<FileStorageExceptions>(() => _clientService.UpdateMyProfilePhotoAsync(fileMock.Object));
+    }
+    
+    [Test]
+    public void UpdateMyProfilePhotoAsync_ShouldThrowClientNotFoundException_WhenClientNotFound()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(100);
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "userId123"),
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(user);
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync("userId123")).ReturnsAsync((Client)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.UpdateMyProfilePhotoAsync(fileMock.Object));
+        Assert.That(ex.Message, Is.EqualTo("Client not found by id Client with user ID userId123 not found."));
+    }
+    
+    [Test]
+    public void UpdateMyProfilePhotoAsync_ShouldThrowUserNotFoundException_WhenUserDataIsNull()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(100);
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "userId123"),
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(user);
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync("userId123")).ReturnsAsync(new Client { UserId = "userId123" });
+        _userServiceMock.Setup(service => service.GetUserByIdAsync("userId123")).ReturnsAsync((UserResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.UpdateMyProfilePhotoAsync(fileMock.Object));
+        Assert.That(ex.Message, Is.EqualTo("The user with id: userId123 was not found"));
+    }
+    
+    
+    [Test]
+    public void UpdateMyPhotoDniAsync_ShouldThrowClientNotFoundException_WhenClientNotFound()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(1000);
+        fileMock.Setup(f => f.FileName).Returns("dni.jpg");
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "userId123"),
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(user);
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync("userId123")).ReturnsAsync((Client)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() => _clientService.UpdateMyPhotoDniAsync(fileMock.Object));
+        Assert.That(ex.Message, Is.EqualTo("Client not found by id Client with user ID userId123 not found."));
+    }
+
+    [Test]
+    public void UpdateMyPhotoDniAsync_ShouldThrowUserNotFoundException_WhenUserNotFound()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        fileMock.Setup(f => f.Length).Returns(1000);
+        fileMock.Setup(f => f.FileName).Returns("dni.jpg");
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "userId123"),
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(user);
+
+        var client = new Client { UserId = "userId123", PhotoDni = "oldDni.jpg" };
+
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync("userId123")).ReturnsAsync(client);
+        _userServiceMock.Setup(service => service.GetUserByIdAsync("userId123")).ReturnsAsync((UserResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(() => _clientService.UpdateMyPhotoDniAsync(fileMock.Object));
+        Assert.That(ex.Message, Is.EqualTo("The user with id: userId123 was not found"));
+    }
+
+    
     [Test]
     public async Task Export()
     {
-        //Arrange
         var client = new Client { Id = "1", FullName = "John Doe", Adress = "Address 1", IsDeleted = false };
 
-        //Act
         var result = await _clientService.ExportOnlyMeData(client);
 
-        //Assert
         var formFile = new FormFile(result, 0, result.Length, "something", "test.json"  );
         var secondResult = await _clientService.Import(formFile).ToList();
         ClassicAssert.IsInstanceOf<FileStream>(result);
@@ -1133,8 +1396,6 @@ public class ClientServiceTests
         ClassicAssert.AreEqual(client.UserId, secondResult[0].UserId);
         ClassicAssert.AreEqual(client.Adress, secondResult[0].Adress);
         
-        //Clean up
         await result.DisposeAsync();
     }
-    
 }

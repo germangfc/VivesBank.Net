@@ -1,10 +1,11 @@
 ﻿using MongoDB.Bson;
 using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Users.Models;
+using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
-public interface IMovimientoService
+public interface IMovimientoService : IGenericStorageJson<Movimiento>
 {
     Task<List<Movimiento>> FindAllMovimientosAsync();
     Task<Movimiento> FindMovimientoByIdAsync(String id);

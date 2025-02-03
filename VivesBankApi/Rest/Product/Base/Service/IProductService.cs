@@ -6,6 +6,7 @@ namespace VivesBankApi.Rest.Product.Service;
 
 public interface IProductService : IStorageCsv, IGenericStorageJson<Base.Models.Product>
 {
+    Task<List<Base.Models.Product>> GetAll();
     Task<List<ProductResponse>> GetAllProductsAsync();
     Task<ProductResponse?> GetProductByIdAsync(String productId);
     Task<ProductResponse> CreateProductAsync(ProductCreateRequest createRequest);

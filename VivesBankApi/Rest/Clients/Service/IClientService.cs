@@ -13,7 +13,10 @@ public interface IClientService : IGenericStorageJson<Client>
         bool? isDeleted,
         string direction);
 
+    Task<List<Client>> GetAll();
+
     Task<ClientResponse> GetClientByIdAsync(string id);
+    Task<ClientResponse> GetClientByUserIdAsync(string userId);
     Task<ClientResponse> GettingMyClientData();
     Task<String> CreateClientAsync(ClientRequest request);
     Task<ClientResponse> UpdateClientAsync(string id, ClientUpdateRequest request);
@@ -36,7 +39,7 @@ public interface IClientService : IGenericStorageJson<Client>
     Task<FileStream> ExportOnlyMeData(Client user);
 
     //Funciones para storage remoto FTP
-    Task<string> SaveFileToFtpAsync(IFormFile file, string dni);
+    Task<string>  SaveFileToFtpAsync(IFormFile file, string dni);
     Task<FileStream> GetFileFromFtpAsync(string fileName);
     Task<string> UpdateClientPhotoDniAsync(string userId, IFormFile file);
     Task<string> UpdateMyPhotoDniAsync(IFormFile file);

@@ -23,32 +23,32 @@ public class DomiciliacionRepository: IDomiciliacionRepository
     }
     public async Task<List<Domiciliacion>> GetAllDomiciliacionesAsync()
     {
-        _logger.LogInformation("Getting all domiciliaciones from the database.");
-        return await _collection.Find(_ => true).ToListAsync();
+        _logger.LogInformation("Getting all direct debits from the database.");
+        return await _collection.FindAsync(_ => true).Result.ToListAsync();
     }
 
     public async Task<List<Domiciliacion>> GetAllDomiciliacionesActivasAsync()
     {
-        _logger.LogInformation("Getting all active domiciliaciones from the database.");
-        return await _collection.Find(d => d.Activa).ToListAsync();
+        _logger.LogInformation("Getting all active direct debits from the database.");
+        return await _collection.FindAsync(d => d.Activa).Result.ToListAsync();
     }
 
     public async Task<Domiciliacion> GetDomiciliacionByIdAsync(String id)
     {
-        _logger.LogInformation($"Getting domiciliacion with id {id} from the database.");
-        return await _collection.Find(d => d.Id == id).FirstOrDefaultAsync();
+        _logger.LogInformation($"Getting direct debit with id {id} from the database.");
+        return await _collection.FindAsync(d => d.Id == id).Result.FirstOrDefaultAsync();
     }
 
     public async Task<Domiciliacion> AddDomiciliacionAsync(Domiciliacion domiciliacion)
     {
-        _logger.LogInformation($"Adding a new domiciliacion to the database: {domiciliacion}");
+        _logger.LogInformation($"Adding a new direct debit to the database: {domiciliacion}");
         await _collection.InsertOneAsync(domiciliacion);
         return domiciliacion;
     }
 
     public async Task<Domiciliacion> UpdateDomiciliacionAsync(String id, Domiciliacion domiciliacion)
     {
-        _logger.LogInformation($"Updating domiciliacion with id {id} in the database.");
+        _logger.LogInformation($"Updating direct debit with id {id} in the database.");
         var updateResult = await _collection.FindOneAndReplaceAsync(
             d => d.Id == id,
             domiciliacion,
@@ -59,20 +59,20 @@ public class DomiciliacionRepository: IDomiciliacionRepository
 
     public async Task<Domiciliacion> DeleteDomiciliacionAsync(String id)
     {
-        _logger.LogInformation($"Deleting domiciliacion with id {id} from the database.");
+        _logger.LogInformation($"Deleting direct debit with id {id} from the database.");
         var deletedDomiciliacion = await _collection.FindOneAndDeleteAsync(d => d.Id == id);
         return deletedDomiciliacion;
     }
 
     public async Task<List<Domiciliacion>> GetDomiciliacionesActivasByClienteGiudAsync(string clienteGuid)
     {
-        _logger.LogInformation($"Getting active domiciliaciones for client with guid {clienteGuid} from the database.");
-        return await _collection.Find(d => d.ClienteGuid == clienteGuid && d.Activa).ToListAsync();
+        _logger.LogInformation($"Getting active direct debits for client with guid {clienteGuid} from the database.");
+        return await _collection.FindAsync(d => d.ClienteGuid == clienteGuid && d.Activa).Result.ToListAsync();
     }
 
     public async Task<List<Domiciliacion>> GetDomiciliacionByClientGuidAsync(string clientGuid)
     {
-        _logger.LogInformation($"Finding domiciliaciones for client with guid {clientGuid}.");
-        return await _collection.Find(d => d.ClienteGuid == clientGuid).ToListAsync();
+        _logger.LogInformation($"Getting direct debits for client with guid {clientGuid}.");
+        return await _collection.FindAsync(d => d.ClienteGuid == clientGuid).Result.ToListAsync();
     }
 }

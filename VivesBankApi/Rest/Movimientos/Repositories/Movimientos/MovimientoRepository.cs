@@ -26,13 +26,13 @@ public class MovimientoRepository : IMovimientoRepository
         return await _collection.Find(_ => true).ToListAsync();
     }
 
-    public async Task<Movimiento> GetMovimientoByIdAsync(String id)
+    public async Task<Movimiento?> GetMovimientoByIdAsync(String id)
     {
         _logger.LogInformation($"Getting movimiento with id: {id} from the database.");
         return await _collection.Find(m => m.Id == id).FirstOrDefaultAsync();
     }
 
-    public async Task<Movimiento> GetMovimientoByGuidAsync(string guid)
+    public async Task<Movimiento?> GetMovimientoByGuidAsync(string guid)
     {
         _logger.LogInformation($"Getting movimiento with guid: {guid} from the database.");
         return await _collection.Find(m => m.Guid == guid).FirstOrDefaultAsync();

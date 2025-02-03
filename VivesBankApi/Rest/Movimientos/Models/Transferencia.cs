@@ -17,6 +17,6 @@ public class Transferencia
     [MaxLength(100, ErrorMessage = "El beneficiario no puede tener más de 100 caracteres")]
     public string NombreBeneficiario { get; set; }
     
-    public string MovimientoDestino { get; set; }
+    public string? MovimientoDestino { get; set; }
 
 }
