@@ -1,4 +1,4 @@
-﻿using MongoDB.Bson;
+using MongoDB.Bson;
 using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Utils.GenericStorage.JSON;
