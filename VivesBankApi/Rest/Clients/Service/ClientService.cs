@@ -661,18 +661,24 @@ public class ClientService : GenericStorageJson<Client>, IClientService
         {
             try
             {
-                client.Config.ConnectTimeout = 30000;
-                client.Config.ReadTimeout = 30000;
-                client.Config.DataConnectionConnectTimeout = 30000;
-                client.Config.DataConnectionReadTimeout = 30000;
-                await client.Connect();
+                using (var client = new AsyncFtpClient(_fileStorageRemoteConfig.FtpHost,
+                           _fileStorageRemoteConfig.FtpUsername, _fileStorageRemoteConfig.FtpPassword))
+                {
+                    client.Config.ConnectTimeout = 30000;
+                    client.Config.ReadTimeout = 30000;
+                    client.Config.DataConnectionConnectTimeout = 30000;
+                    client.Config.DataConnectionReadTimeout = 30000;
+                    await client.Connect();
+                }
+               
 
                 // Buscar usuario asociado al cliente
-                var user = await _userRepository.GetByIdAsync(client.UserId);
+                var clientToFound = await _clientRepository.GetByIdAsync(clientId);
+                var user = await _userRepository.GetByIdAsync(clientToFound.UserId);
                 if (user == null)
                 {
-                    _logger.LogError($"Usuario con UserId {client.UserId} no encontrado.");
-                    throw new UserNotFoundException($"El usuario con UserId {client.UserId} no existe.");
+                    _logger.LogError($"Usuario con UserId {clientToFound.UserId} no encontrado.");
+                    throw new UserNotFoundException($"El usuario con UserId {clientToFound.UserId} no existe.");
                 }
 
                 // Generación del nombre del archivo con DNI, extensión y timestamp
@@ -685,10 +691,10 @@ public class ClientService : GenericStorageJson<Client>, IClientService
                 string savedFileName = await SaveFileToFtpAsync(file, fileName);
 
                 // Actualizar la propiedad PhotoDni del cliente con la ruta del archivo guardado
-                client.PhotoDni = savedFileName;
+                clientToFound.PhotoDni = savedFileName;
 
                 // Actualizar el cliente en la base de datos
-                await _clientRepository.UpdateAsync(client);
+                await _clientRepository.UpdateAsync(clientToFound);
 
                 // Retornar el nombre del archivo guardado
                 return savedFileName;
@@ -716,28 +722,33 @@ public class ClientService : GenericStorageJson<Client>, IClientService
         /// <response code="404">El cliente o el usuario no se encuentran en el sistema.</response>
         public async Task<string> UpdateMyPhotoDniAsync(IFormFile file)
         {
-            client.Config.ConnectTimeout = 30000;
-            client.Config.ReadTimeout = 30000;
-            client.Config.DataConnectionConnectTimeout = 30000;
-            client.Config.DataConnectionReadTimeout = 30000;
+            using (var client = new AsyncFtpClient(_fileStorageRemoteConfig.FtpHost,
+                       _fileStorageRemoteConfig.FtpUsername, _fileStorageRemoteConfig.FtpPassword))
+            {
+                client.Config.ConnectTimeout = 30000;
+                client.Config.ReadTimeout = 30000;
+                client.Config.DataConnectionConnectTimeout = 30000;
+                client.Config.DataConnectionReadTimeout = 30000;
             
-            await client.Connect();
+                await client.Connect();
+            }
+            
 
             var user = _httpContextAccessor.HttpContext!.User;
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var client = await _clientRepository.getByUserIdAsync(userId);
-            if (client == null)
+            var clientToFound = await _clientRepository.getByUserIdAsync(userId);
+            if (clientToFound == null)
             {
                 _logger.LogError($"Client with user ID {userId} not found.");
                 throw new ClientExceptions.ClientNotFoundException($"Client with user ID {userId} not found.");
             }
 
-            var userData = await _userService.GetUserByIdAsync(client.UserId);
+            var userData = await _userService.GetUserByIdAsync(clientToFound.UserId);
             if (userData == null)
             {
-                _logger.LogError($"User with ID {client.UserId} not found.");
-                throw new UserNotFoundException(client.UserId);
+                _logger.LogError($"User with ID {clientToFound.UserId} not found.");
+                throw new UserNotFoundException(clientToFound.UserId);
             }
 
             string dni = userData.Dni;
@@ -749,10 +760,10 @@ public class ClientService : GenericStorageJson<Client>, IClientService
 
             string savedFileName = await SaveFileToFtpAsync(file, fileName);
 
-            client.PhotoDni = savedFileName;
-            client.UpdatedAt = DateTime.UtcNow;
+            clientToFound.PhotoDni = savedFileName;
+            clientToFound.UpdatedAt = DateTime.UtcNow;
 
-            await _clientRepository.UpdateAsync(client);
+            await _clientRepository.UpdateAsync(clientToFound);
 
             _logger.LogInformation($"DNI photo updated successfully for user ID: {userId} (DNI: {dni})");
 
