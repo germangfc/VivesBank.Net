@@ -1165,7 +1165,7 @@ public class ClientServiceTests
         _userServiceMock.Setup(x => x.GetUserByIdAsync(It.IsAny<string>()))
             .ReturnsAsync(new UserResponse { Id = "userId123", Dni = "123456789" });
 
-        var expectedFileName = "PROFILE-123456789-20250202.jpg";  
+        var expectedFileName = "PROFILE-123456789-20250203.jpg";  
         _ftpServiceMock.Setup(x => x.SaveFileAsync(It.IsAny<IFormFile>(), It.IsAny<string>()))
             .ReturnsAsync(expectedFileName);  
 
