@@ -24,15 +24,27 @@ namespace VivesBankApi.Utils.Backup
     {
         // Nombre del directorio temporal usado durante las operaciones de respaldo/exportación
         private static readonly string TempDirName = "StorageServiceTemp";
-        
+
         // Dependencias inyectadas a través del constructor
         private readonly ILogger<BackupService> _logger; // Logger para registrar eventos y errores
-        private readonly IClientService _clientService; // Interfaz de servicio de clientes para interactuar con los datos de los clientes
-        private readonly IUserService _userService; // Interfaz de servicio de usuarios para interactuar con los datos de los usuarios
-        private readonly IProductService _productService; // Servicio de productos para interactuar con los datos de productos
-        private readonly ICreditCardService _creditCardService; // Servicio de tarjetas de crédito para gestionar la información de tarjetas de crédito
-        private readonly IAccountsService _bankAccountService; // Servicio de cuentas bancarias para gestionar la información de cuentas bancarias
-        private readonly IMovimientoService _movementService; // Servicio de movimientos para acceder a los datos de transacciones
+
+        private readonly IClientService
+            _clientService; // Interfaz de servicio de clientes para interactuar con los datos de los clientes
+
+        private readonly IUserService
+            _userService; // Interfaz de servicio de usuarios para interactuar con los datos de los usuarios
+
+        private readonly IProductService
+            _productService; // Servicio de productos para interactuar con los datos de productos
+
+        private readonly ICreditCardService
+            _creditCardService; // Servicio de tarjetas de crédito para gestionar la información de tarjetas de crédito
+
+        private readonly IAccountsService
+            _bankAccountService; // Servicio de cuentas bancarias para gestionar la información de cuentas bancarias
+
+        private readonly IMovimientoService
+            _movementService; // Servicio de movimientos para acceder a los datos de transacciones
 
         /// <summary>
         /// Constructor que inyecta las dependencias necesarias para el funcionamiento del servicio.
@@ -69,11 +81,6 @@ namespace VivesBankApi.Utils.Backup
         /// <returns>Ruta del archivo ZIP exportado</returns>
         public async Task<string> ExportToZip(BackUpRequest zipRequest)
         {
-            _logger.LogInformation("Exportando datos a ZIP: {ZipFilePath}", zipRequest.FilePath);
-
-            var tempDir = Path.Combine(Directory.GetCurrentDirectory(), TempDirName); // Ruta del directorio temporal
-            var zipFilePath = zipRequest.FilePath; // Ruta del archivo ZIP
-
             try
             {
                 if (string.IsNullOrEmpty(zipRequest.FilePath))
@@ -98,35 +105,10 @@ namespace VivesBankApi.Utils.Backup
                 }
 
                 return zipRequest.FilePath;
-                // Exportar los datos en formato JSON
-                await ExportJsonFiles(tempDir);
-
-                // Si no se proporciona una ruta, crear una carpeta de respaldo por defecto
-                if (string.IsNullOrWhiteSpace(zipFilePath))
-                {
-                    var backupFolder = Path.Combine(Directory.GetCurrentDirectory(), "Backups");
-                    Directory.CreateDirectory(backupFolder); // Asegurarse de que exista la carpeta de respaldo
-                    zipFilePath = Path.Combine(backupFolder, $"Backup_{DateTime.Now:yyyyMMddHHmmss}.zip");
-                }
-
-                // Crear el archivo ZIP con los archivos JSON exportados
-                using (var zip = new ZipArchive(File.Open(zipFilePath, FileMode.Create), ZipArchiveMode.Create))
-                {
-                    // Agregar cada archivo JSON al archivo ZIP
-                    foreach (var filePath in Directory.GetFiles(tempDir))
-                    {
-                        zip.CreateEntryFromFile(filePath, Path.GetFileName(filePath));
-                    }
-                }
-
-                _logger.LogInformation("Datos exportados exitosamente a ZIP: {ZipFilePath}", zipFilePath);
-                return zipFilePath; // Devolver la ruta del archivo ZIP generado
             }
             catch (UnauthorizedAccessException ex)
             {
                 throw new BackupException.BackupPermissionException("No se tienen permisos suficientes para crear el archivo ZIP.", ex);
-                _logger.LogError(ex, "Error al exportar los datos a ZIP");
-                throw new BackupException.BackupPermissionException("Error al exportar los datos. Verifique los permisos o el directorio.", ex);
             }
         }
 
@@ -144,7 +126,8 @@ namespace VivesBankApi.Utils.Backup
                 // Verificar si el archivo ZIP existe
                 if (!File.Exists(zipFilePath.FilePath))
                 {
-                    throw new BackupException.BackupFileNotFoundException($"El archivo {zipFilePath.FilePath} no fue encontrado.");
+                    throw new BackupException.BackupFileNotFoundException(
+                        $"El archivo {zipFilePath.FilePath} no fue encontrado.");
                 }
 
                 Directory.CreateDirectory(tempDir); // Crear el directorio temporal
@@ -165,12 +148,14 @@ namespace VivesBankApi.Utils.Backup
             catch (UnauthorizedAccessException ex)
             {
                 _logger.LogError(ex, "Error de permisos al acceder al archivo ZIP.");
-                throw new BackupException.BackupPermissionException("No se tienen permisos suficientes para acceder al archivo ZIP.", ex);
+                throw new BackupException.BackupPermissionException(
+                    "No se tienen permisos suficientes para acceder al archivo ZIP.", ex);
             }
             catch (JsonException ex)
             {
                 _logger.LogError(ex, "Error: el archivo JSON es corrupto o no válido.");
-                throw new BackupException.BackupPermissionException("El archivo JSON dentro del ZIP es corrupto o no es válido.", ex);
+                throw new BackupException.BackupPermissionException(
+                    "El archivo JSON dentro del ZIP es corrupto o no es válido.", ex);
             }
         }
 
@@ -192,13 +177,9 @@ namespace VivesBankApi.Utils.Backup
                 catch (JsonException ex)
                 {
                     _logger.LogError(ex, $"Error al procesar el archivo JSON: {file}");
-                    throw new BackupException.BackupPermissionException($"El archivo JSON {file} es corrupto o no válido.", ex);
+                    throw new BackupException.BackupPermissionException(
+                        $"El archivo JSON {file} es corrupto o no válido.", ex);
                 }
-            }
-        }
-
-                _logger.LogError(ex, "Error al importar los datos desde ZIP");
-                throw new BackupException.BackupPermissionException("Hubo un error al intentar importar los datos. Verifique el archivo ZIP o los permisos.", ex);
             }
         }
 
@@ -247,14 +228,21 @@ namespace VivesBankApi.Utils.Backup
                 var movementEntities = await _movementService.FindAllMovimientosAsync();
 
                 // Crear y escribir archivos JSON
-                await File.WriteAllTextAsync(Path.Combine(directoryPath, "clients.json"), JsonSerializer.Serialize(clientEntities));
-                await File.WriteAllTextAsync(Path.Combine(directoryPath, "users.json"), JsonSerializer.Serialize(userEntities));
-                await File.WriteAllTextAsync(Path.Combine(directoryPath, "products.json"), JsonSerializer.Serialize(productEntities));
-                await File.WriteAllTextAsync(Path.Combine(directoryPath, "creditCards.json"), JsonSerializer.Serialize(creditCardEntities));
-                await File.WriteAllTextAsync(Path.Combine(directoryPath, "bankAccounts.json"), JsonSerializer.Serialize(bankAccountEntities));
-                await File.WriteAllTextAsync(Path.Combine(directoryPath, "movements.json"), JsonSerializer.Serialize(movementEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "clients.json"),
+                    JsonSerializer.Serialize(clientEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "users.json"),
+                    JsonSerializer.Serialize(userEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "products.json"),
+                    JsonSerializer.Serialize(productEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "creditCards.json"),
+                    JsonSerializer.Serialize(creditCardEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "bankAccounts.json"),
+                    JsonSerializer.Serialize(bankAccountEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "movements.json"),
+                    JsonSerializer.Serialize(movementEntities));
 
-                _logger.LogInformation("Archivos JSON exportados exitosamente: {Files}", string.Join(", ", Directory.GetFiles(directoryPath)));
+                _logger.LogInformation("Archivos JSON exportados exitosamente: {Files}",
+                    string.Join(", ", Directory.GetFiles(directoryPath)));
             }
             catch (Exception ex)
             {
@@ -262,32 +250,6 @@ namespace VivesBankApi.Utils.Backup
                 throw new BackupException.BackupPermissionException("Hubo un error al exportar los archivos JSON.", ex);
             }
         }
-
-        /// <summary>
-        /// Importa los archivos JSON desde el directorio temporal a las respectivas entidades.
-        /// </summary>
-        /// <param name="directoryPath">Ruta del directorio con los archivos JSON</param>
-        private async Task ImportJsonFiles(string directoryPath)
-        {
-            try
-            {
-                _logger.LogInformation("Importando archivos JSON desde {DirectoryPath}", directoryPath);
-
-                // Importar los datos desde los archivos JSON
-                var clientEntities = await _clientService.ImportFromFile(Path.Combine(directoryPath, "clients.json"));
-                var userEntities = await _userService.ImportFromFile(Path.Combine(directoryPath, "users.json"));
-                var creditCardEntities = await _creditCardService.ImportFromFile(Path.Combine(directoryPath, "creditCards.json"));
-                var bankAccountEntities = await _bankAccountService.ImportFromFile(Path.Combine(directoryPath, "bankAccounts.json"));
-                var productEntities = await _productService.ImportFromFile(Path.Combine(directoryPath, "products.json"));
-                var movementEntities = await _movementService.ImportFromFile(Path.Combine(directoryPath, "movements.json"));
-
-                _logger.LogInformation("Importación de archivos JSON completada con éxito.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al importar los archivos JSON");
-                throw new BackupException.BackupPermissionException("Hubo un error al importar los archivos JSON.", ex);
-            }
-        }
     }
+
 }

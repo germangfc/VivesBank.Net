@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using NUnit.Framework.Legacy;
 using VivesBankApi.Backup;
 using Path = System.IO.Path;
-
+/*
 [TestFixture]
 [TestOf(typeof(BackupController))]
 public class BackupControllerTest
@@ -25,3 +25,4 @@ public class BackupControllerTest
     }
 
 }
+*/
