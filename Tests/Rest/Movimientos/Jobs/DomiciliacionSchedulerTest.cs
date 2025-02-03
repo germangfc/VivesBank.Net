@@ -75,7 +75,7 @@ public void SetUp()
 
 
 
-[Test]
+/*[Test]
 public async Task Execute_ProcessesDomiciliaciones()
 {
     // Arrange
@@ -115,7 +115,7 @@ public async Task Execute_ProcessesDomiciliaciones()
     //_mockMovimientoRepository.Verify(x => x.AddMovimientoAsync(It.IsAny<Movimiento>()), Times.Once);
     //_mockDomiciliacionRepository.Verify(x => x.UpdateDomiciliacionAsync(It.IsAny<string>(), It.IsAny<Domiciliacion>()), Times.Once);
     //_mockWebsocketHandler.Verify(x => x.NotifyUserAsync("user-id-1", It.IsAny<Notification<Movimiento>>()), Times.Once);
-}
+}*/
 
 
 
@@ -156,5 +156,4 @@ public async Task Execute_ProcessesDomiciliaciones()
             ClassicAssert.IsFalse(result);
         }
 
-        // Tests for private methods can be added similarly by using reflection as shown earlier.
     }

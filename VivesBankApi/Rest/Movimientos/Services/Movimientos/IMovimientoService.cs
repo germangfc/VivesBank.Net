@@ -23,5 +23,5 @@ public interface IMovimientoService : IGenericStorageJson<Movimiento>
     
     Task<Movimiento> AddTransferenciaAsync(User user, Transferencia transferencia);
     
-    Task<Movimiento> RevocarTransferencia(User user, string movimientoTransferenciaGuid);
+    Task<Movimiento> RevocarTransferenciaAsync(User user, string movimientoTransferenciaGuid);
 }

@@ -63,7 +63,7 @@ public class MovimientoController(
         logger.LogInformation("Revoking transferencia");
         var user = httpContextAccessor.HttpContext!.User;
         var appUser = await ConvertClaimsPrincipalToUser(user);
-        return await movimientoService.RevocarTransferencia(appUser, transfGuid);
+        return await movimientoService.RevocarTransferenciaAsync(appUser, transfGuid);
     }
     
     

@@ -364,7 +364,7 @@ public class MovimientoService(
         return originSavedMovement;
     }
 
-    public async Task<Movimiento> RevocarTransferencia(User user, string movimientoTransferenciaGuid)
+    public async Task<Movimiento> RevocarTransferenciaAsync(User user, string movimientoTransferenciaGuid)
     {
         logger.LogInformation($"Revoking Transfer Id: {movimientoTransferenciaGuid}, user: {user.Id}");
         
