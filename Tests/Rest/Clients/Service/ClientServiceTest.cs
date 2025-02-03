@@ -4,6 +4,8 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 using FluentFTP;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -45,7 +47,7 @@ public class ClientServiceTests
     private Mock<IJwtGenerator> _jwtGenerator;
     private FileStorageConfig _fileStorageConfig;
     private ClientService _clientService;
-    private Mock<AsyncFtpClient> _ftpClientMock;
+    private IContainer _ftpContainer;
     
     public ClientServiceTests()
     {
@@ -59,13 +61,34 @@ public class ClientServiceTests
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _websocketHandlerMock = new Mock<IWebsocketHandler>();
         _jwtGenerator = new Mock<IJwtGenerator>();
-        _ftpClientMock = new Mock<AsyncFtpClient>();
+    }
+
+    [OneTimeSetUp]
+    public async Task InitializeAsync()
+    {
+        var baseDirectory = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetCurrentDirectory()).ToString()).ToString()).ToString()).ToString();
+        var folderPath = Directory.GetDirectories(baseDirectory, "*", SearchOption.AllDirectories)
+            .FirstOrDefault(dir => dir.EndsWith("ftp_data", StringComparison.OrdinalIgnoreCase));
+        _ftpContainer = new ContainerBuilder()
+            .WithImage("fauria/vsftpd")
+            .WithPortBinding(21, 21)
+            .WithPortBinding(21000, 21000)
+            .WithEnvironment("FTP_USER", "myuser")
+            .WithEnvironment("FTP_PASS", "mypass")
+            .WithEnvironment("PASV_ADDRESS", "127.0.0.1")
+            .WithEnvironment("PASV_MIN_PORT", "21000")
+            .WithEnvironment("PASV_MAX_PORT", "21000")
+            .WithEnvironment("FTP_HOME", "/home/vsftpd")
+            .WithBindMount(folderPath, "/home/vsftpd")
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(21))
+            .Build();
         
+        await _ftpContainer.StartAsync();
         
         var inMemorySettings = new Dictionary<string, string>
         {
-            { "FileStorageRemoteConfig:FtpHost", "127.0.0.1" },
-            { "FileStorageRemoteConfig:FtpPort", "21" },
+            { "FileStorageRemoteConfig:FtpHost", _ftpContainer.Hostname },
+            { "FileStorageRemoteConfig:FtpPort", _ftpContainer.GetMappedPublicPort(21).ToString() },
             { "FileStorageRemoteConfig:FtpUsername", "myuser" },
             { "FileStorageRemoteConfig:FtpPassword", "mypass" },
             { "FileStorageRemoteConfig:FtpDirectory", "/home/vsftpd" },
@@ -74,14 +97,16 @@ public class ClientServiceTests
             { "FileStorageRemoteConfig:AllowedFileTypes:2", ".jpeg" },
             { "FileStorageRemoteConfig:MaxFileSize", "10485760" } 
         };
+        
+        
 
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(inMemorySettings)
             .Build();
-        
+
         _fileStorageConfig = new FileStorageConfig();
         configuration.Bind("FileStorageRemoteConfig", _fileStorageConfig);
-        
+
         _clientService = new ClientService(
             _loggerMock.Object,
             _userServiceMock.Object,
@@ -94,8 +119,13 @@ public class ClientServiceTests
             configuration  
         );
     }
-    
-    
+
+    [OneTimeTearDown]
+    public async Task DisposeAsync()
+    {
+        await _ftpContainer.DisposeAsync();
+    }
+
     [SetUp]
     public void Setup()
     {
@@ -104,7 +134,7 @@ public class ClientServiceTests
         _clientRepositoryMock.Reset();
         _cache.Reset();
     }
-    
+
     [TearDown]
     public void TearDown()
     {
@@ -113,6 +143,69 @@ public class ClientServiceTests
         _clientRepositoryMock.Reset();
         _cache.Reset();
     }
+    
+    [Test]
+    public async Task SaveFileToFtpAsync_ValidFile_UploadsSuccessfully()
+    {
+        // Arrange
+        var fileName = "testfile.png";
+        var fileContent = "Hello, FTP!";
+        var fileMock = new Mock<IFormFile>();
+        
+        var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+        fileMock.Setup(f => f.OpenReadStream()).Returns(memoryStream);
+        fileMock.Setup(f => f.FileName).Returns(fileName);
+        fileMock.Setup(f => f.Length).Returns(memoryStream.Length);
+
+        // Act
+        var result = await _clientService.SaveFileToFtpAsync(fileMock.Object, fileName);
+
+        // Assert
+        ClassicAssert.AreEqual(fileName, result);
+    }
+
+    [Test]
+    public async Task DeleteFileFromFtpAsync_FileExists_DeletesSuccessfully()
+    {
+        // Arrange
+        var fileName = "testfile.png";
+
+        var fileMock = new Mock<IFormFile>();
+        var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes("Temporary file"));
+        fileMock.Setup(f => f.OpenReadStream()).Returns(memoryStream);
+        fileMock.Setup(f => f.FileName).Returns(fileName);
+        fileMock.Setup(f => f.Length).Returns(memoryStream.Length);
+
+        await _clientService.SaveFileToFtpAsync(fileMock.Object, fileName);
+
+        // Act
+        var result = await _clientService.DeleteFileFromFtpAsync(fileName);
+
+        // Assert
+        ClassicAssert.IsTrue(result);
+    }
+    
+    [Test]
+    public async Task GettingMyDniPhotoFromFtpAsync_ValidClient_ReturnsFileStream()
+    {
+        // Arrange
+        var clientId = "123";
+        var fileName = "defaultDni.png";
+        
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(It.IsAny<string>())).ReturnsAsync(new Client { PhotoDni = fileName }); 
+        var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, clientId)
+        }));
+        _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(claimsPrincipal);
+
+        // Act
+        var fileStream = await _clientService.GettingMyDniPhotoFromFtpAsync();
+
+        // Assert
+        ClassicAssert.IsNotNull(fileStream);
+    }
+
 
     [Test]
     public async Task GetAllClientsAsync_ReturnsPagedClients()
