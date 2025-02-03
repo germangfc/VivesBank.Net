@@ -77,3 +77,15 @@ System.UnauthorizedAccessException: Access to the path 'C:\2DAW\DesWebEntServ\Vi
    at System.IO.Strategies.FileStreamHelpers.ChooseStrategyCore(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
    at System.IO.File.Open(String path, FileMode mode)
    at VivesBankApi.Utils.Backup.BackupService.ExportToZip(BackUpRequest zipFilePath) in C:\2DAW\DesWebEntServ\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 67
+[2025-02-02 23:15:42.514] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (105ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 23:34:26.979] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (47ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-02 23:53:06.852] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (54ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";

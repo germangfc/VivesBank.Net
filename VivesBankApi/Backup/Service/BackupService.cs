@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.IO;
 using System.Reactive.Linq;
+using System.Text.Json;
 using VivesBankApi.Backup;
 using VivesBankApi.Backup.Exceptions;
 using VivesBankApi.Backup.Service;
@@ -44,27 +45,34 @@ namespace VivesBankApi.Utils.Backup
             _movementService = movementService;
         }
 
-        public async Task ExportToZip(BackUpRequest zipFilePath)
+        public async Task<string> ExportToZip(BackUpRequest zipRequest)
         {
-            _logger.LogInformation("Exporting data to ZIP: {ZipFilePath}", zipFilePath);
+            _logger.LogInformation("Exporting data to ZIP: {ZipFilePath}", zipRequest.FilePath);
+
             var tempDir = Path.Combine(Directory.GetCurrentDirectory(), TempDirName);
+            var zipFilePath = zipRequest.FilePath;
 
             try
             {
+                // Crear directorio temporal si no existe
                 if (!Directory.Exists(tempDir))
                 {
-                    if (!Directory.Exists(tempDir))
-                    {
-                        _logger.LogInformation("Creating directory: {TempDir}", tempDir);
-                        Directory.CreateDirectory(tempDir);
-                    }
+                    Directory.CreateDirectory(tempDir);
                 }
 
-                Directory.CreateDirectory(tempDir);
-
+                // Exportar datos en formato JSON
                 await ExportJsonFiles(tempDir);
 
-                using (var zip = new ZipArchive(File.Open(zipFilePath.FilePath, FileMode.Create), ZipArchiveMode.Create))
+                // Si el usuario no proporciona una ruta, guardar en la carpeta de backups
+                if (string.IsNullOrWhiteSpace(zipFilePath))
+                {
+                    var backupFolder = Path.Combine(Directory.GetCurrentDirectory(), "Backups");
+                    Directory.CreateDirectory(backupFolder); // Asegurar que exista la carpeta
+                    zipFilePath = Path.Combine(backupFolder, $"Backup_{DateTime.Now:yyyyMMddHHmmss}.zip");
+                }
+
+                // Crear ZIP con los JSON exportados
+                using (var zip = new ZipArchive(File.Open(zipFilePath, FileMode.Create), ZipArchiveMode.Create))
                 {
                     foreach (var filePath in Directory.GetFiles(tempDir))
                     {
@@ -73,11 +81,12 @@ namespace VivesBankApi.Utils.Backup
                 }
 
                 _logger.LogInformation("Data exported successfully to ZIP: {ZipFilePath}", zipFilePath);
+                return zipFilePath; // Devolver la ruta del archivo ZIP generado
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error exporting data to ZIP");
-                throw new BackupException.BackupPermissionException("Hubo un error al intentar exportar los datos. Verifique los permisos o el directorio de destino.", ex);
+                throw new BackupException.BackupPermissionException("Error al exportar los datos. Verifique permisos o el directorio.", ex);
             }
         }
 
@@ -133,6 +142,8 @@ namespace VivesBankApi.Utils.Backup
         {
             try
             {
+                _logger.LogInformation("Exporting JSON files to {DirectoryPath}", directoryPath);
+
                 var clientEntities = await _clientService.GetAll();
                 var userEntities = await _userService.GetAll();
                 var productEntities = await _productService.GetAll();
@@ -140,12 +151,15 @@ namespace VivesBankApi.Utils.Backup
                 var bankAccountEntities = await _bankAccountService.GetAll();
                 var movementEntities = await _movementService.FindAllMovimientosAsync();
 
-                await _clientService.Export(clientEntities);
-                await _userService.Export(userEntities);
-                await _creditCardService.Export(creditCardEntities);
-                await _bankAccountService.Export(bankAccountEntities);
-                await _productService.Export(productEntities);
-                await _movementService.Export(movementEntities);
+                // Crear y escribir archivos JSON en `directoryPath`
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "clients.json"), JsonSerializer.Serialize(clientEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "users.json"), JsonSerializer.Serialize(userEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "products.json"), JsonSerializer.Serialize(productEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "creditCards.json"), JsonSerializer.Serialize(creditCardEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "bankAccounts.json"), JsonSerializer.Serialize(bankAccountEntities));
+                await File.WriteAllTextAsync(Path.Combine(directoryPath, "movements.json"), JsonSerializer.Serialize(movementEntities));
+
+                _logger.LogInformation("Successfully exported JSON files: {Files}", string.Join(", ", Directory.GetFiles(directoryPath)));
             }
             catch (Exception ex)
             {
@@ -153,6 +167,7 @@ namespace VivesBankApi.Utils.Backup
                 throw new BackupException.BackupPermissionException("Hubo un error al exportar los archivos JSON.", ex);
             }
         }
+
 
         private async Task ImportJsonFiles(string directoryPath)
         {

@@ -1,0 +1,18 @@
+[2025-02-03 00:00:01.461] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (76ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-03 00:11:32.751] [ERR] [Microsoft.EntityFrameworkCore.Database.Command] Failed executing DbCommand (101ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+[2025-02-03 00:18:08.872] [ERR] [VivesBankApi.Utils.Backup.BackupService] Error extracting ZIP file
+System.IO.InvalidDataException: End of Central Directory record could not be found.
+   at System.IO.Compression.ZipArchive.ReadEndOfCentralDirectory()
+   at System.IO.Compression.ZipArchive..ctor(Stream stream, ZipArchiveMode mode, Boolean leaveOpen, Encoding entryNameEncoding)
+   at System.IO.Compression.ZipFile.Open(String archiveFileName, ZipArchiveMode mode, Encoding entryNameEncoding)
+   at VivesBankApi.Utils.Backup.BackupService.ExtractZip(BackUpRequest zipFilePath, String tempDir) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 124
+[2025-02-03 00:18:08.911] [ERR] [VivesBankApi.Utils.Backup.BackupService] Error importing data from ZIP
+VivesBankApi.Backup.Exceptions.BackupException+BackupPermissionException: message, innerException
+   at VivesBankApi.Utils.Backup.BackupService.ExtractZip(BackUpRequest zipFilePath, String tempDir) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 137
+   at VivesBankApi.Utils.Backup.BackupService.ImportFromZip(BackUpRequest zipFilePath) in C:\Users\samue\RiderProjects\VivesBank.Net\VivesBankApi\Backup\Service\BackupService.cs:line 107
