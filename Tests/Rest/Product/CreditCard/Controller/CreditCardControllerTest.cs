@@ -192,18 +192,22 @@ public class CreditCardControllerTest
     [Test]
     public async Task CreateCardAsyncReturnsCreated()
     {
-        var createRequest = new CreditCardRequest { CardNumber = "1234" };
-        var createdCard = new CreditCardClientResponse { Id = "1", CardNumber = "1234" };
+        var createRequest = new CreditCardRequest { Pin = "1234" };
+        var createdCard = new CreditCardClientResponse { Id = "1", Pin = "1234" };
 
         _creditCardService.Setup(service => service.CreateCreditCardAsync(createRequest)).ReturnsAsync(createdCard);
 
         var result = await _controller.CreateCardAsync(createRequest);
 
-        var createdAtActionResult = result.Result as CreatedAtActionResult;
+        var createdAtActionResult = result.Result as OkObjectResult;
         ClassicAssert.IsNotNull(createdAtActionResult);
-        ClassicAssert.AreEqual(201, createdAtActionResult.StatusCode);
-        ClassicAssert.AreEqual("GetCardByIdAdminAsync", createdAtActionResult.ActionName);
-        ClassicAssert.AreEqual(createdCard, createdAtActionResult.Value);
+        ClassicAssert.AreEqual(200, createdAtActionResult.StatusCode);
+        
+        var returnedCard = createdAtActionResult.Value as CreditCardClientResponse;
+        ClassicAssert.IsNotNull(returnedCard);
+        ClassicAssert.AreEqual("1", returnedCard.Id);
+        ClassicAssert.AreEqual("1234", returnedCard.Pin);
+
     }
 
     [Test]

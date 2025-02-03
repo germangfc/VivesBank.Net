@@ -39,6 +39,13 @@ public class AccountResponse
     /// <exception cref="ValidationException">Si el id del producto no está especificado.</exception>
     [Required(ErrorMessage = "The id of the product must be specified")]
     public string productID { get; set; }
+    
+    /// <summary>
+    /// Balance de la cuenta bancaria
+    /// </summary>
+    /// <exception cref="ValidationException">Si el balance de la cuenta no está especificado.</exception>
+    [Required(ErrorMessage = "The balance of the account must be specified")]
+    public Decimal Balance { get; set; }
 
     /// <summary>
     /// Tipo de cuenta (ahorros, corriente, etc.).

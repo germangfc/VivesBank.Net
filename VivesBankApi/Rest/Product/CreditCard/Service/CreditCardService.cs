@@ -213,7 +213,7 @@ public class CreditCardService
         }
         
         creditCardModel.AccountId = account.Id;
-
+        _logger.LogInformation($"{creditCardModel}");
         await _creditCardRepository.AddAsync(creditCardModel);
             
         return creditCardModel.ToClientResponse();
