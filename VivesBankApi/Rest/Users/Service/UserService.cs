@@ -20,6 +20,9 @@ using Role = VivesBankApi.Rest.Users.Models.Role;
 
 namespace VivesBankApi.Rest.Users.Service;
 
+/// <summary>
+/// Servicio que maneja las operaciones relacionadas con los usuarios, incluyendo creación, actualización, obtención y eliminación.
+/// </summary>
 public class UserService : GenericStorageJson<User>, IUserService
 {
     private readonly IUserRepository _userRepository;
@@ -29,6 +32,15 @@ public class UserService : GenericStorageJson<User>, IUserService
     private readonly IWebsocketHandler _webSocketHandler;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
+    /// <summary>
+    /// Constructor para inyectar las dependencias necesarias.
+    /// </summary>
+    /// <param name="logger">El logger para registrar eventos.</param>
+    /// <param name="userRepository">El repositorio de usuarios para acceder a la base de datos.</param>
+    /// <param name="authConfig">La configuración de autenticación JWT.</param>
+    /// <param name="connectionMultiplexer">El multiplexer de conexiones de Redis para la caché.</param>
+    /// <param name="webSocketHandler">El manejador de WebSockets para notificar eventos.</param>
+    /// <param name="httpContextAccessor">El accesorio para obtener el contexto HTTP.</param>
     public UserService(
         ILogger<UserService> logger,
         IUserRepository userRepository,
@@ -46,11 +58,24 @@ public class UserService : GenericStorageJson<User>, IUserService
         _httpContextAccessor = httpContextAccessor;
     }
     
+    /// <summary>
+    /// Obtiene todos los usuarios sin paginación.
+    /// </summary>
+    /// <returns>Una lista de usuarios.</returns>
     public async Task<List<User>> GetAll()
     {
         return await _userRepository.GetAllAsync();
     }
     
+    /// <summary>
+    /// Obtiene una lista de usuarios de manera paginada, con filtros opcionales por rol y estado de eliminación.
+    /// </summary>
+    /// <param name="pageNumber">Número de la página para la paginación.</param>
+    /// <param name="pageSize">Número de elementos por página.</param>
+    /// <param name="role">Rol de los usuarios a filtrar.</param>
+    /// <param name="isDeleted">Filtra los usuarios según si están eliminados lógicamente.</param>
+    /// <param name="direction">Dirección de ordenamiento, puede ser 'asc' o 'desc'.</param>
+    /// <returns>Una lista paginada de usuarios.</returns>
     public async Task<PagedList<UserResponse>> GetAllUsersAsync(
         int pageNumber, 
         int pageSize,
@@ -68,13 +93,25 @@ public class UserService : GenericStorageJson<User>, IUserService
         return mappedUsers;
     }
     
-     public async Task<UserResponse> GetUserByIdAsync(string id)
+    /// <summary>
+    /// Obtiene un usuario por su ID.
+    /// </summary>
+    /// <param name="id">El ID del usuario.</param>
+    /// <returns>El usuario encontrado.</returns>
+    /// <exception cref="UserNotFoundException">Si no se encuentra el usuario.</exception>
+    public async Task<UserResponse> GetUserByIdAsync(string id)
     {
        var user = await GetByIdAsync(id) ?? throw new UserNotFoundException(id);
        return user.ToUserResponse();
     }
 
-     [Authorize]
+    /// <summary>
+    /// Añade un nuevo usuario al sistema.
+    /// </summary>
+    /// <param name="userRequest">Los detalles del usuario a crear.</param>
+    /// <returns>El usuario recién creado.</returns>
+    /// <exception cref="InvalidDniException">Si el DNI no es válido.</exception>
+    /// <exception cref="UserAlreadyExistsException">Si ya existe un usuario con el mismo DNI.</exception>
     public async Task<UserResponse> AddUserAsync(CreateUserRequest userRequest)
     {
         if (!UserValidator.ValidateDni(userRequest.Dni))
@@ -96,17 +133,27 @@ public class UserService : GenericStorageJson<User>, IUserService
         };
         var user = _httpContextAccessor.HttpContext!.User;
         var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        await _webSocketHandler.NotifyUserAsync(id,notificacion);
+        await _webSocketHandler.NotifyUserAsync(id, notificacion);
         return newUser.ToUserResponse();
     }
     
 
+    /// <summary>
+    /// Obtiene un usuario por su nombre de usuario (DNI).
+    /// </summary>
+    /// <param name="username">El DNI del usuario.</param>
+    /// <returns>El usuario encontrado.</returns>
+    /// <exception cref="UserNotFoundException">Si no se encuentra el usuario.</exception>
     public async Task<UserResponse> GetUserByUsernameAsync(string username)
     {
         var user = await GetByUsernameAsync(username) ?? throw new UserNotFoundException(username);
         return user.ToUserResponse();
     }
 
+    /// <summary>
+    /// Obtiene los detalles del usuario autenticado.
+    /// </summary>
+    /// <returns>Los datos del usuario autenticado.</returns>
     public async Task<UserResponse> GettingMyUserData()
     {
         var user = _httpContextAccessor.HttpContext!.User;
@@ -115,7 +162,15 @@ public class UserService : GenericStorageJson<User>, IUserService
         return res.ToUserResponse();
     }
 
-
+    /// <summary>
+    /// Actualiza los datos de un usuario existente.
+    /// </summary>
+    /// <param name="id">El ID del usuario a actualizar.</param>
+    /// <param name="user">Los nuevos datos del usuario.</param>
+    /// <returns>El usuario actualizado.</returns>
+    /// <exception cref="InvalidDniException">Si el DNI proporcionado no es válido.</exception>
+    /// <exception cref="UserNotFoundException">Si no se encuentra el usuario.</exception>
+    /// <exception cref="UserAlreadyExistsException">Si el DNI ya está en uso por otro usuario.</exception>
     public async Task<UserResponse> UpdateUserAsync(String id, UserUpdateRequest user)
     {
         if (user.Dni != null && !UserValidator.ValidateDni(user.Dni))
@@ -136,14 +191,19 @@ public class UserService : GenericStorageJson<User>, IUserService
         
         User updatedUser = user.UpdateUserFromInput(userToUpdate);
         await _userRepository.UpdateAsync(updatedUser);
-        // Removing old cache entry
+        // Eliminar la entrada antigua de la caché
         await _cache.KeyDeleteAsync(id);
         await _cache.KeyDeleteAsync("users:" + userToUpdate.Dni.Trim().ToUpper());
-        // Adding new cache entry
+        // Agregar la nueva entrada a la caché
         await _cache.StringSetAsync(id, JsonConvert.SerializeObject(updatedUser), TimeSpan.FromMinutes(10));
         return updatedUser.ToUserResponse();
     }
 
+    /// <summary>
+    /// Elimina un usuario del sistema. Puede ser una eliminación lógica o física.
+    /// </summary>
+    /// <param name="id">El ID del usuario a eliminar.</param>
+    /// <param name="logically">Indica si la eliminación es lógica (true) o física (false).</param>
     public async Task DeleteUserAsync(String id, bool logically)
     {
         User? userToUpdate = await _userRepository.GetByIdAsync(id);
@@ -167,27 +227,35 @@ public class UserService : GenericStorageJson<User>, IUserService
             await _userRepository.DeleteAsync(id);
         }
     }
+    
+    // Métodos privados de acceso a caché y base de datos...
 
+    /// <summary>
+    /// Intenta obtener un usuario por su ID desde la caché o la base de datos.
+    /// </summary>
+    /// <param name="id">El ID del usuario.</param>
+    /// <returns>El usuario si se encuentra, de lo contrario null.</returns>
     private async Task<User?> GetByIdAsync(string id)
     {
-        // Try to get from cache first
         var cachedUser = await _cache.StringGetAsync(id);
-        if (!cachedUser.IsNullOrEmpty)
+        if (cachedUser.HasValue)
         {
             return JsonConvert.DeserializeObject<User>(cachedUser);
         }
 
-        // If not in cache, get from DB and cache it
         User? user = await _userRepository.GetByIdAsync(id);
         if (user != null)
         {
             await _cache.StringSetAsync(id, JsonConvert.SerializeObject(user), TimeSpan.FromMinutes(10));
-            return user;
         }
-        return null;
+        return user;
     }
-
     
+   /// <summary>
+    /// Obtiene un usuario por su nombre de usuario (DNI) desde la caché o la base de datos.
+    /// </summary>
+    /// <param name="username">El DNI del usuario.</param>
+    /// <returns>El usuario encontrado si existe, de lo contrario null.</returns>
     private async Task<User?> GetByUsernameAsync(string username)
     {
         var cachedUser = await _cache.StringGetAsync("users:" + username.Trim().ToUpper());
@@ -204,6 +272,11 @@ public class UserService : GenericStorageJson<User>, IUserService
         return null;
     }
 
+    /// <summary>
+    /// Inicia sesión con un usuario proporcionando su DNI y contraseña.
+    /// </summary>
+    /// <param name="request">El detalle de la solicitud de inicio de sesión con DNI y contraseña.</param>
+    /// <returns>El usuario autenticado si las credenciales son correctas, de lo contrario null.</returns>
     public async Task<User?> LoginUser(LoginRequest request)
     {
         var user = await _userRepository.GetByUsernameAsync(request.Dni);
@@ -212,6 +285,12 @@ public class UserService : GenericStorageJson<User>, IUserService
         return user;
     }
 
+    /// <summary>
+    /// Actualiza la contraseña del usuario autenticado.
+    /// </summary>
+    /// <param name="request">Los detalles de la solicitud de actualización de contraseña.</param>
+    /// <returns>El usuario con la contraseña actualizada.</returns>
+    /// <exception cref="UserNotFoundException">Si no se encuentra el usuario.</exception>
     public async Task<User?> UpdateMyPassword(UpdatePasswordRequest request)
     {
         _logger.LogInformation("Updating my user profile");
@@ -226,19 +305,30 @@ public class UserService : GenericStorageJson<User>, IUserService
         return userToUpdate;
     }
 
+    /// <summary>
+    /// Elimina la cuenta del usuario autenticado de forma lógica.
+    /// </summary>
+    /// <returns>Una tarea asíncrona que elimina la cuenta del usuario.</returns>
+    /// <exception cref="UserNotFoundException">Si no se encuentra el usuario.</exception>
     public async Task DeleteMeAsync()
     {
         _logger.LogInformation("Deleting my account");
         var user = _httpContextAccessor.HttpContext!.User;
         var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        User? userToDelete = await GetByIdAsync(id)?? throw new UserNotFoundException(id);
+        User? userToDelete = await GetByIdAsync(id) ?? throw new UserNotFoundException(id);
         await DeleteUserAsync(id, logically: true);
     }
 
+    /// <summary>
+    /// Registra un nuevo usuario con su DNI y contraseña.
+    /// </summary>
+    /// <param name="request">Los detalles de la solicitud de registro con DNI y contraseña.</param>
+    /// <returns>El usuario recién registrado.</returns>
+    /// <exception cref="UserAlreadyExistsException">Si ya existe un usuario con el mismo DNI.</exception>
     public async Task<User?> RegisterUser(LoginRequest request)
     {
         var user = await _userRepository.GetByUsernameAsync(request.Dni);
-        if (user!= null)
+        if (user != null)
             throw new UserAlreadyExistsException(request.Dni);
 
         var newUser = request.ToUser();
