@@ -28,7 +28,30 @@ using JsonConvert = Newtonsoft.Json.JsonConvert;
 
 namespace VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
+
+/// <summary>
+/// Servicio para gestionar movimientos financieros como transferencias, nóminas y pagos.
+/// </summary>
+/// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+/// <version>1.0.0</version>
 public class MovimientoService(
+    
+    
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase MovimientoService con las dependencias necesarias.
+    /// </summary>
+    /// <param name="movimientoRepository">Repositorio para gestionar los movimientos</param>
+    /// <param name="domiciliacionRepository">Repositorio para gestionar las domiciliaciones</param>
+    /// <param name="userService">Servicio para la gestión de usuarios</param>
+    /// <param name="clientService">Servicio para la gestión de clientes</param>
+    /// <param name="accountsService">Servicio para la gestión de cuentas</param>
+    /// <param name="creditCardService">Servicio para la gestión de tarjetas de crédito</param>
+    /// <param name="logger">Logger para registrar eventos</param>
+    /// <param name="apiConfig">Configuración de la API</param>
+    /// <param name="websocketHandler">Manejador de conexiones WebSocket</param>
+    /// <param name="connection">Conexión a la base de datos</param>
+    /// <version>1.0.0</version>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
     IMovimientoRepository movimientoRepository,
     IDomiciliacionRepository domiciliacionRepository,
     IUserService userService,
@@ -42,13 +65,27 @@ public class MovimientoService(
     : GenericStorageJson<Movimiento>(logger), IMovimientoService
 {
     private readonly IDatabase _cache = connection.GetDatabase();
+    
+    /// <summary>
+    /// Obtiene todos los movimientos registrados.
+    /// </summary>
+    /// <returns>Lista de movimientos</returns>
+    /// <version>1.0.0</version>
     public async Task<List<Movimiento>> FindAllMovimientosAsync()
     {
         logger.LogInformation("Finding all movimientos");
         return await movimientoRepository.GetAllMovimientosAsync();
     }
 
-    public async Task<Movimiento> FindMovimientoByIdAsync(String id)
+    /// <summary>
+    /// Obtiene un movimiento por su ID.
+    /// </summary>
+    /// <param name="id">ID del movimiento</param>
+    /// <returns>Movimiento encontrado</returns>
+    /// <exception cref="MovimientoNotFoundException">Lanzado cuando no se encuentra el movimiento</exception>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
+    public async Task<Movimiento> FindMovimientoByIdAsync(string id)
     {
         logger.LogInformation($"Finding movimiento by id: {id}");
         var movimiento = await GetByIdAsync(id);
@@ -56,6 +93,14 @@ public class MovimientoService(
         return movimiento;
     }
 
+    /// <summary>
+    /// Obtiene un movimiento por su GUID.
+    /// </summary>
+    /// <param name="guid">GUID del movimiento</param>
+    /// <returns>Movimiento encontrado</returns>
+    /// <exception cref="MovimientoNotFoundException">Lanzado cuando no se encuentra el movimiento</exception>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     public async Task<Movimiento> FindMovimientoByGuidAsync(string guid)
     {
         logger.LogInformation($"Finding movimiento by guid: {guid}");
@@ -64,19 +109,42 @@ public class MovimientoService(
         return movimiento;
     }
 
+    /// <summary>
+    /// Obtiene todos los movimientos asociados a un cliente.
+    /// </summary>
+    /// <param name="clienteId">ID del cliente</param>
+    /// <returns>Lista de movimientos asociados al cliente</returns>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     public async Task<List<Movimiento>> FindAllMovimientosByClientAsync(string clienteId)
     {
         logger.LogInformation($"Finding movimientos by client id: {clienteId}");
         return await movimientoRepository.GetMovimientosByClientAsync(clienteId);
     }
 
+    /// <summary>
+    /// Añade un nuevo movimiento.
+    /// </summary>
+    /// <param name="movimiento">Movimiento a agregar</param>
+    /// <returns>Movimiento agregado</returns>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     public async Task<Movimiento> AddMovimientoAsync(Movimiento movimiento)
     {
         logger.LogInformation($"Adding movimiento: {movimiento}");
         return await movimientoRepository.AddMovimientoAsync(movimiento);
     }
 
-    public async Task<Movimiento> UpdateMovimientoAsync(String id, Movimiento movimiento)
+    /// <summary>
+    /// Actualiza un movimiento existente.
+    /// </summary>
+    /// <param name="id">ID del movimiento a actualizar</param>
+    /// <param name="movimiento">Nuevo movimiento</param>
+    /// <returns>Movimiento actualizado</returns>
+    /// <exception cref="MovimientoNotFoundException">Lanzado cuando no se encuentra el movimiento a actualizar</exception>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
+    public async Task<Movimiento> UpdateMovimientoAsync(string id, Movimiento movimiento)
     {
         logger.LogInformation($"Updating movimiento with id: {id}");
         Movimiento? movimientoToUpdate = await GetByIdAsync(id) ?? throw new MovimientoNotFoundException(id);
@@ -86,7 +154,15 @@ public class MovimientoService(
         return await movimientoRepository.UpdateMovimientoAsync(id, movimiento);
     }
 
-    public async Task<Movimiento> DeleteMovimientoAsync(String id)
+    /// <summary>
+    /// Elimina un movimiento existente.
+    /// </summary>
+    /// <param name="id">ID del movimiento a eliminar</param>
+    /// <returns>Movimiento eliminado</returns>
+    /// <exception cref="MovimientoNotFoundException">Lanzado cuando no se encuentra el movimiento a eliminar</exception>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
+    public async Task<Movimiento> DeleteMovimientoAsync(string id)
     {
         logger.LogInformation($"Deleting movimiento with id: {id}");
         Movimiento? movimientoToUpdate = await GetByIdAsync(id) ?? throw new MovimientoNotFoundException(id);
@@ -96,81 +172,86 @@ public class MovimientoService(
         return deletedMovimiento;
     }
 
+    /// <summary>
+    /// Añade una nueva domiciliación.
+    /// </summary>
+    /// <param name="user">Usuario que realiza la acción</param>
+    /// <param name="domiciliacion">Datos de la domiciliación</param>
+    /// <returns>Domiciliación añadida</returns>
+    /// <exception cref="DomiciliacionInvalidAmountException">Lanzado cuando la cantidad de la domiciliación es incorrecta</exception>
+    /// <exception cref="InvalidDestinationIbanException">Lanzado cuando el IBAN de destino es incorrecto</exception>
+    /// <exception cref="InvalidSourceIbanException">Lanzado cuando el IBAN de origen es incorrecto</exception>
+    /// <exception cref="ClientNotFoundException">Lanzado cuando el cliente no se encuentra</exception>
+    /// <exception cref="AccountNotFoundByIban">Lanzado cuando la cuenta de origen no se encuentra</exception>
+    /// <exception cref="DuplicatedDomiciliacionException">Lanzado cuando ya existe una domiciliación duplicada</exception>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     [Authorize]
     public async Task<Domiciliacion> AddDomiciliacionAsync(User user, Domiciliacion domiciliacion)
     {
         logger.LogInformation($"Adding domiciliacion {domiciliacion}");
-        
-        // Validar que la cantidad es mayor que cero
+
         if (domiciliacion.Cantidad <= 0) throw new DomiciliacionInvalidAmountException(domiciliacion.Id!, domiciliacion.Cantidad);
-        
-        // validar Iban correcto
         if (!IbanValidator.ValidateIban(domiciliacion.IbanDestino)) throw new InvalidDestinationIbanException(domiciliacion.IbanDestino);
         if (!IbanValidator.ValidateIban(domiciliacion.IbanOrigen)) throw new InvalidSourceIbanException(domiciliacion.IbanOrigen);
 
-        // Validar que el cliente existe
         var client = await clientService.GetClientByUserIdAsync(user.Id);
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
-        
-        // Validar que la cuenta del cliente existe (origen)
+
         var account = await accountsService.GetAccountByIbanAsync(domiciliacion.IbanOrigen);
         if (account is null) throw new AccountsExceptions.AccountNotFoundByIban(domiciliacion.IbanOrigen);
 
-        // Validar que la cuenta es de ese cliente
         if (!account.clientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(domiciliacion.IbanOrigen);
-        
-        // Validar si la domiciliación ya existe (mismo cobrador (cuenta destino), mismo cliente (cuenta origen))
-        logger.LogDebug($"Getting active direct debits for client client.id {client.Id}, domiciliacion.clientGuid: {domiciliacion.ClienteGuid}, user.id = {user.Id}");
+
         var clientDomiciliacion = await domiciliacionRepository.GetDomiciliacionesActivasByClienteGiudAsync(client.Id);
         if (clientDomiciliacion.Any(d => d.IbanDestino == domiciliacion.IbanDestino && d.IbanOrigen == domiciliacion.IbanOrigen)) 
             throw new DuplicatedDomiciliacionException(domiciliacion.IbanDestino);
-    
-        // Guardar la domiciliación
+
         domiciliacion.UltimaEjecucion = DateTime.UtcNow;
         domiciliacion.ClienteGuid = client.Id;
-    
-        // Notificación al cliente
-         await EnviarNotificacionCreacionAsync(user, domiciliacion);
-        // Retornar respuesta
-        return await domiciliacionRepository.AddDomiciliacionAsync(domiciliacion);
 
+        await EnviarNotificacionCreacionAsync(user, domiciliacion);
+        return await domiciliacionRepository.AddDomiciliacionAsync(domiciliacion);
     }
 
+    /// <summary>
+    /// Añade un nuevo ingreso de nómina.
+    /// </summary>
+    /// <param name="user">Usuario que realiza la acción</param>
+    /// <param name="ingresoDeNomina">Datos del ingreso de nómina</param>
+    /// <returns>Movimiento de nómina creado</returns>
+    /// <exception cref="IngresoNominaInvalidAmountException">Lanzado cuando la cantidad de la nómina es incorrecta</exception>
+    /// <exception cref="InvalidDestinationIbanException">Lanzado cuando el IBAN de destino es incorrecto</exception>
+    /// <exception cref="InvalidSourceIbanException">Lanzado cuando el IBAN de origen es incorrecto</exception>
+    /// <exception cref="InvalidCifException">Lanzado cuando el CIF de la empresa es incorrecto</exception>
+    /// <exception cref="ClientNotFoundException">Lanzado cuando el cliente no se encuentra</exception>
+    /// <exception cref="AccountNotFoundByIban">Lanzado cuando la cuenta de destino no se encuentra</exception>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     public async Task<Movimiento> AddIngresoDeNominaAsync(User user, IngresoDeNomina ingresoDeNomina)
     {
         logger.LogInformation($"Adding new Payroll Income {ingresoDeNomina} User.id {user.Id}");
-        
-        // Validar que el ingreso de nomina es > 0
+
         if (ingresoDeNomina.Cantidad <= 0) throw new IngresoNominaInvalidAmountException(ingresoDeNomina.Cantidad);
-        
-        // Validar Iban correcto
         if (!IbanValidator.ValidateIban(ingresoDeNomina.IbanDestino)) throw new InvalidDestinationIbanException(ingresoDeNomina.IbanDestino);
         if (!IbanValidator.ValidateIban(ingresoDeNomina.IbanOrigen)) throw new InvalidSourceIbanException(ingresoDeNomina.IbanOrigen);
-
-        // Validar Cif
         if (!CifValidator.ValidateCif(ingresoDeNomina.CifEmpresa)) throw new InvalidCifException(ingresoDeNomina.CifEmpresa);
 
-        // Validar que el cliente existe
         var client = await clientService.GetClientByUserIdAsync(user.Id);
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
-        
-        // Validar que la cuenta del cliente existe (destino)
+
         var clientAccount = await accountsService.GetCompleteAccountByIbanAsync(ingresoDeNomina.IbanDestino);
         if (clientAccount is null) throw new AccountsExceptions.AccountNotFoundByIban(ingresoDeNomina.IbanDestino);
 
-        // Validar que la cuenta es de ese cliente
         if (!clientAccount.ClientID.Equals(client.Id)) throw new AccountsExceptions.AccountUnknownIban(ingresoDeNomina.IbanDestino);
 
-        // sumar al cliente la cantidad de la nómina
         var newBalance = clientAccount.Balance + ingresoDeNomina.Cantidad;
-        
         var updateAccountRequest = clientAccount.toUpdateAccountRequest();
         updateAccountRequest.Balance = newBalance;
-        
+
         var updatedAccount = await accountsService.UpdateAccountAsync(clientAccount.Id, updateAccountRequest);
         logger.LogInformation($"New balance after Payroll Income: {updatedAccount.Balance}");
 
-        // Crear el movimiento
         var now = DateTime.UtcNow;
         Movimiento newMovimiento = new Movimiento
         {
@@ -180,54 +261,56 @@ public class MovimientoService(
             UpdatedAt = now,
             IsDeleted = false
         };
-        
-        // Guardar el movimiento
+
         var movimientoSaved = await movimientoRepository.AddMovimientoAsync(newMovimiento);
-        
-        // Notificar al cliente
+
         await EnviarNotificacionCreacionAsync(user, movimientoSaved);
-        // Devolver el movimiento guardado
         return movimientoSaved;
     }
 
+    /// <summary>
+    /// Añade un pago con tarjeta.
+    /// </summary>
+    /// <param name="user">Usuario que realiza la acción</param>
+    /// <param name="pagoConTarjeta">Datos del pago con tarjeta</param>
+    /// <returns>Movimiento de pago con tarjeta creado</returns>
+    /// <exception cref="PagoTarjetaInvalidAmountException">Lanzado cuando la cantidad del pago es incorrecta</exception>
+    /// <exception cref="InvalidCardNumberException">Lanzado cuando el número de tarjeta es incorrecto</exception>
+    /// <exception cref="ClientNotFoundException">Lanzado cuando el cliente no se encuentra</exception>
+    /// <exception cref="CreditCardNotFoundException">Lanzado cuando la tarjeta no se encuentra</exception>
+    /// <exception cref="CreditCardNotAssignedException">Lanzado cuando la tarjeta no está asociada a ninguna cuenta</exception>
+    /// <exception cref="PagoTarjetaAccountInsufficientBalanceException">Lanzado cuando la cuenta no tiene saldo suficiente</exception>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     public async Task<Movimiento> AddPagoConTarjetaAsync(User user, PagoConTarjeta pagoConTarjeta)
     {
         logger.LogInformation($"Adding new Credit Card Payment {pagoConTarjeta}");
-        
-        // Validar que la cantidad es mayor que cero
+
         if (pagoConTarjeta.Cantidad <= 0) throw new PagoTarjetaInvalidAmountException(pagoConTarjeta.Cantidad);
 
-        // Validar número tarjeta
         if (!NumTarjetaValidator.ValidateTarjeta(pagoConTarjeta.NumeroTarjeta)) throw new InvalidCardNumberException(pagoConTarjeta.NumeroTarjeta);
 
-        // Validar que el cliente existe
         var client = await clientService.GetClientByUserIdAsync(user.Id);
         if (client is null) throw new ClientExceptions.ClientNotFoundException(user.Id);
 
-        // Validar que la tarjeta existe
         var clientCard = await creditCardService.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta);
         if (clientCard is null) throw new PagoTarjetaCreditCardNotFoundException(pagoConTarjeta.NumeroTarjeta);
-        
-        // Validar que el cliente tiene esa tarjeta asociada a alguna de sus cuentas
+
         var clientAccounts = await accountsService.GetCompleteAccountByClientIdAsync(client.Id);
-        if (clientAccounts is null) throw new AccountNotFoundByClientIdException(client.Id); // cliente no tiene cuentas asociadas
+        if (clientAccounts is null) throw new AccountNotFoundByClientIdException(client.Id);
 
-        // buscamos la cuenta a la que está asociada la tarjeta
         var cardAccount = clientAccounts.FirstOrDefault(a => a.TarjetaId == clientCard.Id);
-        if (cardAccount is null) throw new CreditCardException.CreditCardNotAssignedException(pagoConTarjeta.NumeroTarjeta); // tarjeta no está asociada a ninguna cuenta
+        if (cardAccount is null) throw new CreditCardException.CreditCardNotAssignedException(pagoConTarjeta.NumeroTarjeta);
 
-        // Validar saldo suficiente en la cuenta
-        var newBalance = cardAccount.Balance - pagoConTarjeta.Cantidad; 
-        if ( newBalance < 0 ) throw new PagoTarjetaAccountInsufficientBalanceException(pagoConTarjeta.NumeroTarjeta);
+        var newBalance = cardAccount.Balance - pagoConTarjeta.Cantidad;
+        if (newBalance < 0) throw new PagoTarjetaAccountInsufficientBalanceException(pagoConTarjeta.NumeroTarjeta);
 
-        // restar al cliente
         var updateAccountRequest = cardAccount.toUpdateAccountRequest();
         updateAccountRequest.Balance = newBalance;
-        
+
         var updatedAccount = await accountsService.UpdateAccountAsync(cardAccount.Id, updateAccountRequest);
         logger.LogInformation($"New balance after Credit Card Payment: {updatedAccount.Balance}");
 
-        // Crear el movimiento
         var now = DateTime.UtcNow;
         Movimiento newMovimiento = new Movimiento
         {
@@ -238,16 +321,32 @@ public class MovimientoService(
             IsDeleted = false
         };
 
-        // Guardar el movimiento
         var movimientoSaved = await movimientoRepository.AddMovimientoAsync(newMovimiento);
 
-        // Notificar al cliente
         await EnviarNotificacionCreacionAsync(user, movimientoSaved);
-        // Retornar respuesta
         return movimientoSaved;
-
     }
 
+    /// <summary>
+    /// Añade una transferencia entre cuentas.
+    /// </summary>
+    /// <param name="user">Usuario que realiza la acción (cliente del banco)</param>
+    /// <param name="transferencia">Datos de la transferencia (IBANs, cantidad, beneficiario)</param>
+    /// <returns>Movimiento de transferencia creado</returns>
+    /// <exception cref="TransferSameIbanException">Lanzado cuando el IBAN de origen y destino son iguales</exception>
+    /// <exception cref="TransferInvalidAmountException">Lanzado cuando la cantidad de la transferencia es menor o igual a cero</exception>
+    /// <exception cref="InvalidSourceIbanException">Lanzado cuando el IBAN de origen no es válido</exception>
+    /// <exception cref="InvalidDestinationIbanException">Lanzado cuando el IBAN de destino no es válido</exception>
+    /// <exception cref="ClientNotFoundException">Lanzado cuando el cliente asociado al usuario no se encuentra</exception>
+    /// <exception cref="AccountsExceptions.AccountNotFoundByIban">Lanzado cuando no se encuentra la cuenta origen</exception>
+    /// <exception cref="AccountsExceptions.AccountUnknownIban">Lanzado cuando la cuenta de origen no pertenece al cliente</exception>
+    /// <exception cref="TransferInsufficientBalance">Lanzado cuando la cuenta origen no tiene suficiente saldo</exception>
+    /// <exception cref="AccountsExceptions.AccountNotFoundByIban">Lanzado cuando la cuenta de destino no se encuentra</exception>
+    /// <exception cref="UserNotFoundException">Lanzado cuando el usuario asociado al cliente de destino no se encuentra</exception>
+    /// <exception cref="ClientExceptions.ClientNotFoundException">Lanzado cuando no se encuentra el cliente asociado a la cuenta de destino</exception>
+    /// <exception cref="Exception">Lanzado para otros errores inesperados</exception>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     public async Task<Movimiento> AddTransferenciaAsync(User user, Transferencia transferencia)
     {
         logger.LogInformation("Adding new transfer");
@@ -364,6 +463,24 @@ public class MovimientoService(
         return originSavedMovement;
     }
 
+    
+    /// <summary>
+    /// Revoca una transferencia previamente realizada.
+    /// </summary>
+    /// <param name="user">Usuario que solicita la revocación (cliente del banco)</param>
+    /// <param name="movimientoTransferenciaGuid">Identificador único del movimiento de transferencia a revocar</param>
+    /// <returns>Movimiento original de la transferencia revocada</returns>
+    /// <exception cref="MovimientoNotFoundException">Lanzado cuando no se encuentra el movimiento de transferencia a revocar</exception>
+    /// <exception cref="NotRevocableMovimientoException">Lanzado cuando han pasado más de 24 horas desde la creación del movimiento original</exception>
+    /// <exception cref="MovementIsNotTransferException">Lanzado cuando el movimiento no es una transferencia</exception>
+    /// <exception cref="ClientExceptions.ClientNotFoundException">Lanzado cuando el cliente asociado al usuario no se encuentra</exception>
+    /// <exception cref="AccountsExceptions.AccountUnknownIban">Lanzado cuando el usuario no es el propietario de la cuenta de origen</exception>
+    /// <exception cref="AccountsExceptions.AccountNotFoundByIban">Lanzado cuando no se encuentra la cuenta de origen o la cuenta de destino</exception>
+    /// <exception cref="PagoTarjetaAccountInsufficientBalanceException">Lanzado cuando la cuenta no tiene saldo suficiente para revertir la transferencia</exception>
+    /// <exception cref="UserNotFoundException">Lanzado cuando el usuario asociado al cliente de destino no se encuentra</exception>
+    /// <exception cref="Exception">Lanzado para otros errores inesperados</exception>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     public async Task<Movimiento> RevocarTransferencia(User user, string movimientoTransferenciaGuid)
     {
         logger.LogInformation($"Revoking Transfer Id: {movimientoTransferenciaGuid}, user: {user.Id}");
@@ -464,6 +581,13 @@ public class MovimientoService(
     
     // CACHE
     
+    /// <summary>
+    /// Obtiene un movimiento de pago utilizando su identificador (ID). Utiliza caché para optimizar las consultas.
+    /// </summary>
+    /// <param name="id">Identificador único del movimiento a recuperar</param>
+    /// <returns>El movimiento asociado al ID proporcionado, o null si no se encuentra</returns>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     private async Task<Movimiento?> GetByIdAsync(string id)
     {
         var cachedMovimientos = await _cache.StringGetAsync(id);
@@ -480,7 +604,13 @@ public class MovimientoService(
         return null;
     }
     
-    
+    /// <summary>
+    /// Obtiene un movimiento de pago utilizando su GUID único. Utiliza caché para optimizar las consultas.
+    /// </summary>
+    /// <param name="id">Identificador único (GUID) del movimiento a recuperar</param>
+    /// <returns>El movimiento asociado al GUID proporcionado, o null si no se encuentra</returns>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     private async Task<Movimiento?> GetByGuidAsync(string id)
     {
         var cachedMovimientos = await _cache.StringGetAsync(id);
@@ -497,6 +627,14 @@ public class MovimientoService(
         return null;
     }
     
+    /// <summary>
+    /// Envia una notificación de creación de un movimiento a través del WebSocket para un usuario.
+    /// </summary>
+    /// <param name="user">Usuario al que se enviará la notificación</param>
+    /// <param name="t">Objeto del tipo T que contiene los datos del movimiento creado</param>
+    /// <returns>Una tarea asíncrona que representa la operación de notificación</returns>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     public async Task EnviarNotificacionCreacionAsync<T>(User user, T t)
     {
         var notificacion = new Notification<T>
@@ -509,6 +647,14 @@ public class MovimientoService(
         await websocketHandler.NotifyUserAsync(user.Id, notificacion);
     }
 
+    /// <summary>
+    /// Envia una notificación de eliminación de un movimiento a través del WebSocket para un usuario.
+    /// </summary>
+    /// <param name="user">Usuario al que se enviará la notificación</param>
+    /// <param name="t">Objeto del tipo T que contiene los datos del movimiento eliminado</param>
+    /// <returns>Una tarea asíncrona que representa la operación de notificación</returns>
+    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
+    /// <version>1.0.0</version>
     public async Task EnviarNotificacionDeleteAsync<T>(User user, T t)
     {
         var notificacion = new Notification<T>

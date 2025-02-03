@@ -2,7 +2,6 @@
    using System.Security.Claims;
    using System.Text;
     using ApiFranfurkt.Properties.Currency.Services;
-    using ApiFunkosCS.Utils.DevApplyMigrations;
     using ApiFunkosCS.Utils.ExceptionMiddleware;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.EntityFrameworkCore;
@@ -20,11 +19,9 @@
     using VivesBankApi.Rest.Clients.Service;
     using VivesBankApi.Rest.Clients.storage.Config;
     using VivesBankApi.Rest.Movimientos.Config;
-    using VivesBankApi.Rest.Movimientos.Repositories;
     using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
     using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
     using VivesBankApi.Rest.Movimientos.Resolver;
-    using VivesBankApi.Rest.Movimientos.Services;
     using VivesBankApi.Rest.Movimientos.Services.Domiciliaciones;
     using VivesBankApi.Rest.Movimientos.Services.Movimientos;
     using VivesBankApi.Rest.Product.BankAccounts.Repositories;
