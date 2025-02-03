@@ -1,0 +1,17 @@
+[
+  {
+    "Id": "eJTX-_GjsQ",
+    "userId": "HEm-6JC1644",
+    "fullName": "José María Giménez",
+    "address": "Metropolitano, Madrid",
+    "photo": "defaultId.png",
+    "idPhoto": "default.png",
+    "accounts": [
+      "account1",
+      "account2"
+    ],
+    "createdAt": "2025-02-02T22:34:28.564433Z",
+    "updatedAt": "2025-02-02T22:34:28.564433Z",
+    "isDeleted": false
+  }
+]

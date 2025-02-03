@@ -1,0 +1,18 @@
+[
+  {
+    "Id": "z-nrYGKQjuM",
+    "Name": "Black Card",
+    "ProductType": 1,
+    "CreatedAt": "2025-02-02T22:34:28.564433Z",
+    "UpdatedAt": "2025-02-02T22:34:28.564433Z",
+    "IsDeleted": false
+  },
+  {
+    "Id": "Z-QnRlm7XQ",
+    "Name": "Savings Account",
+    "ProductType": 0,
+    "CreatedAt": "2025-02-02T22:34:28.564433Z",
+    "UpdatedAt": "2025-02-02T22:34:28.564433Z",
+    "IsDeleted": false
+  }
+]
