@@ -90,19 +90,12 @@ public class DomiciliacionScheduler : IJob
 
     private async Task EjecutarDomiciliacionAsync(Domiciliacion domiciliacion, AccountCompleteResponse originAccount, DateTime date)
     {
-        _logger.LogInformation($"Executing direct debit Client: {domiciliacion.ClienteGuid}, Company: {domiciliacion.NombreAcreedor}, Quantity: {domiciliacion.Cantidad}");
+        _logger.LogInformation($"Executing direct debit Client: {domiciliacion.ClienteGuid}, Company: {domiciliacion.NombreAcreedor}, Quantity: {domiciliacion.Cantidad} on account: {originAccount.IBAN}");
 
-        // Obtener la cuenta donde se cargará la domiciliación
-        /*var originAccount = await accountsService.GetCompleteAccountByIbanAsync(domiciliacion.IbanOrigen);
-        if (originAccount == null) throw new AccountsExceptions.AccountNotFoundByIban(domiciliacion.IbanOrigen);*/
-
-        _logger.LogInformation($"Executing direct debit Client on account: {originAccount.IBAN}");
         // Comprobación saldo suficiente
         if (originAccount.Balance < domiciliacion.Cantidad) throw new DomiciliacionAccountInsufficientBalanceException(domiciliacion.IbanOrigen);
 
         // Restamos del saldo y actualizamos la cuenta
-        //originAccount.Balance -= domiciliacion.Cantidad;
-        //await accountService.UpdateAccountAsync(originAccount.Id, originAccount.toAccountRequestUpdate);
         var newBalanceOrigin = originAccount.Balance - domiciliacion.Cantidad; 
         var updateAccountRequestOrigin = originAccount.toUpdateAccountRequest();
         updateAccountRequestOrigin.Balance = newBalanceOrigin;
@@ -141,37 +134,7 @@ public class DomiciliacionScheduler : IJob
             default: return false;                
         }
     }
- 
-    /*public async Task ExecuteMal(IJobExecutionContext context)
-    {
-        _logger.LogInformation("Processing scheduled direct debits (domiciliaciones)"); 
-        
-        // Filtrar domiciliaciones activas que requieren ejecución
-        var domiciliaciones = (await _domiciliacionRepository.GetAllDomiciliacionesActivasAsync())
-            .Where(d => RequiereEjecucion(d, DateTime.Now))
-            .ToList();
-
-        _logger.LogInformation($"Número de domiciliaciones activas: {domiciliaciones.Count}");
-
-        // Lanzamos asíncronamente las actualizaciones. Foreach no las lanza asíncronamente y 
-        // no actualiza una domiciliación hasta que no termine la anterior
-        var tasks = new List<Task>();
-
-        foreach (var domiciliacion in domiciliaciones)
-        {
-            var now = DateTime.UtcNow;
-            // Esperamos a que se complete 'ejecutarDomiciliacion' antes de agregar la tarea de actualización
-            await EjecutarDomiciliacionAsync(domiciliacion, now);
-            
-            // Añadimos cada actualización de la domiciliación a la lista de tareas
-            domiciliacion.UltimaEjecucion = now;
-            tasks.Add(_domiciliacionRepository.UpdateDomiciliacionAsync(domiciliacion.Id, domiciliacion));
-        }
-
-        // Esperamos a que todas las tareas de actualización de domiciliacion terminen para continuar 
-        await Task.WhenAll(tasks);
-
-    }*/
+    
     public async Task EnviarNotificacionExecuteAsync<T>(UserResponse userResponse,T t)
     {
         var notificacion = new Notification<T>
