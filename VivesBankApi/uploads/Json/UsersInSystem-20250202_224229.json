@@ -1,0 +1,29 @@
+[
+  {
+    "id": "3G_a9BexJQ",
+    "Dni": "70919049K",
+    "password": "$2a$12$01b4milfHK4MnnHvPC3g2eup3RfV.sF785C25/DTrwoI7eQXJbbHG",
+    "role": "Admin",
+    "createdAt": "2025-02-02T22:34:28.564433Z",
+    "updatedAt": "2025-02-02T22:34:28.564433Z",
+    "isDeleted": false
+  },
+  {
+    "id": "QEm-6JC1643",
+    "Dni": "50378910D",
+    "password": "$2a$12$01b4milfHK4MnnHvPC3g2eup3RfV.sF785C25/DTrwoI7eQXJbbHG",
+    "role": "User",
+    "createdAt": "2025-02-02T22:34:28.564433Z",
+    "updatedAt": "2025-02-02T22:34:28.564433Z",
+    "isDeleted": false
+  },
+  {
+    "id": "HEm-6JC1644",
+    "Dni": "56780182J",
+    "password": "$2a$12$01b4milfHK4MnnHvPC3g2eup3RfV.sF785C25/DTrwoI7eQXJbbHG",
+    "role": "Client",
+    "createdAt": "2025-02-02T22:34:28.564433Z",
+    "updatedAt": "2025-02-02T22:34:28.564433Z",
+    "isDeleted": false
+  }
+]

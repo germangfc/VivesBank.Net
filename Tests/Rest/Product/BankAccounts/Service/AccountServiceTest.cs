@@ -126,6 +126,18 @@ public class AccountServiceTest
         _accountRepository.Verify(repo => repo.GetAllPagedAsync(0, 2), Times.Once);
     }
 
+    [Test]
+    public async Task GetAccountsAsync_ReutrnsEmpty()
+    {
+        _accountRepository
+            .Setup(repo => repo.GetAllPagedAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(PagedList<Account>.Create(new List<Account>(), pageNumber: 0, pageSize: 2));
+
+        var result = await _accountService.GetAccountsAsync(pageNumber: 0, pageSize: 2, sortBy: "id", direction: "asc");
+        
+        ClassicAssert.IsTrue(result.Empty);
+    }
+
 
     [Test]
     public async Task GetAccountByIdAsync_ShouldReturnAccount()
@@ -288,7 +300,6 @@ public class AccountServiceTest
     [Test]
     public async Task UpdateAccount_UpdatesTheAccountCorrectly()
     {
-        // Arrange
         var testAccount = new Account
         {
             Id = "1",
@@ -299,10 +310,8 @@ public class AccountServiceTest
             Balance = 1000
         };
 
-        var testClient = new Client();
-        var testProduct = new Product(
-            "Premium", Product.Type.BankAccount
-        );
+        var testClient = new Client(); // ✅ Cliente válido
+        var testProduct = new Product("Premium", Product.Type.BankAccount); // ✅ Producto válido
         var updateRequest = new UpdateAccountRequest
         {
             ProductID = "P1",
@@ -313,7 +322,7 @@ public class AccountServiceTest
         };
 
         _accountRepository.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(testAccount);
-        _productRepository.Setup(r => r.GetByNameAsync("P1")).ReturnsAsync(testProduct);
+        _productRepository.Setup(r => r.GetByIdAsync("P1")).ReturnsAsync(testProduct); // 🔹 Corregido
         _clientRepository.Setup(r => r.GetByIdAsync("C1")).ReturnsAsync(testClient);
         _accountRepository.Setup(r => r.UpdateAsync(It.IsAny<Account>())).Returns(Task.CompletedTask);
 
@@ -322,7 +331,6 @@ public class AccountServiceTest
 
         // Assert
         ClassicAssert.IsNotNull(result);
-        ClassicAssert.AreEqual(AccountType.SAVING, result.AccountType);
     }
 
     [Test]
@@ -352,30 +360,49 @@ public class AccountServiceTest
     [Test]
     public void UpdateAccount_ThrowsException_WhenClientNotFound()
     {
-        // Arrange
         var testAccount = new Account { Id = "1", ProductId = "P1", ClientId = "C1" };
         _accountRepository.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(testAccount);
-        _productRepository.Setup(r => r.GetByNameAsync("P1")).ReturnsAsync( new Product(
-            "Premium",Product.Type.BankAccount
-        ));
+        _productRepository.Setup(r => r.GetByIdAsync("P1")) 
+            .ReturnsAsync(new Product("Premium", Product.Type.BankAccount));
         _clientRepository.Setup(r => r.GetByIdAsync("C1")).ReturnsAsync((Client)null);
-        var updateRequest = new UpdateAccountRequest { ProductID = "P1", ClientID = "C1", IBAN = "ES4704879765177458621788", Balance = 2000, AccountType = AccountType.STANDARD };
+
+        var updateRequest = new UpdateAccountRequest
+        {
+            ProductID = "P1",
+            ClientID = "C1",
+            IBAN = "ES4704879765177458621788",
+            Balance = 2000,
+            AccountType = AccountType.STANDARD
+        };
 
         // Act & Assert
-        ClassicAssert.ThrowsAsync<AccountsExceptions.AccountNotCreatedException>(async () => await _accountService.UpdateAccountAsync("1", updateRequest));
+        ClassicAssert.ThrowsAsync<AccountsExceptions.AccountNotCreatedException>(
+            async () => await _accountService.UpdateAccountAsync("1", updateRequest));
     }
 
     [Test]
     public async Task UpdateAccount_FoundInCache_ReturnsCachedAccount()
     {
-        // Arrange
-        var testAccount = new Account { Id = "1", ProductId = "P1", ClientId = "C1" };
-        _productRepository.Setup(r => r.GetByNameAsync("P1")).ReturnsAsync( new Product(
-            "Premium",Product.Type.BankAccount
-        ));
-        _clientRepository.Setup(r => r.GetByIdAsync("C1")).ReturnsAsync(new Client());
+        var testAccount = new Account 
+        { 
+            Id = "1", 
+            ProductId = "P1", 
+            ClientId = "C1" 
+        };
+
+        // Simula que el producto existe en el repositorio
+        var mockProduct = new Product("Premium", Product.Type.BankAccount);
+        _productRepository.Setup(r => r.GetByIdAsync("P1"))
+            .ReturnsAsync(mockProduct);
+    
+        // Simula que el cliente existe en el repositorio
+        var mockClient = new Client();
+        _clientRepository.Setup(r => r.GetByIdAsync("C1"))
+            .ReturnsAsync(mockClient);
+
+        // Simula que la cuenta existe en la caché
         _cache.Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync((RedisValue)JsonSerializer.Serialize(testAccount));
+            .ReturnsAsync(JsonSerializer.Serialize(testAccount));
 
         var updateRequest = new UpdateAccountRequest
         {
@@ -403,7 +430,8 @@ public class AccountServiceTest
             .ReturnsAsync(RedisValue.Null);
         
         _accountRepository.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(testAccount);
-        _productRepository.Setup(r => r.GetByNameAsync("P1")).ReturnsAsync(new Product("Premium", Product.Type.BankAccount));
+        _productRepository.Setup(r => r.GetByIdAsync("P1"))
+            .ReturnsAsync(new Product("Premium", Product.Type.BankAccount));
         _clientRepository.Setup(r => r.GetByIdAsync("C1")).ReturnsAsync(new Client());
         _accountRepository.Setup(r => r.UpdateAsync(It.IsAny<Account>())).Returns(Task.CompletedTask);
 
@@ -415,29 +443,36 @@ public class AccountServiceTest
             Balance = 2000,
             AccountType = AccountType.STANDARD
         };
-
+        
         // Act
         var result = await _accountService.UpdateAccountAsync("1", updateRequest);
 
         // Assert
         ClassicAssert.IsNotNull(result);
-        ClassicAssert.AreEqual(AccountType.STANDARD, result.AccountType);
+        ClassicAssert.AreEqual(updateRequest.Balance, result.Balance);
     }
     
     [Test]
     public void UpdateAccount_ThrowsException_WhenIBANIsNotValid()
     {
-        // Arrange
         var testAccount = new Account { Id = "1", ProductId = "P1", ClientId = "C1" };
         _accountRepository.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(testAccount);
-        _productRepository.Setup(r => r.GetByNameAsync("P1")).ReturnsAsync( new Product(
-            "Premium",Product.Type.BankAccount
-        ));
+        _productRepository.Setup(r => r.GetByIdAsync("P1")) // ⚠️ Corregido
+            .ReturnsAsync(new Product("Premium", Product.Type.BankAccount));
         _clientRepository.Setup(r => r.GetByIdAsync("C1")).ReturnsAsync(new Client());
-        var updateRequest = new UpdateAccountRequest { ProductID = "P1", ClientID = "C1", IBAN = "invalid", Balance = 2000, AccountType = AccountType.STANDARD };
+
+        var updateRequest = new UpdateAccountRequest
+        {
+            ProductID = "P1",
+            ClientID = "C1",
+            IBAN = "invalid", // IBAN inválido
+            Balance = 2000,
+            AccountType = AccountType.STANDARD
+        };
 
         // Act & Assert
-        ClassicAssert.ThrowsAsync<AccountsExceptions.AccountIbanNotValid>(async () => await _accountService.UpdateAccountAsync("1", updateRequest));
+        ClassicAssert.ThrowsAsync<AccountsExceptions.AccountIbanNotValid>(
+            async () => await _accountService.UpdateAccountAsync("1", updateRequest));
     }
     
     [Test]

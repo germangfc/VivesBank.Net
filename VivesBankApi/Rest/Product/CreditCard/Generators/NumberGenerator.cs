@@ -12,12 +12,12 @@ public class NumberGenerator : INumberGenerator
             cardNumber[i] = random.Next(0, 10);
         }
 
-        cardNumber[15] = CalculateLuhnCheckDigit(cardNumber);
+        cardNumber[15] = checkNumber(cardNumber);
 
         return string.Join(string.Empty, cardNumber);
     }
 
-    public int CalculateLuhnCheckDigit(int[] cardNumber)
+    public int checkNumber(int[] cardNumber)
     {
         int sum = 0;
         for (int i = 0; i < 15; i++)
