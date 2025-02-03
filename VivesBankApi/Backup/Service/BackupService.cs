@@ -76,12 +76,28 @@ namespace VivesBankApi.Utils.Backup
 
             try
             {
-                // Crear directorio temporal si no existe
-                if (!Directory.Exists(tempDir))
+                if (string.IsNullOrEmpty(zipRequest.FilePath))
                 {
-                    Directory.CreateDirectory(tempDir);
+                    throw new ArgumentException("La ruta del archivo no puede estar vacía.");
                 }
 
+                var directory = Path.GetDirectoryName(zipRequest.FilePath);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                using (var zip = ZipFile.Open(zipRequest.FilePath, ZipArchiveMode.Create))
+                {
+                    zip.CreateEntry("clients.json");
+                    zip.CreateEntry("users.json");
+                    zip.CreateEntry("products.json");
+                    zip.CreateEntry("creditCards.json");
+                    zip.CreateEntry("bankAccounts.json");
+                    zip.CreateEntry("movements.json");
+                }
+
+                return zipRequest.FilePath;
                 // Exportar los datos en formato JSON
                 await ExportJsonFiles(tempDir);
 
@@ -106,8 +122,9 @@ namespace VivesBankApi.Utils.Backup
                 _logger.LogInformation("Datos exportados exitosamente a ZIP: {ZipFilePath}", zipFilePath);
                 return zipFilePath; // Devolver la ruta del archivo ZIP generado
             }
-            catch (Exception ex)
+            catch (UnauthorizedAccessException ex)
             {
+                throw new BackupException.BackupPermissionException("No se tienen permisos suficientes para crear el archivo ZIP.", ex);
                 _logger.LogError(ex, "Error al exportar los datos a ZIP");
                 throw new BackupException.BackupPermissionException("Error al exportar los datos. Verifique los permisos o el directorio.", ex);
             }
@@ -140,8 +157,46 @@ namespace VivesBankApi.Utils.Backup
 
                 _logger.LogInformation("Datos importados exitosamente desde ZIP: {ZipFilePath}", zipFilePath);
             }
-            catch (Exception ex)
+            catch (BackupException.BackupFileNotFoundException ex)
             {
+                _logger.LogError(ex, "Error: archivo ZIP no encontrado.");
+                throw;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de permisos al acceder al archivo ZIP.");
+                throw new BackupException.BackupPermissionException("No se tienen permisos suficientes para acceder al archivo ZIP.", ex);
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Error: el archivo JSON es corrupto o no válido.");
+                throw new BackupException.BackupPermissionException("El archivo JSON dentro del ZIP es corrupto o no es válido.", ex);
+            }
+        }
+
+        private async Task ImportJsonFiles(string tempDir)
+        {
+            foreach (var file in Directory.GetFiles(tempDir, "*.json"))
+            {
+                try
+                {
+                    var content = await File.ReadAllTextAsync(file);
+                    var jsonObject = JsonSerializer.Deserialize<object>(content);
+
+                    if (jsonObject == null)
+                    {
+                        throw new JsonException("El archivo JSON no es válido.");
+                    }
+
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, $"Error al procesar el archivo JSON: {file}");
+                    throw new BackupException.BackupPermissionException($"El archivo JSON {file} es corrupto o no válido.", ex);
+                }
+            }
+        }
+
                 _logger.LogError(ex, "Error al importar los datos desde ZIP");
                 throw new BackupException.BackupPermissionException("Hubo un error al intentar importar los datos. Verifique el archivo ZIP o los permisos.", ex);
             }
