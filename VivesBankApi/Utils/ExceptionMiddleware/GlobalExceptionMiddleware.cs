@@ -158,11 +158,6 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
                     errorResponse = new { message = exception.Message };
                     logger.LogWarning(exception, exception.Message);
                     break;
-                case BackupException.BackupDirectoryNotFoundException:
-                    statusCode = HttpStatusCode.NotFound;
-                    errorResponse = new { message = exception.Message };
-                    logger.LogWarning(exception, exception.Message);
-                    break;
                 case BackupException.BackupFileNotFoundException:
                     statusCode = HttpStatusCode.NotFound;
                     errorResponse = new { message = exception.Message };
