@@ -32,16 +32,14 @@ public class WebSocketHandler : IWebsocketHandler
     public async Task HandleAsync(System.Net.WebSockets.WebSocket webSocket)
     {
         _logger.LogInformation("WebSocket connected from {0}", webSocket);
-        _sockets.Add(webSocket); // Add WebSocket to the list of active connections
+        _sockets.Add(webSocket); 
 
-        var buffer = new byte[1024 * 4]; // Buffer to read data from the WebSocket
+        var buffer = new byte[1024 * 4]; 
         var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-        // Keep reading data while the WebSocket connection is open
         while (!result.CloseStatus.HasValue)
             result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-        // Remove WebSocket from the list and close the connection
         _sockets.Remove(webSocket);
         await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
     }
@@ -65,11 +63,10 @@ public class WebSocketHandler : IWebsocketHandler
 
         var buffer = Encoding.UTF8.GetBytes(json);
 
-        // Send the notification to all connected WebSocket clients
         var tasks = _sockets.Select(socket =>
             socket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None))
             .ToArray();
-        await Task.WhenAll(tasks); // Wait for all messages to be sent
+        await Task.WhenAll(tasks); 
     }
 
     /// <summary>
@@ -81,7 +78,6 @@ public class WebSocketHandler : IWebsocketHandler
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task NotifyUserAsync<T>(string username, Notification<T> notification)
     {
-        // Try to find the WebSocket for the specific user
         if (_userSockets.TryGetValue(username, out var socket))
         {
             var jsonSettings = new JsonSerializerSettings
@@ -92,7 +88,6 @@ public class WebSocketHandler : IWebsocketHandler
             var json = JsonConvert.SerializeObject(notification, jsonSettings);
             var buffer = Encoding.UTF8.GetBytes(json);
 
-            // Send the notification to the specific user
             await socket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
             _logger.LogInformation($"Notification sent to {username}: {json}");
         }
@@ -111,21 +106,17 @@ public class WebSocketHandler : IWebsocketHandler
     public async Task HandleAuthenticatedAsync(System.Net.WebSockets.WebSocket webSocket, string username)
     {
         _logger.LogInformation($"WebSocket connected for user: {username}");
-
-        // Add or update the WebSocket connection for the specific user
         _userSockets.AddOrUpdate(username, webSocket, (key, oldValue) => webSocket);
         _logger.LogInformation($"Number of connected users: {_userSockets.Count}");
 
         var buffer = new byte[1024 * 4];
         var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-        // Keep reading data while the WebSocket connection is open
         while (!result.CloseStatus.HasValue)
         {
             result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
         }
 
-        // Remove the WebSocket connection for the user when it closes
         _userSockets.TryRemove(username, out _);
         await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
     }
