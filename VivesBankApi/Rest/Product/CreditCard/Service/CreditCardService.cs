@@ -19,6 +19,10 @@ using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace VivesBankApi.Rest.Product.CreditCard.Service;
 
+/// <summary>
+/// Implementa los métodos definidos en la interfaz `ICreditCardService` para gestionar tarjetas de crédito.
+/// Proporciona funcionalidades para crear, actualizar, eliminar y obtener tarjetas de crédito, tanto para clientes como para administradores.
+/// </summary>
 public class CreditCardService
     : GenericStorageJson<Models.CreditCard>, ICreditCardService
 {
@@ -33,6 +37,20 @@ public class CreditCardService
     private readonly IUserService _userService;
     private readonly IClientRepository _clientRepository;
     private readonly IDatabase _cache;
+    
+    /// <summary>
+    /// Constructor de `CreditCardService`.
+    /// </summary>
+    /// <param name="creditCardRepository">Repositorio para las tarjetas de crédito.</param>
+    /// <param name="logger">Instancia de Logger para registrar eventos.</param>
+    /// <param name="cvcGenerator">Generador de CVC.</param>
+    /// <param name="expirationDateGenerator">Generador de fechas de expiración.</param>
+    /// <param name="numberGenerator">Generador de números de tarjetas de crédito.</param>
+    /// <param name="accountsRepository">Repositorio para las cuentas.</param>
+    /// <param name="connectionMultiplexer">Multiplexor para la conexión a Redis.</param>
+    /// <param name="httpContextAccessor">Accesor para el contexto HTTP.</param>
+    /// <param name="userService">Servicio para gestionar usuarios.</param>
+    /// <param name="clientRepository">Repositorio para los clientes.</param>
     public CreditCardService(ICreditCardRepository creditCardRepository, ILogger<CreditCardService> logger, ICvcGenerator cvcGenerator, IExpirationDateGenerator expirationDateGenerator, INumberGenerator numberGenerator, IAccountsRepository accountsRepository, IConnectionMultiplexer connectionMultiplexer, IHttpContextAccessor httpContextAccessor, IUserService userService, IClientRepository clientRepository) : base(logger)
     {
         _creditCardRepository = creditCardRepository;
@@ -47,10 +65,24 @@ public class CreditCardService
         _clientRepository = clientRepository;
     }
 
+    /// <summary>
+    /// Obtiene todas las tarjetas de crédito disponibles.
+    /// </summary>
+    /// <returns>Una lista de tarjetas de crédito.</returns>
     public async Task<List<Models.CreditCard>> GetAll()
     {
         return await _creditCardRepository.GetAllAsync();
     }
+    
+    /// <summary>
+    /// Obtiene las tarjetas de crédito disponibles para administradores con soporte para paginación, filtrado y ordenamiento.
+    /// </summary>
+    /// <param name="pageNumber">Número de página.</param>
+    /// <param name="pageSize">Tamaño de página.</param>
+    /// <param name="fullName">Nombre completo para filtrar las tarjetas.</param>
+    /// <param name="isDeleted">Estado de eliminación.</param>
+    /// <param name="direction">Dirección de ordenamiento ("asc" o "desc").</param>
+    /// <returns>Una lista de respuestas para administradores.</returns>
     public async Task<List<CreditCardAdminResponse>> GetAllCreditCardAdminAsync(
         int pageNumber, int pageSize, string fullName, bool? isDeleted, string direction)
     {
@@ -70,7 +102,10 @@ public class CreditCardService
         return mappedCards;
     }
 
-
+    /// <summary>
+    /// Obtiene las tarjetas de crédito asociadas al cliente autenticado.
+    /// </summary>
+    /// <returns>Una lista de respuestas para el cliente.</returns>
     public async Task<List<CreditCardClientResponse>> GetMyCreditCardsAsync()
     {
         var user = _httpContextAccessor.HttpContext!.User;
@@ -96,7 +131,12 @@ public class CreditCardService
         }
         return creditCards;
     }
-
+    
+    /// <summary>
+    /// Obtiene una tarjeta de crédito por su ID para administradores.
+    /// </summary>
+    /// <param name="id">ID de la tarjeta.</param>
+    /// <returns>La tarjeta de crédito solicitada.</returns>
     public async Task<CreditCardAdminResponse?> GetCreditCardByIdAdminAsync(string id)
     {
         _logger.LogInformation($"Getting card with id {id}");
@@ -104,6 +144,11 @@ public class CreditCardService
         return creditCard.ToAdminResponse();
     }
 
+    /// <summary>
+    /// Obtiene una tarjeta de crédito por su número de tarjeta.
+    /// </summary>
+    /// <param name="cardNumber">Número de tarjeta de crédito.</param>
+    /// <returns>La tarjeta de crédito solicitada.</returns>
     public async Task<CreditCardAdminResponse?> GetCreditCardByCardNumber(string cardNumber)
     {
         _logger.LogInformation($"Getting card with card number {cardNumber}");
@@ -130,6 +175,11 @@ public class CreditCardService
         return null;
     }
 
+    /// <summary>
+    /// Crea una nueva tarjeta de crédito asociada a una cuenta.
+    /// </summary>
+    /// <param name="createRequest">Los datos necesarios para crear la tarjeta de crédito.</param>
+    /// <returns>Una tarjeta de crédito creada.</returns>
     public async Task<CreditCardClientResponse> CreateCreditCardAsync(CreditCardRequest createRequest)
     {
         var user = _httpContextAccessor.HttpContext!.User;
@@ -169,6 +219,13 @@ public class CreditCardService
         return creditCardModel.ToClientResponse();
     }
 
+    
+    /// <summary>
+    /// Actualiza una tarjeta de crédito existente.
+    /// </summary>
+    /// <param name="cardNumber">Número de tarjeta de crédito a actualizar.</param>
+    /// <param name="updateRequest">Los datos necesarios para la actualización.</param>
+    /// <returns>La tarjeta de crédito actualizada.</returns>
     public async Task<CreditCardClientResponse> UpdateCreditCardAsync(string cardNumber, CreditCardUpdateRequest updateRequest)
     {
         _logger.LogInformation($"Updating card: {updateRequest} by Id: {cardNumber}");
@@ -201,19 +258,28 @@ public class CreditCardService
     }
 
 
+     /// <summary>
+    /// Elimina una tarjeta de crédito por su número.
+    /// </summary>
+    /// <param name="number">Número de tarjeta de crédito a eliminar.</param>
+    /// <returns>Una tarea asincrónica.</returns>
     public async Task DeleteCreditCardAsync(string number)
     {
         _logger.LogInformation($"Removing card by number: {number} ");
         var myCreditCards = await GetMyCreditCardsAsync();
-        var myCardToDelete = myCreditCards.FirstOrDefault(card => card.CardNumber == number)??
-                           throw new CreditCardException.CreditCardNotFoundByCardNumberException(number);
+        var myCardToDelete = myCreditCards.FirstOrDefault(card => card.CardNumber == number)?? 
+                             throw new CreditCardException.CreditCardNotFoundByCardNumberException(number);
         _cache.KeyDeleteAsync(myCardToDelete.Id);
         var deletedCard = await _creditCardRepository.GetByCardNumber(number) ?? throw new CreditCardException.CreditCardNotFoundByCardNumberException(number);
         deletedCard.IsDeleted = true;
         await _creditCardRepository.UpdateAsync(deletedCard);
-        
     }
-    
+
+    /// <summary>
+    /// Importa tarjetas de crédito desde un archivo JSON.
+    /// </summary>
+    /// <param name="fileStream">El archivo JSON con las tarjetas de crédito.</param>
+    /// <returns>Un observable de las tarjetas de crédito importadas.</returns>
     public IObservable<Models.CreditCard> Import(IFormFile fileStream)
     {
         _logger.LogInformation("Starting to import credit cards from JSON file.");
@@ -250,7 +316,11 @@ public class CreditCardService
         });
     }
 
-
+    /// <summary>
+    /// Exporta una lista de tarjetas de crédito a un archivo JSON.
+    /// </summary>
+    /// <param name="entities">Lista de tarjetas de crédito a exportar.</param>
+    /// <returns>Un `FileStream` con el archivo exportado.</returns>
     public async Task<FileStream> Export(List<Models.CreditCard> entities)
     {
         if (entities == null || !entities.Any())

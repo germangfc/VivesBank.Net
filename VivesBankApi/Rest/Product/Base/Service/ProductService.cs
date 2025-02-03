@@ -14,6 +14,12 @@ using VivesBankApi.WebSocket.Service;
 
 namespace VivesBankApi.Rest.Product.Base.Service;
 
+/// <summary>
+/// Define el contrato para interactuar con los datos de productos en el almacén de datos.
+/// Esta interfaz extiende la funcionalidad de almacenamiento genérico para la entidad `Product`,
+/// admitiendo operaciones con mecanismos de almacenamiento en CSV y JSON.
+/// </summary>
+/// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, German, Alvaro Herrero, Tomas</author>
 public class ProductService : GenericStorageJson<Models.Product>, IProductService
 {
     private readonly IProductRepository _productRepository;
@@ -36,11 +42,19 @@ public class ProductService : GenericStorageJson<Models.Product>, IProductServic
         _websocketHandler = websocketHandler;
     }
     
+    /// <summary>
+    /// Recupera todos los productos del almacén de datos.
+    /// </summary>
+    /// <returns>Una tarea que representa la operación asincrónica. El resultado de la tarea contiene una lista de todos los productos.</returns>
     public async Task<List<Models.Product>> GetAll()
     {
         return await _productRepository.GetAllAsync();
     }
     
+    /// <summary>
+    /// Recupera todos los productos como una lista de objetos <see cref="ProductResponse"/>.
+    /// </summary>
+    /// <returns>Una tarea que representa la operación asincrónica. El resultado de la tarea contiene una lista de respuestas de productos.</returns>
     public async Task<List<ProductResponse>> GetAllProductsAsync()
     {
         _logger.LogInformation("Getting all products");
@@ -50,6 +64,11 @@ public class ProductService : GenericStorageJson<Models.Product>, IProductServic
         return products.Select(product => product.ToDtoResponse()).ToList();        
     }
 
+    /// <summary>
+    /// Recupera un producto específico por su identificador único.
+    /// </summary>
+    /// <param name="productId">El identificador único del producto.</param>
+    /// <returns>Una tarea que representa la operación asincrónica. El resultado de la tarea contiene la respuesta del producto si se encuentra; de lo contrario, null.</returns>
     public async Task<ProductResponse> GetProductByIdAsync(string productId)
     {
         _logger.LogInformation($"Getting product with id {productId}");
@@ -66,6 +85,11 @@ public class ProductService : GenericStorageJson<Models.Product>, IProductServic
     }
 
 
+    /// <summary>
+    /// Crea un nuevo producto en el almacén de datos.
+    /// </summary>
+    /// <param name="createRequest">El objeto de solicitud que contiene los detalles del producto.</param>
+    /// <returns>Una tarea que representa la operación asincrónica. El resultado de la tarea contiene la respuesta del producto creado.</returns>
     public async Task<ProductResponse> CreateProductAsync(ProductCreateRequest createRequest)
     {
         _logger.LogInformation($"Creating product: {createRequest}");
@@ -82,6 +106,12 @@ public class ProductService : GenericStorageJson<Models.Product>, IProductServic
         return productModel.ToDtoResponse();
     }
 
+    /// <summary>
+    /// Actualiza un producto existente en el almacén de datos.
+    /// </summary>
+    /// <param name="productId">El identificador único del producto a actualizar.</param>
+    /// <param name="updateRequest">El objeto de solicitud que contiene los detalles actualizados del producto.</param>
+    /// <returns>Una tarea que representa la operación asincrónica. El resultado de la tarea contiene la respuesta del producto actualizado si la actualización fue exitosa; de lo contrario, null.
     public async Task<ProductResponse> UpdateProductAsync(string productId, ProductUpdateRequest updateRequest)
     {
         _logger.LogInformation($"Updating product: {updateRequest} by Id: {productId}");
@@ -103,6 +133,11 @@ public class ProductService : GenericStorageJson<Models.Product>, IProductServic
         return product.ToDtoResponse();
     }
 
+    /// <summary>
+    /// Elimina un producto del almacén de datos.
+    /// </summary>
+    /// <param name="productId">El identificador único del producto a eliminar.</param>
+    /// <returns>Una tarea que representa la operación asincrónica. El resultado de la tarea es true si el producto se eliminó con éxito; de lo contrario, false.</returns>
     public async Task<bool> DeleteProductAsync(string productId)
     {
         _logger.LogInformation($"Removing product by Id: {productId}");
@@ -120,6 +155,11 @@ public class ProductService : GenericStorageJson<Models.Product>, IProductServic
         return true; 
     }
     
+    /// <summary>
+    /// Busca un producto en caché o en la base de datos si no está en caché.
+    /// </summary>
+    /// <param name="id">ID del producto.</param>
+    /// <returns>Producto encontrado o null.</returns>
     private async Task<Base.Models.Product?> GetByIdAsync(string id)
     {
         // Try to get from cache first
@@ -139,6 +179,11 @@ public class ProductService : GenericStorageJson<Models.Product>, IProductServic
         return null;
     }
     
+    /// <summary>
+    /// Envía una notificación global cuando se crea un nuevo producto.
+    /// </summary>
+    /// <typeparam name="T">Tipo de datos a enviar en la notificación.</typeparam>
+    /// <param name="t">Datos del producto creado.</param>
     public async Task EnviarNotificacionGlobalCreateAsync<T>(T t)
     {
         var notificacion = new Notification<T>
@@ -149,6 +194,12 @@ public class ProductService : GenericStorageJson<Models.Product>, IProductServic
         };
         await _websocketHandler.NotifyAllAsync(notificacion);
     }
+
+    /// <summary>
+    /// Carga productos desde un archivo CSV.
+    /// </summary>
+    /// <param name="stream">Flujo del archivo CSV.</param>
+    /// <returns>Lista de productos cargados.</returns>
 
     public List<Base.Models.Product> LoadCsv(Stream stream)
     {
@@ -205,6 +256,12 @@ public class ProductService : GenericStorageJson<Models.Product>, IProductServic
         }
     }
 
+    /// <summary>
+    /// Importa productos desde un archivo JSON como flujo observable.
+    /// </summary>
+    /// <param name="fileStream">Archivo a importar.</param>
+    /// <returns>Observable con los productos importados.</returns>
+
     public IObservable<Base.Models.Product> Import(IFormFile fileStream)
     {
         _logger.LogInformation("Importing Products from JSON file...");
@@ -243,6 +300,11 @@ public class ProductService : GenericStorageJson<Models.Product>, IProductServic
         });
     }
     
+    /// <summary>
+    /// Exporta una lista de productos a un archivo JSON.
+    /// </summary>
+    /// <param name="entities">Lista de productos a exportar.</param>
+    /// <returns>Archivo JSON con los productos exportados.</returns>
     public async Task<FileStream> Export(List<Base.Models.Product> entities)
     {
         _logger.LogInformation("Exporting Products to JSON file...");

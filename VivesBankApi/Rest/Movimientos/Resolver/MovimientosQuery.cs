@@ -9,13 +9,19 @@ using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 
 namespace VivesBankApi.Rest.Movimientos.Resolver;
 
+
+
 public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMeQueriesService movimientoMeQueriesService, IDomiciliacionService domiciliacionService, IHttpContextAccessor httpContextAccessor)
 {
 
-        // [UsePaging]
-        // [UseFiltering]
-        // [UseSorting]
-        // [Authorize(Policy = "Admin")]
+        /// <summary>
+        /// Obtiene todos los movimientos registrados en el sistema.
+        /// </summary>
+        /// <remarks>
+        /// Este endpoint devuelve una lista de todos los movimientos disponibles. 
+        /// Requiere permisos de administrador.
+        /// </remarks>
+        /// <returns>Lista de movimientos</returns>
         public async Task<IQueryable<Movimiento>> GetMovimientos()
         {
             var movimientosList = await movimientoService.FindAllMovimientosAsync();
@@ -32,7 +38,14 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             }).AsQueryable();
         }
         
-        //[Authorize(Policy = "Admin")]
+        /// <summary>
+        /// Obtiene un movimiento específico por su ID.
+        /// </summary>
+        /// <param name="id">El ID del movimiento a recuperar</param>
+        /// <remarks>
+        /// Si el movimiento no se encuentra, se lanzará un error.
+        /// </remarks>
+        /// <returns>Movimiento encontrado</returns>
         public async Task<Movimiento> GetMovimientoById(String id)
         {
             var movimiento =  await movimientoService.FindMovimientoByIdAsync(id);
@@ -50,10 +63,11 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             };
         }
         
-        // [UsePaging]
-        // [UseFiltering]
-        // [UseSorting]
-       // [Authorize(Policy = "User")]
+        /// <summary>
+        /// Obtiene los movimientos de un cliente específico basado en su GUID.
+        /// </summary>
+        /// <param name="clienteGuid">El GUID del cliente para filtrar los movimientos</param>
+        /// <returns>Lista de movimientos para ese cliente</returns>
         public async Task<IQueryable<Movimiento>> GetMovimientosByCliente(string clienteGuid)
         {
             var movimientosList = await movimientoService.FindAllMovimientosByClientAsync(clienteGuid);
@@ -72,6 +86,14 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
         }
         
         
+        /// <summary>
+        /// Obtiene un movimiento específico por su GUID.
+        /// </summary>
+        /// <param name="guid">El GUID del movimiento a recuperar</param>
+        /// <remarks>
+        /// Si el movimiento no se encuentra, se lanzará un error.
+        /// </remarks>
+        /// <returns>Movimiento encontrado</returns>
         public async Task<Movimiento> GetMovimientoByGuid(string guid)
         {
             var movimiento =  await movimientoService.FindMovimientoByGuidAsync(guid);
@@ -88,6 +110,13 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             };
         }
         
+        /// <summary>
+        /// Obtiene las domiciliaciones activas de un cliente autenticado.
+        /// </summary>
+        /// <remarks>
+        /// Este endpoint solo está disponible para usuarios autenticados. Si el usuario no está autenticado, se lanza un error.
+        /// </remarks>
+        /// <returns>Lista de domiciliaciones activas del cliente</returns>
         [Authorize]
         public async Task<IQueryable<Domiciliacion>> GetDomciliacionesActivasByCliente()
         {
@@ -112,6 +141,13 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             }).AsQueryable();
         }
 
+        /// <summary>
+        /// Obtiene los movimientos relacionados con domiciliaciones para el cliente autenticado.
+        /// </summary>
+        /// <remarks>
+        /// Este endpoint solo está disponible para clientes autenticados.
+        /// </remarks>
+        /// <returns>Lista de movimientos de domiciliación para el cliente</returns>
         [Authorize]
         public async Task<IQueryable<Movimiento>> GetMovimientosDomiciliacionByCliente()
         {
@@ -135,6 +171,15 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             }).AsQueryable();
         }
 
+        
+        /// <summary>
+        /// Obtiene los movimientos de transferencia relacionados con el cliente autenticado.
+        /// </summary>
+        /// <remarks>
+        /// Este endpoint solo está disponible para clientes autenticados. 
+        /// Si el cliente no está autenticado, se lanzará un error de autenticación.
+        /// </remarks>
+        /// <returns>Lista de movimientos de transferencia del cliente autenticado</returns>
         [Authorize]
         public async Task<IQueryable<Movimiento>> GetMovimientosTransferenciaByClienteGuidAsync()
         {
@@ -158,6 +203,14 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             }).AsQueryable();
         }
 
+        /// <summary>
+        /// Obtiene los movimientos de pago con tarjeta relacionados con el cliente autenticado.
+        /// </summary>
+        /// <remarks>
+        /// Este endpoint solo está disponible para clientes autenticados. 
+        /// Si el cliente no está autenticado, se lanzará un error de autenticación.
+        /// </remarks>
+        /// <returns>Lista de movimientos de pago con tarjeta del cliente autenticado</returns>
         [Authorize]
         public async Task<IQueryable<Movimiento>> GetMovimientosPagoConTarjetaByClienteGuidAsync()
         {
@@ -181,6 +234,14 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             }).AsQueryable();
         }
         
+        /// <summary>
+        /// Obtiene los movimientos de ingreso de nómina relacionados con el cliente autenticado.
+        /// </summary>
+        /// <remarks>
+        /// Este endpoint solo está disponible para clientes autenticados. 
+        /// Si el cliente no está autenticado, se lanzará un error de autenticación.
+        /// </remarks>
+        /// <returns>Lista de movimientos de ingreso de nómina del cliente autenticado</returns>
         [Authorize]
         public async Task<IQueryable<Movimiento>> GetMovimientosIngresoDeNominaByClienteGuidAsync()
         {
@@ -204,6 +265,14 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             }).AsQueryable();
         }
 
+        /// <summary>
+        /// Obtiene todos los movimientos de un cliente autenticado.
+        /// </summary>
+        /// <remarks>
+        /// Este endpoint solo está disponible para clientes autenticados. 
+        /// Si el cliente no está autenticado, se lanzará un error de autenticación.
+        /// </remarks>
+        /// <returns>Lista de todos los movimientos del cliente autenticado</returns>
         [Authorize]
         public async Task<IQueryable<Movimiento>> GetMovimientosMeByClienteGuidAsync()
         {
@@ -228,6 +297,14 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             }).AsQueryable();
         }
         
+        /// <summary>
+        /// Obtiene los movimientos de transferencia revocada relacionados con el cliente autenticado.
+        /// </summary>
+        /// <remarks>
+        /// Este endpoint solo está disponible para clientes autenticados. 
+        /// Si el cliente no está autenticado, se lanzará un error de autenticación.
+        /// </remarks>
+        /// <returns>Lista de movimientos de transferencia revocada del cliente autenticado</returns>
         [Authorize]
         public async Task<IQueryable<Movimiento>> GetMovimientosTransferenciaRevocadaByClienteGuidAsync()
         {
