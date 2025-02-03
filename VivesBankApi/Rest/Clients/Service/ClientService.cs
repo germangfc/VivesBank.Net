@@ -673,7 +673,7 @@ public class ClientService : GenericStorageJson<Client>, IClientService
                
 
                 // Buscar usuario asociado al cliente
-                var clientToFound = await _clientRepository.GetByIdAsync(clientId);
+                var clientToFound = await _clientRepository.GetByIdAsync(clientId)?? throw new ClientExceptions.ClientNotFoundException(clientId);
                 var user = await _userRepository.GetByIdAsync(clientToFound.UserId);
                 if (user == null)
                 {
@@ -812,6 +812,32 @@ public class ClientService : GenericStorageJson<Client>, IClientService
             {
                 _logger.LogWarning($"DNI photo not found on FTP for user: {userId}");
                 throw new FileNotFoundException("DNI photo not found on FTP.");
+            }
+        }
+        
+        public async Task<bool> DeleteFileFromFtpAsync(string fileName)
+        {
+            _logger.LogInformation("Deleting file from FTP: {fileName}", fileName);
+
+            using (var client = new AsyncFtpClient(_fileStorageRemoteConfig.FtpHost, _fileStorageRemoteConfig.FtpUsername, _fileStorageRemoteConfig.FtpPassword))
+            {
+                await client.Connect();
+
+                string remotePath = $"{_fileStorageRemoteConfig.FtpDirectory}/{fileName}";
+                _logger.LogInformation($"FTP file path resolved to: {remotePath}");
+
+                if (!await client.FileExists(remotePath))
+                {
+                    _logger.LogWarning($"File not found on FTP server: {remotePath}");
+                    return false;
+                }
+
+                _logger.LogInformation($"File found on FTP server. Deleting: {remotePath}");
+                await client.DeleteFile(remotePath);
+                _logger.LogInformation($"File successfully deleted: {remotePath}");
+
+                await client.Disconnect();
+                return true;
             }
         }
 

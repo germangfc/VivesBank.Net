@@ -1228,13 +1228,32 @@ public class ClientServiceTests
     public void UpdateClientPhotoDniAsync_ShouldThrowClientNotFoundException_WhenClientNotFound()
     {
         var clientId = "123";
+        var userId = "testUserId";
+        
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId)
+        };
+        var identity = new ClaimsIdentity(claims, "mock");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+
+        var httpContextMock = new Mock<HttpContext>();
+        httpContextMock.Setup(x => x.User).Returns(claimsPrincipal);
+
+        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock.Object);
+        
         var fileMock = new Mock<IFormFile>();
         fileMock.Setup(f => f.Length).Returns(100);
-        _clientRepositoryMock.Setup(repo => repo.GetByIdAsync(clientId)).ReturnsAsync((Client)null);
+        fileMock.Setup(f => f.FileName).Returns("dni_example.jpg");
+        fileMock.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(new byte[100]));
+        
+        _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(userId)).ReturnsAsync((Client)null);
+        
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () =>
+            await _clientService.UpdateClientPhotoDniAsync(clientId, fileMock.Object));
 
-        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(() =>
-            _clientService.UpdateClientPhotoDniAsync(clientId, fileMock.Object));
-        Assert.That(ex.Message, Is.EqualTo($"Client not found by id El cliente con ClientId {clientId} no existe."));
+        Assert.That(ex.Message, Is.EqualTo($"Client not found by id {clientId}"));
     }
     
     [Test]
