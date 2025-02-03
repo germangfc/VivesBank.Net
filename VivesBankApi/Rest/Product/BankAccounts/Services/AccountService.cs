@@ -22,6 +22,14 @@ using VivesBankApi.WebSocket.Service;
 
 namespace VivesBankApi.Rest.Product.BankAccounts.Services;
 
+/// <summary>
+/// Implementación del servicio para gestionar cuentas bancarias.
+/// Proporciona métodos para crear, obtener, actualizar y eliminar cuentas bancarias, así como operaciones de paginación y notificaciones.
+/// </summary>
+/// <remarks>
+/// Autor: Raúl Fernández, Javier Hernández, Samuel Cortés, Germán, Álvaro Herrero, Tomás
+/// Versión: 1.0
+/// </remarks>
 public class AccountService : GenericStorageJson<Account>, IAccountsService
 {
     private readonly IAccountsRepository _accountsRepository;
@@ -33,6 +41,19 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
     private readonly IUserService _userService;
     private readonly IWebsocketHandler _websocketHandler;
 
+    
+    /// <summary>
+    /// Constructor de la clase <see cref="AccountService"/>.
+    /// </summary>
+    /// <param name="logger">Instancia del logger.</param>
+    /// <param name="ibanGenerator">Generador de IBAN.</param>
+    /// <param name="clientRepository">Repositorio de clientes.</param>
+    /// <param name="productRepository">Repositorio de productos.</param>
+    /// <param name="accountsRepository">Repositorio de cuentas.</param>
+    /// <param name="connection">Conexión a la base de datos.</param>
+    /// <param name="httpContextAccessor">Accesor para el contexto HTTP.</param>
+    /// <param name="userService">Servicio de usuario.</param>
+    /// <param name="websocketHandler">Manejador de WebSockets para notificaciones.</param>
     public AccountService(
         ILogger<AccountService> logger, 
         IIbanGenerator ibanGenerator,
@@ -55,11 +76,23 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         _websocketHandler = websocketHandler;
     }
     
+    /// <summary>
+    /// Obtiene todas las cuentas bancarias.
+    /// </summary>
+    /// <returns>Lista de todas las cuentas bancarias.</returns>
     public async Task<List<Account>> GetAll()
     {
         return await _accountsRepository.GetAllAsync();
     }
     
+    /// <summary>
+    /// Obtiene todas las cuentas bancarias con paginación y ordenación.
+    /// </summary>
+    /// <param name="pageNumber">Número de página (por defecto 0).</param>
+    /// <param name="pageSize">Número de elementos por página (por defecto 10).</param>
+    /// <param name="sortBy">Campo por el cual ordenar (por defecto "id").</param>
+    /// <param name="direction">Dirección de ordenación: "asc" o "desc" (por defecto "asc").</param>
+    /// <returns>Respuesta con las cuentas bancarias paginadas.</returns>
     public async Task<PageResponse<AccountResponse>> GetAccountsAsync(int pageNumber = 0, int pageSize = 10, string sortBy = "id", string direction = "asc")
     {
         _logger.LogInformation("Getting all accounts with pagination");
@@ -86,6 +119,12 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         return response;
     }
 
+    /// <summary>
+    /// Obtiene una cuenta bancaria por su ID.
+    /// </summary>
+    /// <param name="id">ID de la cuenta bancaria.</param>
+    /// <returns>Detalles de la cuenta.</returns>
+    /// <exception cref="AccountsExceptions.AccountNotFoundException">Lanzado cuando la cuenta no se encuentra.</exception>
     public async Task<AccountResponse> GetAccountByIdAsync(string id)
     {
         _logger.LogInformation($"Getting account by id: {id}");
@@ -94,6 +133,12 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         return result.toResponse();
     }
 
+    /// <summary>
+    /// Obtiene todas las cuentas bancarias asociadas a un cliente por su ID.
+    /// </summary>
+    /// <param name="clientId">ID del cliente.</param>
+    /// <returns>Lista de cuentas bancarias asociadas al cliente.</returns>
+    /// <exception cref="AccountsExceptions.AccountNotFoundException">Lanzado cuando no se encuentran cuentas para el cliente.</exception>
     public async Task<List<AccountResponse>> GetAccountByClientIdAsync(string clientId)
     {
         _logger.LogInformation($"Getting account by client id: {clientId}");
@@ -112,6 +157,13 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         var accounts = await _accountsRepository.getAccountByClientIdAsync(client.Id);
         return accounts.Select(a => a.toResponse()).ToList();
     }
+    
+    /// <summary>
+    /// Obtiene todas las cuentas completas asociadas a un cliente por su ID.
+    /// </summary>
+    /// <param name="clientId">ID del cliente.</param>
+    /// <returns>Lista de cuentas completas asociadas al cliente.</returns>
+    /// <exception cref="AccountsExceptions.AccountNotFoundException">Lanzado cuando no se encuentran cuentas completas para el cliente.</exception>
     public async Task<List<AccountCompleteResponse>> GetCompleteAccountByClientIdAsync(string clientId)
     {
         _logger.LogInformation($"Getting complete accounts by client id: {clientId}");
@@ -120,6 +172,12 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         return res.Select(a => a.toCompleteResponse()).ToList();
     }
 
+    /// <summary>
+    /// Obtiene una cuenta bancaria por su IBAN.
+    /// </summary>
+    /// <param name="iban">IBAN de la cuenta.</param>
+    /// <returns>Detalles de la cuenta asociada al IBAN.</returns>
+    /// <exception cref="AccountsExceptions.AccountNotFoundByIban">Lanzado cuando no se encuentra la cuenta por el IBAN proporcionado.</exception>
     public async Task<AccountResponse> GetAccountByIbanAsync(string iban)
     {
         _logger.LogInformation($"Getting account by IBAN {iban}");
@@ -135,6 +193,12 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         return result.toCompleteResponse();
     }
 
+    /// <summary>
+    /// Crea una nueva cuenta bancaria para un cliente registrado.
+    /// </summary>
+    /// <param name="request">Detalles de la cuenta a crear.</param>
+    /// <returns>Detalles de la cuenta creada.</returns>
+    /// <exception cref="AccountsExceptions.AccountNotCreatedException">Lanzado cuando no se puede crear la cuenta.</exception>
     public async Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request)
     {
         _logger.LogInformation("Creating account for Client registered on the system");
@@ -173,7 +237,10 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         return account.toResponse();
     }
 
-    
+    /// <summary>
+    /// Elimina una cuenta bancaria asociada al IBAN proporcionado.
+    /// </summary>
+    /// <param name="iban">IBAN de la cuenta a eliminar.</param>
     public async Task DeleteMyAccountAsync(String iban)
     {
         _logger.LogInformation("Deleting my account with iban: " +iban);
@@ -192,12 +259,23 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         await _cache.KeyDeleteAsync("account:" + accountToDelete.IBAN);
     }
 
+    /// <summary>
+    /// Actualiza una cuenta bancaria con nuevos detalles.
+    /// </summary>
+    /// <param name="id">ID de la cuenta a actualizar.</param>
+    /// <param name="request">Detalles de la actualización de la cuenta.</param>
+    /// <returns>Detalles de la cuenta actualizada.</returns>
+    /// <exception cref="AccountsExceptions.AccountNotFoundException">Lanzado cuando no se encuentra la cuenta.</exception>
+    /// <exception cref="AccountsExceptions.AccountNotUpdatedException">Lanzado cuando no se puede actualizar la cuenta.</exception>
+    /// <exception cref="AccountsExceptions.AccountNotCreatedException">Lanzado cuando no se puede crear la cuenta asociada.</exception>
+    /// <exception cref="AccountsExceptions.AccountIbanNotValid">Lanzado cuando el IBAN proporcionado no es válido.</exception>
     public async Task<AccountCompleteResponse> UpdateAccountAsync(string id, UpdateAccountRequest request)
     {
-        _logger.LogInformation($"Updating account with id {id}");
-        
+        _logger.LogInformation($"Actualizando cuenta con ID {id}");
+
         var account = await GetByIdAsync(id) ?? throw new AccountsExceptions.AccountNotFoundException(id);
         
+        // Validaciones de producto, cliente y formato del IBAN
         if (await _productRepository.GetByIdAsync(request.ProductID) == null)
             throw new AccountsExceptions.AccountNotUpdatedException(id);
         
@@ -210,17 +288,22 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         if (!Enum.IsDefined(typeof(AccountType), request.AccountType)) 
             throw new AccountsExceptions.AccountNotUpdatedException(id);
 
+        // Actualización de la cuenta
         account.Balance = request.Balance;
         account.UpdatedAt = DateTime.UtcNow;
         
         await _accountsRepository.UpdateAsync(account);
         return account.toCompleteResponse();
-        
     }
 
+    /// <summary>
+    /// Elimina una cuenta bancaria de la base de datos.
+    /// </summary>
+    /// <param name="id">ID de la cuenta a eliminar.</param>
+    /// <exception cref="AccountsExceptions.AccountNotFoundException">Lanzado cuando no se encuentra la cuenta.</exception>
     public async Task DeleteAccountAsync(string id)
     {
-        _logger.LogInformation($"Deleting account with ID {id}");
+        _logger.LogInformation($"Eliminando cuenta con ID {id}");
         var result = await GetByIdAsync(id);
         if (result == null) throw new AccountsExceptions.AccountNotFoundException(id);
         result.IsDeleted = true;
@@ -228,17 +311,22 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         await _cache.KeyDeleteAsync(id);
         await _cache.KeyDeleteAsync("account:" + result.IBAN);
     }
-    
+
+    /// <summary>
+    /// Obtiene una cuenta bancaria por su ID, primero verificando la caché.
+    /// </summary>
+    /// <param name="id">ID de la cuenta.</param>
+    /// <returns>Cuenta bancaria correspondiente al ID, si existe.</returns>
     private async Task<Account?> GetByIdAsync(string id)
     {
-        // Try to get from cache first
+        // Intentamos obtener la cuenta de la caché primero
         var cachedAccount = await _cache.StringGetAsync(id);
         if (!cachedAccount.IsNullOrEmpty)
         {
             return JsonConvert.DeserializeObject<Account>(cachedAccount);
         }
 
-        // If not in cache, get from DB and cache it
+        // Si no está en caché, la obtenemos de la base de datos y la almacenamos en caché
         Account? account = await _accountsRepository.GetByIdAsync(id);
         if (account != null)
         {
@@ -247,17 +335,22 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         }
         return null;
     }
-    
+
+    /// <summary>
+    /// Obtiene una cuenta bancaria por su IBAN, verificando la caché primero.
+    /// </summary>
+    /// <param name="iban">IBAN de la cuenta.</param>
+    /// <returns>Cuenta bancaria correspondiente al IBAN, si existe.</returns>
     private async Task<Account?> GetByIbanAsync(string iban)
     {
-        // Try to get from cache first
+        // Intentamos obtener la cuenta de la caché primero
         var cachedAccount = await _cache.StringGetAsync("account:" + iban);
         if (!cachedAccount.IsNullOrEmpty)
         {
             return JsonConvert.DeserializeObject<Account>(cachedAccount);
         }
 
-        // If not in cache, get from DB and cache it
+        // Si no está en caché, la obtenemos de la base de datos y la almacenamos en caché
         Account? account = await _accountsRepository.getAccountByIbanAsync(iban);
         if (account != null)
         {
@@ -266,7 +359,13 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         }
         return null;
     }
-    
+
+    /// <summary>
+    /// Envia una notificación de creación de una cuenta bancaria a través de WebSocket.
+    /// </summary>
+    /// <typeparam name="T">Tipo de dato de la cuenta.</typeparam>
+    /// <param name="user">Usuario al que se enviará la notificación.</param>
+    /// <param name="t">Datos de la cuenta que se han creado.</param>
     public async Task EnviarNotificacionCreateAsync<T>(UserResponse user, T t)
     {
         var notificacion = new Notification<T>
@@ -276,7 +375,15 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
             Data = t
         };
         await _websocketHandler.NotifyUserAsync(user.Id, notificacion);
-    }public async Task EnviarNotificacionDeleteAsync<T>(UserResponse user, T t)
+    }
+
+    /// <summary>
+    /// Envia una notificación de eliminación de una cuenta bancaria a través de WebSocket.
+    /// </summary>
+    /// <typeparam name="T">Tipo de dato de la cuenta.</typeparam>
+    /// <param name="user">Usuario al que se enviará la notificación.</param>
+    /// <param name="t">Datos de la cuenta que se han eliminado.</param>
+    public async Task EnviarNotificacionDeleteAsync<T>(UserResponse user, T t)
     {
         var notificacion = new Notification<T>
         {
@@ -287,9 +394,14 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
         await _websocketHandler.NotifyUserAsync(user.Id, notificacion);
     }
 
+    /// <summary>
+    /// Importa cuentas bancarias desde un archivo JSON.
+    /// </summary>
+    /// <param name="fileStream">Archivo JSON que contiene las cuentas a importar.</param>
+    /// <returns>Un flujo de observables que emite las cuentas importadas.</returns>
     public IObservable<Account> Import(IFormFile fileStream)
     {
-        _logger.LogInformation("Starting to import accounts from JSON file.");
+        _logger.LogInformation("Iniciando importación de cuentas desde archivo JSON.");
 
         return Observable.Create<Account>(async (observer, cancellationToken) =>
         {
@@ -312,12 +424,12 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
                     
                         if (account != null)
                         {
-                            _logger.LogInformation($"Deserialized Account: {account.Id}"); 
+                            _logger.LogInformation($"Cuenta deserializada: {account.Id}"); 
                             observer.OnNext(account);
                         }
                         else
                         {
-                            _logger.LogWarning("Failed to deserialize an account.");
+                            _logger.LogWarning("Error al deserializar una cuenta.");
                         }
                     }
                 }
@@ -326,17 +438,20 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error while processing the JSON file: {ex.Message}");
+                _logger.LogError($"Error al procesar el archivo JSON: {ex.Message}");
                 observer.OnError(ex);
             }
         });
     }
 
-
-    
+    /// <summary>
+    /// Exporta las cuentas bancarias a un archivo JSON.
+    /// </summary>
+    /// <param name="entities">Lista de cuentas bancarias a exportar.</param>
+    /// <returns>Flujo de archivo JSON que contiene las cuentas exportadas.</returns>
     public async Task<FileStream> Export(List<Account> entities)
     {
-        _logger.LogInformation("Exporting Accounts to JSON file...");
+        _logger.LogInformation("Exportando cuentas a archivo JSON...");
 
         var json = JsonConvert.SerializeObject(entities, Formatting.Indented);
 
@@ -352,7 +467,7 @@ public class AccountService : GenericStorageJson<Account>, IAccountsService
 
         await File.WriteAllTextAsync(filePath, json);
 
-        _logger.LogInformation($"File written to: {filePath}");
+        _logger.LogInformation($"Archivo escrito en: {filePath}");
 
         return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }

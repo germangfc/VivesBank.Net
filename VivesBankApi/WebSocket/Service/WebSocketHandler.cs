@@ -6,67 +6,93 @@ using VivesBankApi.WebSocket.Model;
 
 namespace VivesBankApi.WebSocket.Service;
 
+/// <summary>
+/// Implementation of IWebsocketHandler that handles WebSocket connections and notifications.
+/// </summary>
 public class WebSocketHandler : IWebsocketHandler
 {
     private readonly ILogger _logger;
     private readonly List<System.Net.WebSockets.WebSocket> _sockets = new();
     private readonly ConcurrentDictionary<string, System.Net.WebSockets.WebSocket> _userSockets = new();
 
+    /// <summary>
+    /// Initializes a new instance of the WebSocketHandler class.
+    /// </summary>
+    /// <param name="logger">Logger instance to log information and errors.</param>
     public WebSocketHandler(ILogger<WebSocketHandler> logger)
     {
         _logger = logger;
     }
 
-    // Este método se encarga de manejar las conexiones WebSocket entrantes
+    /// <summary>
+    /// Handles incoming WebSocket connections.
+    /// </summary>
+    /// <param name="webSocket">The WebSocket connection to handle.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task HandleAsync(System.Net.WebSockets.WebSocket webSocket)
     {
         _logger.LogInformation("WebSocket connected from {0}", webSocket);
-        _sockets.Add(webSocket);
+        _sockets.Add(webSocket); // Add WebSocket to the list of active connections
 
-        var buffer = new byte[1024 * 4]; // Buffer para leer los datos del WebSocket
+        var buffer = new byte[1024 * 4]; // Buffer to read data from the WebSocket
         var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-        // Mientras la conexión esté abierta, leemos los datos del WebSocket
+        // Keep reading data while the WebSocket connection is open
         while (!result.CloseStatus.HasValue)
-            // Convertimos los datos recibidos a texto
             result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-        // Cerramos la conexión WebSocket y la eliminamos de la lista
+        // Remove WebSocket from the list and close the connection
         _sockets.Remove(webSocket);
         await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
     }
 
-    // Este método se encarga de enviar un mensaje a todos los clientes conectados
+    /// <summary>
+    /// Sends a notification to all connected WebSocket clients.
+    /// </summary>
+    /// <typeparam name="T">The type of the notification data.</typeparam>
+    /// <param name="notification">The notification to send to all clients.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task NotifyAllAsync<T>(Notification<T> notification)
     {
-        // Escribimos e ignoramos los valores nulos para evitar errores de serialización e idnetamos
-        var jsonSettings = new JsonSerializerSettings { 
+        // Serialize notification to JSON while ignoring null values
+        var jsonSettings = new JsonSerializerSettings
+        {
             NullValueHandling = NullValueHandling.Ignore,
             Formatting = Formatting.Indented
         };
         var json = JsonConvert.SerializeObject(notification, jsonSettings);
         _logger.LogInformation($"Notifying all clients: {json}");
+
         var buffer = Encoding.UTF8.GetBytes(json);
-        // Enviamos el mensaje a todos los clientes conectados
+
+        // Send the notification to all connected WebSocket clients
         var tasks = _sockets.Select(socket =>
-                socket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true,
-                    CancellationToken.None))
+            socket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None))
             .ToArray();
-        await Task.WhenAll(tasks); // Esperamos a que todos los envíos se completen
+        await Task.WhenAll(tasks); // Wait for all messages to be sent
     }
-    
+
+    /// <summary>
+    /// Sends a notification to a specific user via WebSocket.
+    /// </summary>
+    /// <typeparam name="T">The type of the notification data.</typeparam>
+    /// <param name="username">The username of the user to notify.</param>
+    /// <param name="notification">The notification to send.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task NotifyUserAsync<T>(string username, Notification<T> notification)
     {
+        // Try to find the WebSocket for the specific user
         if (_userSockets.TryGetValue(username, out var socket))
         {
-            var jsonSettings = new JsonSerializerSettings 
+            var jsonSettings = new JsonSerializerSettings
             {
                 NullValueHandling = NullValueHandling.Ignore,
                 Formatting = Formatting.Indented
             };
             var json = JsonConvert.SerializeObject(notification, jsonSettings);
             var buffer = Encoding.UTF8.GetBytes(json);
-        
+
+            // Send the notification to the specific user
             await socket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
             _logger.LogInformation($"Notification sent to {username}: {json}");
         }
@@ -75,26 +101,32 @@ public class WebSocketHandler : IWebsocketHandler
             _logger.LogWarning($"User '{username}' not found.");
         }
     }
-    
- 
 
+    /// <summary>
+    /// Handles an authenticated WebSocket connection and associates it with a specific user.
+    /// </summary>
+    /// <param name="webSocket">The WebSocket connection of the authenticated user.</param>
+    /// <param name="username">The username of the authenticated user.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task HandleAuthenticatedAsync(System.Net.WebSockets.WebSocket webSocket, string username)
     {
         _logger.LogInformation($"WebSocket connected for user: {username}");
+
+        // Add or update the WebSocket connection for the specific user
         _userSockets.AddOrUpdate(username, webSocket, (key, oldValue) => webSocket);
         _logger.LogInformation($"Number of connected users: {_userSockets.Count}");
-    
+
         var buffer = new byte[1024 * 4];
         var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-    
+
+        // Keep reading data while the WebSocket connection is open
         while (!result.CloseStatus.HasValue)
         {
             result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
         }
-    
+
+        // Remove the WebSocket connection for the user when it closes
         _userSockets.TryRemove(username, out _);
         await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
     }
-
-
 }
