@@ -4,12 +4,6 @@ using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace VivesBankApi.Rest.Clients.Service
 {
-    /// <summary>
-    /// Interfaz que define los métodos necesarios para interactuar con los servicios relacionados con los clientes.
-    /// Esta interfaz hereda de IGenericStorageJson<Client> para operaciones comunes sobre el almacenamiento de clientes.
-    /// </summary>
-    /// <author>Raul Fernandez, Javier Hernandez, Samuel Cortes, Alvaro Herrero, German, Tomas</author>
-    /// <version>1.0</version>
     public interface IClientService : IGenericStorageJson<Client>
     {
         /// <summary>

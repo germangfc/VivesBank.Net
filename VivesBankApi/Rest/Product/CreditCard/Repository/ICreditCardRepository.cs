@@ -1,12 +1,6 @@
 ﻿using ApiFunkosCS.Utils.GenericRepository;
 using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Models;
-
-
-/// <summary>
-/// Define los métodos para interactuar con las tarjetas de crédito en el repositorio.
-/// Hereda de `IGenericRepository<CreditCard>`, añadiendo operaciones específicas para las tarjetas de crédito.
-/// </summary>
 public interface ICreditCardRepository : IGenericRepository<CreditCard>
 {
     /// <summary>

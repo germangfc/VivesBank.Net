@@ -9,13 +9,6 @@
     /// </remarks>
     public class MongoDatabaseConfig
     {
-        /// <summary>
-        /// Cadena de conexión a la base de datos MongoDB.
-        /// </summary>
-        /// <remarks>
-        /// Este valor se utiliza para conectar con la base de datos MongoDB y debe seguir el formato estándar de conexión
-        /// de MongoDB, como: "mongodb://<usuario>:<contraseña>@<servidor>:<puerto>/<base_de_datos>".
-        /// </remarks>
         public string ConnectionString { get; set; } = null!;
 
         /// <summary>
