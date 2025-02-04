@@ -3,6 +3,7 @@
 WORKDIR /src
 COPY . .
 COPY ./VivesBankApi/Scripts /src/Scripts
+COPY ./ftp_data /src/ftp_data
 
 # Coverage
 ARG DOCKER_HOST_ARG=tcp://host.docker.internal:2375

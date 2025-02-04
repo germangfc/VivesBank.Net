@@ -68,9 +68,6 @@ public class ClientServiceTests
     [OneTimeSetUp]
     public async Task InitializeAsync()
     {
-        var baseDirectory = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetCurrentDirectory()).ToString()).ToString()).ToString()).ToString();
-        var folderPath = Directory.GetDirectories(baseDirectory, "*", SearchOption.AllDirectories)
-            .FirstOrDefault(dir => dir.EndsWith("ftp_data", StringComparison.OrdinalIgnoreCase));
         _ftpContainer = new ContainerBuilder()
             .WithImage("fauria/vsftpd")
             .WithPortBinding(21, 21)
@@ -80,8 +77,7 @@ public class ClientServiceTests
             .WithEnvironment("PASV_ADDRESS", "127.0.0.1")
             .WithEnvironment("PASV_MIN_PORT", "21000")
             .WithEnvironment("PASV_MAX_PORT", "21000")
-            .WithEnvironment("FTP_HOME", "/home/vsftpd")
-            .WithBindMount(folderPath, "/home/vsftpd")
+            .WithEnvironment("FTP_HOME", "/home/vsftpd/myuser")
             .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(21))
             .Build();
         
@@ -90,7 +86,7 @@ public class ClientServiceTests
         var inMemorySettings = new Dictionary<string, string>
         {
             { "FileStorageRemoteConfig:FtpHost", _ftpContainer.Hostname },
-            { "FileStorageRemoteConfig:FtpPort", _ftpContainer.GetMappedPublicPort(21).ToString() },
+            { "FileStorageRemoteConfig:FtpPort", "21" },
             { "FileStorageRemoteConfig:FtpUsername", "myuser" },
             { "FileStorageRemoteConfig:FtpPassword", "mypass" },
             { "FileStorageRemoteConfig:FtpDirectory", "/home/vsftpd" },
@@ -195,6 +191,8 @@ public class ClientServiceTests
         // Arrange
         var clientId = "123";
         var fileName = "defaultDni.png";
+        var fileContent = "This is a test file.";
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
         
         _clientRepositoryMock.Setup(repo => repo.getByUserIdAsync(It.IsAny<string>())).ReturnsAsync(new Client { PhotoDni = fileName }); 
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new[]
@@ -202,6 +200,14 @@ public class ClientServiceTests
             new Claim(ClaimTypes.NameIdentifier, clientId)
         }));
         _httpContextAccessorMock.Setup(h => h.HttpContext.User).Returns(claimsPrincipal);
+        
+        var formFile = new FormFile(stream, 0, stream.Length, "file", fileName)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "image/png"
+        };
+        
+        await _clientService.SaveFileToFtpAsync(formFile, fileName);
 
         // Act
         var fileStream = await _clientService.GettingMyDniPhotoFromFtpAsync();
@@ -1276,7 +1282,7 @@ public class ClientServiceTests
         _userServiceMock.Setup(x => x.GetUserByIdAsync(It.IsAny<string>()))
             .ReturnsAsync(new UserResponse { Id = "userId123", Dni = "123456789" });
 
-        var expectedFileName = "PROFILE-123456789-20250203.jpg";  
+        var expectedFileName = "PROFILE-123456789-20250204.jpg";  
         _ftpServiceMock.Setup(x => x.SaveFileAsync(It.IsAny<IFormFile>(), It.IsAny<string>()))
             .ReturnsAsync(expectedFileName);  
         
