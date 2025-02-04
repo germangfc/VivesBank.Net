@@ -6,7 +6,6 @@ using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 using VivesBankApi.Rest.Clients.Dto;
 using VivesBankApi.Rest.Clients.Exceptions;
-using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
@@ -15,6 +14,8 @@ using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using VivesBankApi.Rest.Product.BankAccounts.Dto;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
+using VivesBankApi.Rest.Product.CreditCard.Dto;
+using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Service;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Models;
@@ -576,6 +577,163 @@ public class MovimientoServiceTests
         _mockWebsocketHandler.Verify(ws => ws.NotifyUserAsync(user.Id, It.IsAny<Notification<Movimiento>>()), Times.Once);
     }
 
+    [Test]
+    public void TestAddIngresoDeNominaAsync_ShouldThrowException_WhenInvalidAmount()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var ingresoDeNomina = new IngresoDeNomina { Cantidad = -10, IbanDestino = "ES6621000418401234567891", IbanOrigen = "ES7620770024003102575766", CifEmpresa = "A12345678" };
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<IngresoNominaInvalidAmountException>(async () => await _movimientoService.AddIngresoDeNominaAsync(user, ingresoDeNomina));
+        ClassicAssert.AreEqual($"Invalid Payroll Income amount ({ingresoDeNomina.Cantidad})", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddIngresoDeNominaAsync_ShouldThrowException_WhenInvalidDestinationIban()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var ingresoDeNomina = new IngresoDeNomina { Cantidad = 100, IbanDestino = "INVALID_IBAN", IbanOrigen = "ES7620770024003102575766", CifEmpresa = "A12345678" };
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<InvalidDestinationIbanException>(async () => await _movimientoService.AddIngresoDeNominaAsync(user, ingresoDeNomina));
+        ClassicAssert.AreEqual($"Destination IBAN not valid: {ingresoDeNomina.IbanDestino}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddIngresoDeNominaAsync_ShouldThrowException_WhenInvalidSourceIban()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var ingresoDeNomina = new IngresoDeNomina { Cantidad = 100, IbanDestino = "ES6621000418401234567891", IbanOrigen = "INVALID_IBAN", CifEmpresa = "A12345678" };
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<InvalidSourceIbanException>(async () => await _movimientoService.AddIngresoDeNominaAsync(user, ingresoDeNomina));
+        ClassicAssert.AreEqual($"Origin IBAN not valid: {ingresoDeNomina.IbanOrigen}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddIngresoDeNominaAsync_ShouldThrowException_WhenInvalidCif()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var ingresoDeNomina = new IngresoDeNomina { Cantidad = 100, IbanDestino = "ES6621000418401234567891", IbanOrigen = "ES7620770024003102575766", CifEmpresa = "INVALID_CIF" };
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<InvalidCifException>(async () => await _movimientoService.AddIngresoDeNominaAsync(user, ingresoDeNomina));
+        ClassicAssert.AreEqual($"Invalid CIF: {ingresoDeNomina.CifEmpresa}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddIngresoDeNominaAsync_ShouldThrowException_WhenClientNotFound()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var ingresoDeNomina = new IngresoDeNomina { Cantidad = 100, IbanDestino = "ES6621000418401234567891", IbanOrigen = "ES7620770024003102575766", CifEmpresa = "B76543214" };
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync((ClientResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () => await _movimientoService.AddIngresoDeNominaAsync(user, ingresoDeNomina));
+        ClassicAssert.AreEqual($"Client not found by id {user.Id}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddIngresoDeNominaAsync_ShouldThrowException_WhenAccountNotFoundByIban()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var ingresoDeNomina = new IngresoDeNomina { Cantidad = 100, IbanDestino = "ES6621000418401234567891", IbanOrigen = "ES7620770024003102575766", CifEmpresa = "B76543214" };
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(new ClientResponse() { Id = "client1" });
+        _mockAccountsService.Setup(s => s.GetCompleteAccountByIbanAsync(ingresoDeNomina.IbanDestino)).ReturnsAsync((AccountCompleteResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AccountsExceptions.AccountNotFoundByIban>(async () => await _movimientoService.AddIngresoDeNominaAsync(user, ingresoDeNomina));
+        ClassicAssert.AreEqual($"Account not found by IBAN {ingresoDeNomina.IbanDestino}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public async Task TestAddIngresoDeNominaAsync_ShouldReturnMovimiento_WhenValid()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var ingresoDeNomina = new IngresoDeNomina { Cantidad = 100, IbanDestino = "ES6621000418401234567891", IbanOrigen = "ES7620770024003102575766", CifEmpresa = "B76543214" };
+        var client = new ClientResponse() { Id = "client1" };
+        var account = new AccountCompleteResponse() { ClientID = "client1", Balance = 1000 };
+        var updateAccountRequest = new UpdateAccountRequest { Balance = 1100 };
+        var updatedAccount = new AccountCompleteResponse() { ClientID = "client1", Balance = 1100 };
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(client);
+        _mockAccountsService.Setup(s => s.GetCompleteAccountByIbanAsync(ingresoDeNomina.IbanDestino)).ReturnsAsync(account);
+        _mockAccountsService.Setup(s => s.UpdateAccountAsync(client.Id, It.IsAny<UpdateAccountRequest>())).ReturnsAsync(updatedAccount);
+        _mockMovimientoRepository.Setup(r => r.AddMovimientoAsync(It.IsAny<Movimiento>())).ReturnsAsync(new Movimiento { ClienteGuid = "client1", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false });
+
+        // Act
+        var result = await _movimientoService.AddIngresoDeNominaAsync(user, ingresoDeNomina);
+
+        // Assert
+        ClassicAssert.NotNull(result);
+        ClassicAssert.AreEqual("client1", result.ClienteGuid);
+        ClassicAssert.AreEqual(DateTime.UtcNow.Date, result.CreatedAt.Value.Date);
+        ClassicAssert.AreEqual(DateTime.UtcNow.Date, result.UpdatedAt.Value.Date);
+        _mockMovimientoRepository.Verify(r => r.AddMovimientoAsync(It.IsAny<Movimiento>()), Times.Once);
+        _mockWebsocketHandler.Verify(w => w.NotifyUserAsync(user.Id, It.IsAny<Notification<Movimiento>>()), Times.Once);
+    }
+    
+    [Test]
+    public void TestAddPagoConTarjetaAsync_ShouldThrowException_WhenInvalidAmount()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var pagoConTarjeta = new PagoConTarjeta { Cantidad = -10, NumeroTarjeta = "4111111111111111" };
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<PagoTarjetaInvalidAmountException>(async () => await _movimientoService.AddPagoConTarjetaAsync(user, pagoConTarjeta));
+        ClassicAssert.AreEqual($"Invalid Card payment amount ({pagoConTarjeta.Cantidad})", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddPagoConTarjetaAsync_ShouldThrowException_WhenInvalidCardNumber()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var pagoConTarjeta = new PagoConTarjeta { Cantidad = 100, NumeroTarjeta = "INVALID_CARD_NUMBER" };
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<InvalidCardNumberException>(async () => await _movimientoService.AddPagoConTarjetaAsync(user, pagoConTarjeta));
+        ClassicAssert.AreEqual($"Invalid card number: {pagoConTarjeta.NumeroTarjeta}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddPagoConTarjetaAsync_ShouldThrowException_WhenClientNotFound()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var pagoConTarjeta = new PagoConTarjeta { Cantidad = 100, NumeroTarjeta = "4111111111111111" };
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync((ClientResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () => await _movimientoService.AddPagoConTarjetaAsync(user, pagoConTarjeta));
+        ClassicAssert.AreEqual($"Client not found by id {user.Id}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddPagoConTarjetaAsync_ShouldThrowException_WhenCreditCardNotFound()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var pagoConTarjeta = new PagoConTarjeta { Cantidad = 100, NumeroTarjeta = "4111111111111111" };
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(new ClientResponse() { Id = "client1" });
+        _mockCreditCardService.Setup(s => s.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta)).ReturnsAsync((CreditCardAdminResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<PagoTarjetaCreditCardNotFoundException>(async () => await _movimientoService.AddPagoConTarjetaAsync(user, pagoConTarjeta));
+        ClassicAssert.AreEqual($"Credit card payment: card with card number {pagoConTarjeta.NumeroTarjeta} not found ", ex.Message, "El mensaje de error no es el esperado.");
+    }
 }
 
 
