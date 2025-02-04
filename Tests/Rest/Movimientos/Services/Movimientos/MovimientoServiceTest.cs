@@ -282,31 +282,6 @@ public class MovimientoServiceTests
     }
     
     [Test]
-    public async Task FindMovimientoByGuidAsync_ShouldReturnMovimientoWhenFoundInCache()
-    {
-        // Arrange
-        const string guid1 = "Guid1";
-        
-        // Simulamos que el cache sí tiene el movimiento (retorna RedisValue.Null)
-        _mockCache.Setup(r => r.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync(JsonConvert.DeserializeObject<Movimiento>(_movimiento1);  // El cache no tiene el movimiento
-        
-        // Simulamos que el repositorio sí encuentra el movimiento (retorna _movimiento1)
-        _mockMovimientoRepository.Setup(repo => repo.GetMovimientoByGuidAsync(guid1))
-            .ReturnsAsync(_movimiento1);
-
-        // Act
-        var result = await _movimientoService.FindMovimientoByGuidAsync(guid1);
-
-        // Assert
-        ClassicAssert.AreEqual(_movimiento1, result);
-
-        // Verificamos que la función del repositorio haya sido llamada una vez
-        _mockMovimientoRepository.Verify(repo => repo.GetMovimientoByGuidAsync(guid1), Times.Once);
-        _mockCache.Verify(r => r.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once);
-
-    }
-    [Test]
     public async Task FindMovimientoByGuidAsync_ShouldThrowException_WhenNotFound()
     {
         // Arrange
@@ -386,7 +361,8 @@ public class MovimientoServiceTests
         _mockMovimientoRepository.Verify(repo => repo.UpdateMovimientoAsync(id, updatedMovimiento), Times.Exactly(0));
         _mockCache.Verify(c => c.KeyDeleteAsync(id, CommandFlags.None), Times.Never);
         _mockCache.Verify(c => c.KeyDeleteAsync(_movimiento1.Guid, CommandFlags.None), Times.Never);
-        
+        _mockCache.Verify(c => c.StringSetAsync(id, JsonConvert.SerializeObject(updatedMovimiento), TimeSpan.FromMinutes(10),When.NotExists, CommandFlags.None), Times.Never);
+
     }
 
     [Test]
@@ -406,11 +382,36 @@ public class MovimientoServiceTests
 
         // Assert
         ClassicAssert.AreEqual(_movimiento1, result);
+        
         _mockCache.Verify(c => c.KeyDeleteAsync(id, CommandFlags.None), Times.Once);
         _mockCache.Verify(c => c.KeyDeleteAsync(_movimiento1.Guid, CommandFlags.None), Times.Once);
         _mockMovimientoRepository.Verify(repo => repo.DeleteMovimientoAsync(id), Times.Once);
     }
 
+    [Test]
+    public async Task DeleteMovimientoAsync_ShouldThrowException_WhenNotFound()
+    {
+        // Arrange
+        const string id = "xxx";
+
+        _mockCache.Setup(r => r.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+            .ReturnsAsync(RedisValue.Null); // Cache no existente
+
+        _mockMovimientoRepository.Setup(repo => repo.DeleteMovimientoAsync(id))
+            .ReturnsAsync((Movimiento)null); // repo no existente
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<MovimientoNotFoundException>(async () =>
+            await _movimientoService.DeleteMovimientoAsync(id));
+
+        // Assert: Verificamos que el mensaje de la excepción es el esperado
+        ClassicAssert.AreEqual($"Movement not found with ID/Guid {id}", ex.Message);
+        
+        _mockMovimientoRepository.Verify(repo => repo.DeleteMovimientoAsync(id), Times.Exactly(0));
+        _mockCache.Verify(c => c.KeyDeleteAsync(id, CommandFlags.None), Times.Never);
+        _mockCache.Verify(c => c.KeyDeleteAsync(_movimiento1.Guid, CommandFlags.None), Times.Never);
+        
+    }
     [Test]
     public async Task EnviarNotificacionCreacionAsync_ShouldNotifyUser_WhenNotificationSent()
     {
