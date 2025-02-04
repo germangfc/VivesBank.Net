@@ -734,6 +734,73 @@ public class MovimientoServiceTests
         var ex = Assert.ThrowsAsync<PagoTarjetaCreditCardNotFoundException>(async () => await _movimientoService.AddPagoConTarjetaAsync(user, pagoConTarjeta));
         ClassicAssert.AreEqual($"Credit card payment: card with card number {pagoConTarjeta.NumeroTarjeta} not found ", ex.Message, "El mensaje de error no es el esperado.");
     }
+    
+    [Test]
+    public void TestAddPagoConTarjetaAsync_ShouldThrowException_WhenCreditCardNotAssigned()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var pagoConTarjeta = new PagoConTarjeta { Cantidad = 100, NumeroTarjeta = "1234567890123456" };
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(new ClientResponse() { Id = "client1" });
+        _mockCreditCardService.Setup(s => s.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta)).ReturnsAsync(new CreditCardAdminResponse() { Id = "card1" });
+        _mockAccountsService.Setup(s => s.GetCompleteAccountByClientIdAsync("client1")).ReturnsAsync(new List<AccountCompleteResponse>());
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<InvalidCardNumberException>(async () => await _movimientoService.AddPagoConTarjetaAsync(user, pagoConTarjeta));
+        ClassicAssert.AreEqual($"Invalid card number: {pagoConTarjeta.NumeroTarjeta}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddPagoConTarjetaAsync_ShouldThrowException_WhenAccountInsufficientBalance()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var pagoConTarjeta = new PagoConTarjeta { Cantidad = 1000, NumeroTarjeta = "4111111111111111" };
+
+        var clientAccounts = new List<AccountCompleteResponse>
+        {
+            new() { Id = "account1", TarjetaId = "card1", Balance = 500 }
+        };
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(new ClientResponse() { Id = "client1" });
+        _mockCreditCardService.Setup(s => s.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta)).ReturnsAsync(new CreditCardAdminResponse() { Id = "card1" });
+        _mockAccountsService.Setup(s => s.GetCompleteAccountByClientIdAsync("client1")).ReturnsAsync(clientAccounts);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<PagoTarjetaAccountInsufficientBalanceException>(async () => await _movimientoService.AddPagoConTarjetaAsync(user, pagoConTarjeta));
+        ClassicAssert.AreEqual($"Insufficient balance for card payment from card {pagoConTarjeta.NumeroTarjeta} ", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public async Task TestAddPagoConTarjetaAsync_ShouldReturnMovimiento_WhenValid()
+        {
+            // Arrange
+            var user = new User { Id = "user1" };
+            var pagoConTarjeta = new PagoConTarjeta { Cantidad = 100, NumeroTarjeta = "4111111111111111" };
+            var client = new ClientResponse() { Id = "client1" };
+            var card = new CreditCardAdminResponse() { Id = "card1" };
+            var account = new AccountCompleteResponse() { Id = "account1", TarjetaId = "card1", Balance = 1000 };
+            var updateAccountRequest = new UpdateAccountRequest { Balance = 900 };
+            var updatedAccount = new AccountCompleteResponse() { Id = "account1", TarjetaId = "card1", Balance = 900 };
+
+            _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(client);
+            _mockCreditCardService.Setup(s => s.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta)).ReturnsAsync(card);
+            _mockAccountsService.Setup(s => s.GetCompleteAccountByClientIdAsync(client.Id)).ReturnsAsync(new List<AccountCompleteResponse> { account });
+            _mockAccountsService.Setup(s => s.UpdateAccountAsync(account.Id, It.IsAny<UpdateAccountRequest>())).ReturnsAsync(updatedAccount);
+            _mockMovimientoRepository.Setup(r => r.AddMovimientoAsync(It.IsAny<Movimiento>())).ReturnsAsync(new Movimiento { ClienteGuid = client.Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false });
+
+            // Act
+            var result = await _movimientoService.AddPagoConTarjetaAsync(user, pagoConTarjeta);
+
+            // Assert
+            ClassicAssert.NotNull(result);
+            ClassicAssert.AreEqual("client1", result.ClienteGuid);
+            ClassicAssert.AreEqual(DateTime.UtcNow.Date, result.CreatedAt.Value.Date);
+            ClassicAssert.AreEqual(DateTime.UtcNow.Date, result.UpdatedAt.Value.Date);
+            _mockMovimientoRepository.Verify(r => r.AddMovimientoAsync(It.IsAny<Movimiento>()), Times.Once);
+            _mockWebsocketHandler.Verify(w => w.NotifyUserAsync(user.Id, It.IsAny<Notification<Movimiento>>()), Times.Once);
+        }
 }
 
 
