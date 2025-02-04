@@ -4,14 +4,19 @@ using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework.Legacy;
 using StackExchange.Redis;
+using VivesBankApi.Rest.Clients.Dto;
+using VivesBankApi.Rest.Clients.Exceptions;
+using VivesBankApi.Rest.Clients.Models;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
 using VivesBankApi.Rest.Movimientos.Repositories.Domiciliaciones;
 using VivesBankApi.Rest.Movimientos.Repositories.Movimientos;
 using VivesBankApi.Rest.Movimientos.Services.Movimientos;
+using VivesBankApi.Rest.Product.BankAccounts.Dto;
 using VivesBankApi.Rest.Product.BankAccounts.Services;
 using VivesBankApi.Rest.Product.CreditCard.Service;
+using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
@@ -184,7 +189,106 @@ public class MovimientoServiceTests
         ClassicAssert.AreEqual($"Invalid Direct Debit amount ({domiciliacion.Cantidad}), id {domiciliacion.Id}", ex.Message, "El mensaje de error no es el esperado.");
     }
     
+    [Test]
+    public void TestAddDomiciliacionAsync_ShouldThrowException_WhenInvalidDestinationIban()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var domiciliacion = new Domiciliacion { Id = "dom2", Cantidad = 100, IbanDestino = "INVALID_IBAN", IbanOrigen = "ES7620770024003102575766" };
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<InvalidDestinationIbanException>(async () => await _movimientoService.AddDomiciliacionAsync(user, domiciliacion));
+        ClassicAssert.AreEqual($"Destination IBAN not valid: {domiciliacion.IbanDestino}", ex.Message, "El mensaje de error no es el esperado.");
+    }
     
+    [Test]
+    public void TestAddDomiciliacionAsync_ShouldThrowException_WhenInvalidSourceIban()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var domiciliacion = new Domiciliacion { Id = "dom3", Cantidad = 100, IbanDestino = "ES6621000418401234567891", IbanOrigen = "INVALID_IBAN" };
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<InvalidSourceIbanException>(async () => await _movimientoService.AddDomiciliacionAsync(user, domiciliacion));
+        ClassicAssert.AreEqual($"Origin IBAN not valid: {domiciliacion.IbanOrigen}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddDomiciliacionAsync_ShouldThrowException_WhenClientNotFound()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var domiciliacion = new Domiciliacion { Id = "dom4", Cantidad = 100, IbanDestino = "ES6621000418401234567891", IbanOrigen = "ES7620770024003102575766" };
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync((ClientResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () => await _movimientoService.AddDomiciliacionAsync(user, domiciliacion));
+        ClassicAssert.AreEqual($"Client not found by id {user.Id}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddDomiciliacionAsync_ShouldThrowException_WhenAccountNotFoundByIban()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var domiciliacion = new Domiciliacion { Id = "dom5", Cantidad = 100, IbanDestino = "ES6621000418401234567891", IbanOrigen = "ES7620770024003102575766" };
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(new ClientResponse { Id = "client1" });
+        _mockAccountsService.Setup(s => s.GetAccountByIbanAsync(domiciliacion.IbanOrigen)).ReturnsAsync((AccountResponse)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AccountsExceptions.AccountNotFoundByIban>(async () => await _movimientoService.AddDomiciliacionAsync(user, domiciliacion));
+        ClassicAssert.AreEqual($"Account not found by IBAN {domiciliacion.IbanOrigen}", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public void TestAddDomiciliacionAsync_ShouldThrowException_WhenDuplicatedDomiciliacion()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var domiciliacion = new Domiciliacion { Id = "dom6", Cantidad = 100, IbanDestino = "ES6621000418401234567891", IbanOrigen = "ES7620770024003102575766" };
+
+        var existingDomiciliaciones = new List<Domiciliacion>
+        {
+            new Domiciliacion { IbanDestino = "ES6621000418401234567891", IbanOrigen = "ES7620770024003102575766" }
+        };
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(new ClientResponse() { Id = "client1" });
+        _mockAccountsService.Setup(s => s.GetAccountByIbanAsync(domiciliacion.IbanOrigen)).ReturnsAsync(new AccountResponse() { clientID = "client1" });
+        _mockDomiciliacionRepository.Setup(r => r.GetDomiciliacionesActivasByClienteGiudAsync("client1")).ReturnsAsync(existingDomiciliaciones);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<DuplicatedDomiciliacionException>(async () => await _movimientoService.AddDomiciliacionAsync(user, domiciliacion));
+        ClassicAssert.AreEqual($"Direct Debit to account with IBAN {domiciliacion.IbanDestino} already exists", ex.Message, "El mensaje de error no es el esperado.");
+    }
+    
+    [Test]
+    public async Task TestAddDomiciliacionAsync_ShouldReturnDomiciliacion_WhenValid()
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var domiciliacion = new Domiciliacion { Id = "dom7", Cantidad = 100, IbanDestino = "ES6621000418401234567891", IbanOrigen = "ES7620770024003102575766" };
+        var client = new ClientResponse() { Id = "client1" };
+        var account = new AccountResponse() { clientID = "client1" };
+        var existingDomiciliaciones = new List<Domiciliacion>();
+
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(client);
+        _mockAccountsService.Setup(s => s.GetAccountByIbanAsync(domiciliacion.IbanOrigen)).ReturnsAsync(account);
+        _mockDomiciliacionRepository.Setup(r => r.GetDomiciliacionesActivasByClienteGiudAsync("client1")).ReturnsAsync(existingDomiciliaciones);
+        _mockDomiciliacionRepository.Setup(r => r.AddDomiciliacionAsync(domiciliacion)).ReturnsAsync(domiciliacion);
+
+        // Act
+        var result = await _movimientoService.AddDomiciliacionAsync(user, domiciliacion);
+
+        // Assert
+        ClassicAssert.NotNull(result);
+        ClassicAssert.AreEqual("client1", result.ClienteGuid);
+        ClassicAssert.AreEqual(DateTime.UtcNow.Date, result.UltimaEjecucion.Date);
+        _mockDomiciliacionRepository.Verify(r => r.AddDomiciliacionAsync(It.IsAny<Domiciliacion>()), Times.Once);
+        _mockWebsocketHandler.Verify(w => w.NotifyUserAsync(user.Id, It.IsAny<Notification<Domiciliacion>>()), Times.Once);
+    }
+
     [Test]
     public async Task AddMovimientoAsyncOk()
     {
