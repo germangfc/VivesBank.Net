@@ -821,6 +821,10 @@ public class ClientService : GenericStorageJson<Client>, IClientService
 
             using (var client = new AsyncFtpClient(_fileStorageRemoteConfig.FtpHost, _fileStorageRemoteConfig.FtpUsername, _fileStorageRemoteConfig.FtpPassword))
             {
+                client.Config.ConnectTimeout = 30000;
+                client.Config.ReadTimeout = 30000;
+                client.Config.DataConnectionConnectTimeout = 30000;
+                client.Config.DataConnectionReadTimeout = 30000;
                 await client.Connect();
 
                 string remotePath = $"{_fileStorageRemoteConfig.FtpDirectory}/{fileName}";
@@ -850,6 +854,10 @@ public class ClientService : GenericStorageJson<Client>, IClientService
                 using (var client = new AsyncFtpClient(_fileStorageRemoteConfig.FtpHost,
                            _fileStorageRemoteConfig.FtpUsername, _fileStorageRemoteConfig.FtpPassword))
                 {
+                    client.Config.ConnectTimeout = 30000;
+                    client.Config.ReadTimeout = 30000;
+                    client.Config.DataConnectionConnectTimeout = 30000;
+                    client.Config.DataConnectionReadTimeout = 30000;
                     await client.Connect();
 
                     string remotePath = $"{_fileStorageRemoteConfig.FtpDirectory}/{fileName}";
