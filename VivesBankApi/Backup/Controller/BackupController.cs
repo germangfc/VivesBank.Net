@@ -59,9 +59,21 @@ namespace VivesBankApi.Controllers
         [Authorize("AdminPolicy")]
         public async Task<IActionResult> ImportFromZip([Required] IFormFile file)
         {
+            
+            if (!Path.GetExtension(file.FileName).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new { Message = "El archivo debe tener extensión .zip." });
+            }
+
             if (file == null || file.Length == 0)
             {
                 return BadRequest(new { Message = "Debe proporcionar un archivo ZIP valido." });
+            }
+
+            // 🔹 Nueva validación: Solo archivos .zip
+            if (!Path.GetExtension(file.FileName).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new { Message = "El archivo debe tener extensión .zip." });
             }
 
             var tempFilePath = Path.Combine(Path.GetTempPath(), file.FileName);
@@ -77,5 +89,6 @@ namespace VivesBankApi.Controllers
 
             return Ok(new { Message = "Backup importado correctamente." });
         }
+
     }
 }

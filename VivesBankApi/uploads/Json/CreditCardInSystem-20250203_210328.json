@@ -1,0 +1,13 @@
+[
+  {
+    "Id": "gCJCp7lRW4Q",
+    "AccountId": "mT_ynBQklw",
+    "CardNumber": "4111111111111111",
+    "Pin": null,
+    "Cvc": null,
+    "ExpirationDate": "2028-12-31",
+    "CreatedAt": "2025-02-03T22:03:28.4702907+01:00",
+    "UpdatedAt": "2025-02-03T22:03:28.4702973+01:00",
+    "IsDeleted": false
+  }
+]
