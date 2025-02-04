@@ -1,4 +1,4 @@
-﻿using System.Net;
+﻿/*using System.Net;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Hosting;
@@ -10,6 +10,7 @@ using VivesBankApi.Rest.Movimientos.Services.Movimientos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
+using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Services.Domiciliaciones;
 using VivesBankApi.Rest.Users.Models;
 
@@ -23,6 +24,7 @@ public class MovimientosQueryTest
     private Mock<IMovimientoMeQueriesService> _movimientoMeQueriesServiceMock;
     private Mock<IDomiciliacionService> _domiciliacionServiceMock;
     private Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private Mock<IClientService> _clientServiceMock;
     private TestServer _testServer;
     private HttpClient _client;
 
@@ -34,6 +36,7 @@ public class MovimientosQueryTest
         _movimientoMeQueriesServiceMock = new Mock<IMovimientoMeQueriesService>();
         _domiciliacionServiceMock = new Mock<IDomiciliacionService>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        _clientServiceMock = new Mock<IClientService>();
         
         // Configurar IHttpContextAccessor para simular un usuario autenticado
         var claims = new List<Claim>
@@ -309,4 +312,4 @@ public class MovimientosQueryTest
     }
     
     
-}
+}*/

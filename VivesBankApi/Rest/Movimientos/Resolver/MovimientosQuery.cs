@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using HotChocolate.Authorization;
 using MongoDB.Bson;
+using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Errors;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;
@@ -11,7 +12,7 @@ namespace VivesBankApi.Rest.Movimientos.Resolver;
 
 
 
-public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMeQueriesService movimientoMeQueriesService, IDomiciliacionService domiciliacionService, IHttpContextAccessor httpContextAccessor)
+public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMeQueriesService movimientoMeQueriesService, IDomiciliacionService domiciliacionService, IHttpContextAccessor httpContextAccessor, IClientService clientService)
 {
 
         /// <summary>
@@ -126,7 +127,8 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
                 throw new GraphQLException(new UserNotAuthenticatedError());
             }
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var domiciliaciones = await domiciliacionService.FindDomiciliacionesActivasByClienteGiudAsync(guid);
+            var cliente = await clientService.GetClientByUserIdAsync(guid);
+            var domiciliaciones = await domiciliacionService.FindDomiciliacionesActivasByClienteGiudAsync(cliente.Id);
             return domiciliaciones.Select(domiciliacion => new Domiciliacion
             {
                 Guid = domiciliacion.Guid,
@@ -157,7 +159,8 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
                 throw new GraphQLException(new UserNotAuthenticatedError());
             }
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var movimientos = await movimientoMeQueriesService.FindMovimientosDomiciliacionByClienteGuidAsync(guid);
+            var cliente = await clientService.GetClientByUserIdAsync(guid);
+            var movimientos = await movimientoMeQueriesService.FindMovimientosDomiciliacionByClienteGuidAsync(cliente.Id);
             return movimientos.Select(movimiento => new Movimiento
             {
                 Guid = movimiento.Guid,
@@ -189,7 +192,8 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
                 throw new GraphQLException(new UserNotAuthenticatedError());
             }
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var movimientos = await movimientoMeQueriesService.FindMovimientosTransferenciaByClienteGuidAsync(guid);
+            var cliente = await clientService.GetClientByUserIdAsync(guid);
+            var movimientos = await movimientoMeQueriesService.FindMovimientosTransferenciaByClienteGuidAsync(cliente.Id);
             return movimientos.Select(movimiento => new Movimiento
             {
                 Guid = movimiento.Guid,
@@ -220,7 +224,8 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
                 throw new GraphQLException(new UserNotAuthenticatedError());
             }
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var movimientos = await movimientoMeQueriesService.FindMovimientosPagoConTarjetaByClienteGuidAsync(guid);
+            var cliente = await clientService.GetClientByUserIdAsync(guid);
+            var movimientos = await movimientoMeQueriesService.FindMovimientosPagoConTarjetaByClienteGuidAsync(cliente.Id);
             return movimientos.Select(movimiento => new Movimiento
             {
                 Guid = movimiento.Guid,
@@ -251,7 +256,8 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
                 throw new GraphQLException(new UserNotAuthenticatedError());
             }
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var movimientos = await movimientoMeQueriesService.FindMovimientosReciboDeNominaByClienteGuidAsync(guid);
+            var cliente = await clientService.GetClientByUserIdAsync(guid);
+            var movimientos = await movimientoMeQueriesService.FindMovimientosReciboDeNominaByClienteGuidAsync(cliente.Id);
             return movimientos.Select(movimiento => new Movimiento
             {
                 Guid = movimiento.Guid,
@@ -283,7 +289,8 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             }
 
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var movimientos = await movimientoService.FindAllMovimientosByClientAsync(guid);
+            var cliente = await clientService.GetClientByUserIdAsync(guid);
+            var movimientos = await movimientoService.FindAllMovimientosByClientAsync(cliente.Id);
             return movimientos.Select(movimiento => new Movimiento
             {
                 Guid = movimiento.Guid,
@@ -315,7 +322,8 @@ public class MovimientosQuery(IMovimientoService movimientoService,IMovimientoMe
             }
 
             var guid = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var movimientos = await movimientoMeQueriesService.FindMovimientosTransferenciaRevocadaClienteGuidAsync(guid);
+            var cliente = await clientService.GetClientByUserIdAsync(guid);
+            var movimientos = await movimientoMeQueriesService.FindMovimientosTransferenciaRevocadaClienteGuidAsync(cliente.Id);
             return movimientos.Select(movimiento => new Movimiento
             {
                 Guid = movimiento.Guid,
