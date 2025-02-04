@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -774,33 +775,59 @@ public class MovimientoServiceTests
     
     [Test]
     public async Task TestAddPagoConTarjetaAsync_ShouldReturnMovimiento_WhenValid()
-        {
-            // Arrange
-            var user = new User { Id = "user1" };
-            var pagoConTarjeta = new PagoConTarjeta { Cantidad = 100, NumeroTarjeta = "4111111111111111" };
-            var client = new ClientResponse() { Id = "client1" };
-            var card = new CreditCardAdminResponse() { Id = "card1" };
-            var account = new AccountCompleteResponse() { Id = "account1", TarjetaId = "card1", Balance = 1000 };
-            var updateAccountRequest = new UpdateAccountRequest { Balance = 900 };
-            var updatedAccount = new AccountCompleteResponse() { Id = "account1", TarjetaId = "card1", Balance = 900 };
+    {
+        // Arrange
+        var user = new User { Id = "user1" };
+        var pagoConTarjeta = new PagoConTarjeta { Cantidad = 100, NumeroTarjeta = "4111111111111111" };
+        var client = new ClientResponse() { Id = "client1" };
+        var card = new CreditCardAdminResponse() { Id = "card1" };
+        var account = new AccountCompleteResponse() { Id = "account1", TarjetaId = "card1", Balance = 1000 };
+        var updateAccountRequest = new UpdateAccountRequest { Balance = 900 };
+        var updatedAccount = new AccountCompleteResponse() { Id = "account1", TarjetaId = "card1", Balance = 900 };
 
-            _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(client);
-            _mockCreditCardService.Setup(s => s.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta)).ReturnsAsync(card);
-            _mockAccountsService.Setup(s => s.GetCompleteAccountByClientIdAsync(client.Id)).ReturnsAsync(new List<AccountCompleteResponse> { account });
-            _mockAccountsService.Setup(s => s.UpdateAccountAsync(account.Id, It.IsAny<UpdateAccountRequest>())).ReturnsAsync(updatedAccount);
-            _mockMovimientoRepository.Setup(r => r.AddMovimientoAsync(It.IsAny<Movimiento>())).ReturnsAsync(new Movimiento { ClienteGuid = client.Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false });
+        _mockClientService.Setup(s => s.GetClientByUserIdAsync(user.Id)).ReturnsAsync(client);
+        _mockCreditCardService.Setup(s => s.GetCreditCardByCardNumber(pagoConTarjeta.NumeroTarjeta)).ReturnsAsync(card);
+        _mockAccountsService.Setup(s => s.GetCompleteAccountByClientIdAsync(client.Id)).ReturnsAsync(new List<AccountCompleteResponse> { account });
+        _mockAccountsService.Setup(s => s.UpdateAccountAsync(account.Id, It.IsAny<UpdateAccountRequest>())).ReturnsAsync(updatedAccount);
+        _mockMovimientoRepository.Setup(r => r.AddMovimientoAsync(It.IsAny<Movimiento>())).ReturnsAsync(new Movimiento { ClienteGuid = client.Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false });
 
-            // Act
-            var result = await _movimientoService.AddPagoConTarjetaAsync(user, pagoConTarjeta);
+        // Act
+        var result = await _movimientoService.AddPagoConTarjetaAsync(user, pagoConTarjeta);
 
-            // Assert
-            ClassicAssert.NotNull(result);
-            ClassicAssert.AreEqual("client1", result.ClienteGuid);
-            ClassicAssert.AreEqual(DateTime.UtcNow.Date, result.CreatedAt.Value.Date);
-            ClassicAssert.AreEqual(DateTime.UtcNow.Date, result.UpdatedAt.Value.Date);
-            _mockMovimientoRepository.Verify(r => r.AddMovimientoAsync(It.IsAny<Movimiento>()), Times.Once);
-            _mockWebsocketHandler.Verify(w => w.NotifyUserAsync(user.Id, It.IsAny<Notification<Movimiento>>()), Times.Once);
-        }
+        // Assert
+        ClassicAssert.NotNull(result);
+        ClassicAssert.AreEqual("client1", result.ClienteGuid);
+        ClassicAssert.AreEqual(DateTime.UtcNow.Date, result.CreatedAt.Value.Date);
+        ClassicAssert.AreEqual(DateTime.UtcNow.Date, result.UpdatedAt.Value.Date);
+        _mockMovimientoRepository.Verify(r => r.AddMovimientoAsync(It.IsAny<Movimiento>()), Times.Once);
+        _mockWebsocketHandler.Verify(w => w.NotifyUserAsync(user.Id, It.IsAny<Notification<Movimiento>>()), Times.Once);
+    }
+    
+    [Test]
+    public async Task GetByGuidAsync_ShouldReturnMovimiento_WhenFoundInCache()
+    {
+        // Arrange
+        var id = "test-guid";
+        var cachedMovimiento = new Movimiento { Id = id, ClienteGuid = "client123" };
+        var cachedMovimientoJson = JsonConvert.SerializeObject(cachedMovimiento);
+
+       // _mockCache.Setup(c => c.StringGetAsync(id)).ReturnsAsync(cachedMovimientoJson);
+        _mockCache.Setup(r => r.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+            .ReturnsAsync((RedisValue)cachedMovimientoJson);
+        _mockMovimientoRepository.Setup(r => r.GetMovimientoByGuidAsync(id)).ReturnsAsync((Movimiento)null);
+
+        // Usamos reflexión para acceder al método privado
+        var methodInfo = typeof(MovimientoService).GetMethod("GetByGuidAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        // Act
+        var result = await (Task<Movimiento>)methodInfo.Invoke(_movimientoService, new object[] { id });
+
+        // Assert
+        ClassicAssert.NotNull(result);
+        ClassicAssert.AreEqual(cachedMovimiento.Id, result.Id);
+        ClassicAssert.AreEqual(cachedMovimiento.ClienteGuid, result.ClienteGuid);
+    }
+
 }
 
 
