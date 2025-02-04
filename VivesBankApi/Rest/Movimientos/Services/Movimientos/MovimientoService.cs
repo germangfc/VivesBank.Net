@@ -250,7 +250,7 @@ public class MovimientoService(
         updateAccountRequest.Balance = newBalance;
 
         var updatedAccount = await accountsService.UpdateAccountAsync(clientAccount.Id, updateAccountRequest);
-        logger.LogInformation($"New balance after Payroll Income: {updatedAccount.Balance}");
+        logger.LogInformation($"New balance after Payroll Income: {updateAccountRequest.Balance}");
 
         var now = DateTime.UtcNow;
         Movimiento newMovimiento = new Movimiento
