@@ -179,7 +179,7 @@ namespace Tests.Rest.Movimientos.Controller
             };
             var user = new User { Id = "test-user-id" };
             _mockUserRepository.Setup(x => x.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(user);
-            _mockMovimientoService.Setup(x => x.RevocarTransferenciaAsync(It.IsAny<User>(), It.IsAny<string>()))
+            _mockMovimientoService.Setup(x => x.RevocarTransferencia(It.IsAny<User>(), It.IsAny<string>()))
                 .ReturnsAsync(movimiento);
 
             // Act
@@ -188,7 +188,7 @@ namespace Tests.Rest.Movimientos.Controller
             // Assert
             ClassicAssert.AreEqual(movimiento, result.Value);
             _mockUserRepository.Verify(x => x.GetByIdAsync("test-user-id"), Times.Once);
-            _mockMovimientoService.Verify(x => x.RevocarTransferenciaAsync(user, transfGuid), Times.Once);
+            _mockMovimientoService.Verify(x => x.RevocarTransferencia(user, transfGuid), Times.Once);
         }
         
         [Test]
