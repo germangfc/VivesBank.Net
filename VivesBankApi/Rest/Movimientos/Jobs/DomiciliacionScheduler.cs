@@ -1,4 +1,4 @@
-﻿using VivesBankApi.Rest.Clients.Exceptions;
+using VivesBankApi.Rest.Clients.Exceptions;
 using VivesBankApi.Rest.Clients.Service;
 using VivesBankApi.Rest.Movimientos.Exceptions;
 using VivesBankApi.Rest.Movimientos.Models;

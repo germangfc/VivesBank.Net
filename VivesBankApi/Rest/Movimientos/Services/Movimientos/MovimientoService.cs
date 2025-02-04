@@ -250,7 +250,7 @@ public class MovimientoService(
         updateAccountRequest.Balance = newBalance;
 
         var updatedAccount = await accountsService.UpdateAccountAsync(clientAccount.Id, updateAccountRequest);
-        logger.LogInformation($"New balance after Payroll Income: {updatedAccount.Balance}");
+        logger.LogInformation($"New balance after Payroll Income: {updateAccountRequest.Balance}");
 
         var now = DateTime.UtcNow;
         Movimiento newMovimiento = new Movimiento
@@ -593,14 +593,20 @@ public class MovimientoService(
         var cachedMovimientos = await _cache.StringGetAsync(id);
         if (!cachedMovimientos.IsNullOrEmpty)
         {
-            return JsonConvert.DeserializeObject<Movimiento>(cachedMovimientos);
+            Movimiento? movimientoCache = JsonConvert.DeserializeObject<Movimiento>(cachedMovimientos);
+            if (movimientoCache != null)
+            {
+                return movimientoCache;
+            }
         }
-        Movimiento? movimiento = await movimientoRepository.GetMovimientoByIdAsync(id);
-        if (movimiento != null)
+    
+        Movimiento? movimientoRepo = await movimientoRepository.GetMovimientoByIdAsync(id);
+        if (movimientoRepo != null)
         {
-            await _cache.StringSetAsync("movimiento:" + id, JsonConvert.SerializeObject(movimiento), TimeSpan.FromMinutes(10));
-            return movimiento;
+            await _cache.StringSetAsync("movimiento:" + id, JsonConvert.SerializeObject(movimientoRepo), TimeSpan.FromMinutes(10));
+            return movimientoRepo;
         }
+    
         return null;
     }
     
