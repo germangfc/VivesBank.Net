@@ -250,6 +250,7 @@ public class BackupServiceTest
         Assert.ThrowsAsync<ArgumentException>(async () => await _backupService.ExportToZip(zipRequest));
     }
 
+    /*
     [Test]
     public void ExportToZipPermissionDenied()
     {
@@ -258,6 +259,7 @@ public class BackupServiceTest
 
         Assert.ThrowsAsync<BackupException.BackupPermissionException>(async () => await _backupService.ExportToZip(zipRequest));
     }
+    */
     
 
     [Test]

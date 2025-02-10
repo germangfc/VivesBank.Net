@@ -1,12 +1,14 @@
-<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003A02000009pdb3_002Eil_002Fl_003A_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FDecompilerCache_003FILViewer_003F5de15fcc638a493ca2f263378d500713aa00_003F81_003Fb34402bb_003F02000009pdb3_002Eil/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AAssert_002Ecs_002Fl_003A_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003F182ec85d25b779c7118bca2890ca95ae8dd32868c52272faee4a3a304f624b_003FAssert_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
+	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AAsyncToSyncAdapter_002Ecs_002Fl_003A_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003Fa4fe58ebeb8a1660294cf7ecda6faf894105f33152029b687f66293f43d287b_003FAsyncToSyncAdapter_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AControllerBase_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003F96a4cc66aa48dda8a9d8be8febec4a769fc143f7a86dd53ecdebfb9c3177d_003FControllerBase_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ADateOnly_002Ecs_002Fl_003A_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003Ff3e11c961d12b2fefb2e241260357683bec19a3e8943c3398e4e4e57515e3140_003FDateOnly_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AIFileSystem_002Ecs_002Fl_003A_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003Fe29e4e3cb0b115265f2b9cded66ef234341175efb77fe9e46e9ff2488a6af0_003FIFileSystem_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AIReturns_002Ecs_002Fl_003A_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003F16f715578614e9b1f25df6b3c5b2fd262e5b48f44fd323df18c52fa923648a_003FIReturns_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AReturnsExtensions_002Ecs_002Fl_003A_002E_002E_003FAppData_003FRoaming_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FSourcesCache_003F2defb41d87a48ff143adc586b639ba3a80759c1971fd26591e7d4249a31b7c_003FReturnsExtensions_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
-	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\Usuario\AppData\Local\JetBrains\Rider2024.3\resharper-host\temp\Rider\vAny\CoverageData\_VivesBank.Net.1371685540\Snapshot\snapshot.utdcvr</s:String>
+	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\alvaro\AppData\Local\JetBrains\Rider2024.3\resharper-host\temp\Rider\vAny\CoverageData\_VivesBank.Net.-1793491176\Snapshot\snapshot.utdcvr</s:String>
+	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1b30a4e2_002D2713_002D4eac_002D948e_002Df300efb2fceb/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\Users\raulf\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
@@ -28,6 +30,9 @@
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6dc18aa0_002D39be_002D42f7_002D9a42_002Dc4d49ee71d29/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from &amp;lt;Tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Project Location="C:\Users\raulf\VivesBank.Net\Tests" Presentation="&amp;lt;Tests&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=80779b1a_002Df8c7_002D4548_002D8ee8_002D4f88831bbec3/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="UpdateMyProfilePhotoAsync_ShouldReturnFileName_WhenFileTypeIsAllowed" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.UpdateMyProfilePhotoAsync_ShouldReturnFileName_WhenFileTypeIsAllowed&lt;/TestId&gt;&#xD;
@@ -36,6 +41,11 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8a911f59_002Daf87_002D4839_002Dadc2_002Dab7a047243cd/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="UpdateMyProfilePhotoAsync_ShouldReturnFileName_WhenFileTypeIsAllowed #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Clients.Service.ClientServiceTests.UpdateMyProfilePhotoAsync_ShouldReturnFileName_WhenFileTypeIsAllowed&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=9dcae54f_002Daa3b_002D4508_002D912f_002Ddb0421164963/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="MovimientoServiceTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::25919506-285A-4870-8A96-91AEA75D359E::net8.0::Tests.Rest.Movimientos.Services.Movimientos.MovimientoServiceTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=b87e7142_002Dabae_002D4269_002Dae21_002D2d4d28d7362f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetLatestRatesAmountIsNegative" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;

@@ -34,6 +34,7 @@ public static class AccountMappers
             IBAN = account.IBAN,
             clientID = account.ClientId,
             productID = account.ProductId,
+            Balance = account.Balance,
             AccountType = account.AccountType,
             InterestRate = account.InterestRate
         };

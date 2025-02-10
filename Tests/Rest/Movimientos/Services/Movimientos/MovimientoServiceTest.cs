@@ -19,6 +19,9 @@ using VivesBankApi.Rest.Product.CreditCard.Dto;
 using VivesBankApi.Rest.Product.CreditCard.Exceptions;
 using VivesBankApi.Rest.Product.CreditCard.Service;
 using VivesBankApi.Rest.Products.BankAccounts.Exceptions;
+using VivesBankApi.Rest.Users.Dtos;
+using VivesBankApi.Rest.Users.Exceptions;
+using VivesBankApi.Rest.Users.Mapper;
 using VivesBankApi.Rest.Users.Models;
 using VivesBankApi.Rest.Users.Service;
 using VivesBankApi.Utils.ApiConfig;
@@ -827,6 +830,992 @@ public class MovimientoServiceTests
         ClassicAssert.AreEqual(cachedMovimiento.Id, result.Id);
         ClassicAssert.AreEqual(cachedMovimiento.ClienteGuid, result.ClienteGuid);
     }
+    
+ [Test]
+public async Task TestAddTransferenciaAsync_ShouldReturnMovimiento_WhenValid()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    
+    // Proporciona IBANs válidos según tu IbanValidator
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "ES9121000418450200051332",  // IBAN válido
+        IbanDestino = "ES7921000813610123456789",  // IBAN válido
+        Cantidad = 100,
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    // El resto de la configuración sigue igual...
+    var originClient = new ClientResponse { Id = "clientOrigin" };
+    var originAccount = new AccountCompleteResponse 
+    { 
+        Id = "accountOrigin", 
+        IBAN = "ES9121000418450200051332", 
+        Balance = 200, 
+        ClientID = "clientOrigin" 
+    };
+    var destinationAccount = new AccountCompleteResponse 
+    { 
+        Id = "accountDestination", 
+        IBAN = "ES7921000813610123456789", 
+        Balance = 300, 
+        ClientID = "clientDest" 
+    };
+    var updatedDestinationAccount = new AccountCompleteResponse 
+    { 
+        Id = "accountDestination", 
+        IBAN = "ES7921000813610123456789", 
+        Balance = 400, 
+        ClientID = "clientDest" 
+    };
+    var updatedOriginAccount = new AccountCompleteResponse 
+    { 
+        Id = "accountOrigin", 
+        IBAN = "ES9121000418450200051332", 
+        Balance = 100, 
+        ClientID = "clientOrigin" 
+    };
+    var destinationClient = new ClientResponse { Id = "clientDest", UserId = "userDest" };
+    var destinationUser = new User { Id = "userDest" };
+
+    _mockClientService
+        .Setup(s => s.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(originClient);
+
+    _mockAccountsService
+        .Setup(s => s.GetCompleteAccountByIbanAsync("ES9121000418450200051332"))
+        .ReturnsAsync(originAccount);
+
+    _mockAccountsService
+        .Setup(s => s.GetCompleteAccountByIbanAsync("ES7921000813610123456789"))
+        .ReturnsAsync(destinationAccount);
+
+    _mockAccountsService
+        .Setup(s => s.UpdateAccountAsync("accountDestination", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(updatedDestinationAccount);
+
+    _mockMovimientoRepository
+        .Setup(r => r.AddMovimientoAsync(It.Is<Movimiento>(m => m.ClienteGuid == destinationAccount.ClientID)))
+        .ReturnsAsync((Movimiento m) => { m.Id = "movDestId"; return m; });
+
+    _mockClientService
+        .Setup(s => s.GetClientByIdAsync("clientDest"))
+        .ReturnsAsync(destinationClient);
+
+    _mockUserService
+        .Setup(s => s.GetUserByIdAsync("userDest"))
+        .ReturnsAsync(destinationUser.ToUserResponse);
+
+    _mockAccountsService
+        .Setup(s => s.UpdateAccountAsync("accountOrigin", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(updatedOriginAccount);
+
+    _mockMovimientoRepository
+        .Setup(r => r.AddMovimientoAsync(It.Is<Movimiento>(m => m.ClienteGuid == originClient.Id)))
+        .ReturnsAsync((Movimiento m) => { m.Id = "movOriginId"; return m; });
+
+    _mockWebsocketHandler
+        .Setup(w => w.NotifyUserAsync("userDest", It.IsAny<Notification<Movimiento>>()))
+        .Returns(Task.CompletedTask);
+
+    // Act
+    var result = await _movimientoService.AddTransferenciaAsync(user, transferencia);
+
+    // Assert
+    ClassicAssert.IsNotNull(result);
+    ClassicAssert.AreEqual("clientOrigin", result.ClienteGuid);
+    ClassicAssert.IsNotNull(result.Transferencia);
+    ClassicAssert.AreEqual("ES9121000418450200051332", result.Transferencia.IbanOrigen);
+    ClassicAssert.AreEqual("ES7921000813610123456789", result.Transferencia.IbanDestino);
+    ClassicAssert.AreEqual(-100, result.Transferencia.Cantidad);
+    ClassicAssert.AreEqual("movDestId", result.Transferencia.MovimientoDestino);
+
+    _mockClientService.Verify(s => s.GetClientByUserIdAsync(user.Id), Times.Once);
+    _mockAccountsService.Verify(s => s.GetCompleteAccountByIbanAsync("ES9121000418450200051332"), Times.Once);
+    _mockAccountsService.Verify(s => s.GetCompleteAccountByIbanAsync("ES7921000813610123456789"), Times.Once);
+    _mockAccountsService.Verify(s => s.UpdateAccountAsync("accountDestination", It.IsAny<UpdateAccountRequest>()), Times.Once);
+    _mockMovimientoRepository.Verify(r => r.AddMovimientoAsync(It.IsAny<Movimiento>()), Times.Exactly(2));
+    _mockWebsocketHandler.Verify(w => w.NotifyUserAsync("userDest", It.IsAny<Notification<Movimiento>>()), Times.Once);
+}
+
+[Test]
+public void TestAddTransferenciaAsync_InvalidDestinationIban_ShouldThrowException()
+{
+    // Arrange: Se usa un IBAN de destino inválido
+    var user = new User { Id = "user1" };
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "ES9121000418450200051332", // IBAN válido
+        IbanDestino = "INVALID_IBAN",             // IBAN inválido
+        Cantidad = 100,
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    // Act & Assert: Se espera que se lance la excepción por IBAN destino inválido
+    var ex = Assert.ThrowsAsync<InvalidDestinationIbanException>(async () =>
+        await _movimientoService.AddTransferenciaAsync(user, transferencia)
+    );
+
+    Assert.That(ex.Message, Contains.Substring("INVALID_IBAN"));
+}
+[Test]
+public void TestAddTransferenciaAsync_SameIban_ShouldThrowException()
+{
+    // Arrange: Se utiliza el mismo IBAN para origen y destino
+    var user = new User { Id = "user1" };
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "ES9121000418450200051332",
+        IbanDestino = "ES9121000418450200051332", // Mismo IBAN
+        Cantidad = 100,
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    // Act & Assert: Se espera que se lance la excepción por IBAN idénticos
+    var ex = Assert.ThrowsAsync<TransferSameIbanException>(async () =>
+        await _movimientoService.AddTransferenciaAsync(user, transferencia)
+    );
+
+    Assert.That(ex.Message, Contains.Substring("ES9121000418450200051332"));
+}
+[Test]
+public void TestAddTransferenciaAsync_InvalidAmount_ShouldThrowException()
+{
+    // Arrange: Se define una cantidad menor o igual a cero
+    var user = new User { Id = "user1" };
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "ES9121000418450200051332",
+        IbanDestino = "ES7921000813610123456789",
+        Cantidad = 0,  // Cantidad inválida (0 o negativa)
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    // Act & Assert: Se espera que se lance la excepción por cantidad inválida
+    var ex = Assert.ThrowsAsync<TransferInvalidAmountException>(async () =>
+        await _movimientoService.AddTransferenciaAsync(user, transferencia)
+    );
+
+    Assert.That(ex.Message, Contains.Substring("0"));
+}
+[Test]
+public async Task TestAddTransferenciaAsync_InsufficientBalance_ShouldThrowException()
+{
+    // Arrange: La cuenta origen tiene saldo insuficiente para cubrir la transferencia
+    var user = new User { Id = "user1" };
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "ES9121000418450200051332",
+        IbanDestino = "ES7921000813610123456789",
+        Cantidad = 300, // Monto mayor al saldo disponible
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    var originClient = new ClientResponse { Id = "clientOrigin" };
+    var originAccount = new AccountCompleteResponse
+    {
+        Id = "accountOrigin",
+        IBAN = "ES9121000418450200051332",
+        Balance = 200,  // Saldo insuficiente
+        ClientID = "clientOrigin"
+    };
+
+    _mockClientService
+        .Setup(s => s.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(originClient);
+
+    _mockAccountsService
+        .Setup(s => s.GetCompleteAccountByIbanAsync("ES9121000418450200051332"))
+        .ReturnsAsync(originAccount);
+
+    // Act & Assert: Se espera la excepción de saldo insuficiente
+    var ex = Assert.ThrowsAsync<TransferInsufficientBalance>(async () =>
+        await _movimientoService.AddTransferenciaAsync(user, transferencia)
+    );
+
+    Assert.That(ex.Message, Contains.Substring("ES9121000418450200051332"));
+}
+[Test]
+public async Task TestAddTransferenciaAsync_OriginAccountNotFound_ShouldThrowException()
+{
+    // Arrange: Simular que la cuenta de origen no existe
+    var user = new User { Id = "user1" };
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "ES9121000418450200051332",
+        IbanDestino = "ES7921000813610123456789",
+        Cantidad = 100,
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    var originClient = new ClientResponse { Id = "clientOrigin" };
+
+    _mockClientService
+        .Setup(s => s.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(originClient);
+
+    _mockAccountsService
+        .Setup(s => s.GetCompleteAccountByIbanAsync("ES9121000418450200051332"))
+        .ReturnsAsync((AccountCompleteResponse)null);
+
+    // Act & Assert: Se espera la excepción de cuenta origen no encontrada
+    var ex = Assert.ThrowsAsync<AccountsExceptions.AccountNotFoundByIban>(async () =>
+        await _movimientoService.AddTransferenciaAsync(user, transferencia)
+    );
+
+    Assert.That(ex.Message, Contains.Substring("ES9121000418450200051332"));
+}
+[Test]
+public async Task TestAddTransferenciaAsync_ClientNotFound_ShouldThrowException()
+{
+    // Arrange: Simular que el cliente asociado al usuario no existe
+    var user = new User { Id = "user1" };
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "ES9121000418450200051332",
+        IbanDestino = "ES7921000813610123456789",
+        Cantidad = 100,
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    _mockClientService
+        .Setup(s => s.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync((ClientResponse)null);
+
+    // Act & Assert: Se espera la excepción de cliente no encontrado
+    var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () =>
+        await _movimientoService.AddTransferenciaAsync(user, transferencia)
+    );
+
+    Assert.That(ex.Message, Contains.Substring(user.Id));
+}
+
+[Test]
+public void TestAddTransferenciaAsync_InvalidSourceIban_ShouldThrowException()
+{
+    // Arrange: Se usa un IBAN de origen inválido (suponiendo que "INVALID_IBAN" falla la validación)
+    var user = new User { Id = "user1" };
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "INVALID_IBAN",             // IBAN inválido para origen
+        IbanDestino = "ES7921000813610123456789",  // IBAN válido para destino
+        Cantidad = 100,
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    // Act & Assert
+    var ex = Assert.ThrowsAsync<InvalidSourceIbanException>(async () =>
+        await _movimientoService.AddTransferenciaAsync(user, transferencia)
+    );
+
+    Assert.That(ex.Message, Contains.Substring("INVALID_IBAN"));
+}
+[Test]
+public void TestAddTransferenciaAsync_OriginAccountNotOwnedByClient_ShouldThrowException()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "ES9121000418450200051332",
+        IbanDestino = "ES7921000813610123456789",
+        Cantidad = 100,
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    // Cliente obtenido por el user
+    var originClient = new ClientResponse { Id = "clientOrigin" };
+
+    // La cuenta de origen existe pero no pertenece al cliente (ClientID distinto)
+    var originAccount = new AccountCompleteResponse
+    {
+        Id = "accountOrigin",
+        IBAN = "ES9121000418450200051332",
+        Balance = 200,
+        ClientID = "otroCliente"  // Diferente a originClient.Id
+    };
+
+    _mockClientService
+        .Setup(s => s.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(originClient);
+
+    _mockAccountsService
+        .Setup(s => s.GetCompleteAccountByIbanAsync("ES9121000418450200051332"))
+        .ReturnsAsync(originAccount);
+
+    // Act & Assert: Se espera que se lance la excepción AccountsExceptions.AccountUnknownIban
+    var ex = Assert.ThrowsAsync<AccountsExceptions.AccountUnknownIban>(async () =>
+        await _movimientoService.AddTransferenciaAsync(user, transferencia)
+    );
+
+    Assert.That(ex.Message, Contains.Substring("ES9121000418450200051332"));
+}
+[Test]
+public void TestAddTransferenciaAsync_DestinationUserNotFound_ShouldThrowException()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "ES9121000418450200051332",
+        IbanDestino = "ES7921000813610123456789",
+        Cantidad = 100,
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    // Datos para el origen
+    var originClient = new ClientResponse { Id = "clientOrigin" };
+    var originAccount = new AccountCompleteResponse
+    {
+        Id = "accountOrigin",
+        IBAN = "ES9121000418450200051332",
+        Balance = 200,
+        ClientID = "clientOrigin"
+    };
+
+    // Datos para el destino: la cuenta destino existe y se obtiene el cliente destino,
+    // pero al buscar el usuario, se devuelve null.
+    var destinationAccount = new AccountCompleteResponse
+    {
+        Id = "accountDestination",
+        IBAN = "ES7921000813610123456789",
+        Balance = 300,
+        ClientID = "clientDest"
+    };
+    var destinationClient = new ClientResponse { Id = "clientDest", UserId = "userDest" };
+
+    _mockClientService
+        .Setup(s => s.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(originClient);
+
+    _mockAccountsService
+        .Setup(s => s.GetCompleteAccountByIbanAsync("ES9121000418450200051332"))
+        .ReturnsAsync(originAccount);
+
+    _mockAccountsService
+        .Setup(s => s.GetCompleteAccountByIbanAsync("ES7921000813610123456789"))
+        .ReturnsAsync(destinationAccount);
+
+    // Se simula la actualización de la cuenta destino (aunque en este caso no se llega a completar)
+    _mockAccountsService
+        .Setup(s => s.UpdateAccountAsync("accountDestination", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(destinationAccount);
+
+    // Se simula la creación del movimiento destino
+    _mockMovimientoRepository
+        .Setup(r => r.AddMovimientoAsync(It.Is<Movimiento>(m => m.ClienteGuid == destinationAccount.ClientID)))
+        .ReturnsAsync((Movimiento m) => { m.Id = "movDestId"; return m; });
+
+    _mockClientService
+        .Setup(s => s.GetClientByIdAsync("clientDest"))
+        .ReturnsAsync(destinationClient);
+
+    // Aquí se simula que el usuario destino no se encuentra
+    _mockUserService
+        .Setup(s => s.GetUserByIdAsync("userDest"))
+        .ReturnsAsync((UserResponse)null);
+
+    // Act & Assert: Se espera la excepción UserNotFoundException
+    var ex = Assert.ThrowsAsync<UserNotFoundException>(async () =>
+        await _movimientoService.AddTransferenciaAsync(user, transferencia)
+    );
+
+    Assert.That(ex.Message, Contains.Substring("userDest"));
+}
+
+[Test]
+public void TestAddTransferenciaAsync_DestinationClientNotFound_ShouldThrowException()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var transferencia = new Transferencia
+    {
+        IbanOrigen = "ES9121000418450200051332",
+        IbanDestino = "ES7921000813610123456789",
+        Cantidad = 100,
+        NombreBeneficiario = "Beneficiario"
+    };
+
+    // Datos para el origen: cliente y cuenta válidos.
+    var originClient = new ClientResponse { Id = "clientOrigin" };
+    var originAccount = new AccountCompleteResponse
+    {
+        Id = "accountOrigin",
+        IBAN = "ES9121000418450200051332",
+        Balance = 200,
+        ClientID = "clientOrigin"
+    };
+
+    // Datos para el destino: la cuenta destino existe y se obtiene, pero el cliente destino no se encuentra.
+    var destinationAccount = new AccountCompleteResponse
+    {
+        Id = "accountDestination",
+        IBAN = "ES7921000813610123456789",
+        Balance = 300,
+        ClientID = "clientDest"
+    };
+
+    // Configuración de mocks para el origen.
+    _mockClientService
+        .Setup(s => s.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(originClient);
+
+    _mockAccountsService
+        .Setup(s => s.GetCompleteAccountByIbanAsync("ES9121000418450200051332"))
+        .ReturnsAsync(originAccount);
+
+    // Configuración de mocks para el destino.
+    _mockAccountsService
+        .Setup(s => s.GetCompleteAccountByIbanAsync("ES7921000813610123456789"))
+        .ReturnsAsync(destinationAccount);
+
+    // Simular la actualización de la cuenta destino.
+    _mockAccountsService
+        .Setup(s => s.UpdateAccountAsync("accountDestination", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(destinationAccount);
+
+    // Se simula la creación del movimiento destino (se asigna un Id al movimiento, simulando que se crea correctamente).
+    _mockMovimientoRepository
+        .Setup(r => r.AddMovimientoAsync(It.Is<Movimiento>(m => m.ClienteGuid == destinationAccount.ClientID)))
+        .ReturnsAsync((Movimiento m) => { m.Id = "movDestId"; return m; });
+
+    // Al buscar el cliente destino, se devuelve null para simular que no se encuentra.
+    _mockClientService
+        .Setup(s => s.GetClientByIdAsync("clientDest"))
+        .ReturnsAsync((ClientResponse)null);
+
+    // Act & Assert: Se espera que se lance la excepción ClientNotFoundException.
+    var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () =>
+        await _movimientoService.AddTransferenciaAsync(user, transferencia)
+    );
+
+    Assert.That(ex.Message, Contains.Substring("clientDest"));
+}
+[Test]
+public async Task RevocarTransferencia_ShouldReturnRevokedMovimiento_WhenValid()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var movimientoGuid = "movGuid";
+    var now = DateTime.UtcNow;
+
+    // Movimiento original válido (creado hace 1 hora)
+    var originalMovement = new Movimiento
+    {
+        Id = "movOrigId",
+        ClienteGuid = "client1",
+        CreatedAt = now.AddHours(-1),
+        IsDeleted = false,
+        Transferencia = new Transferencia
+        {
+            IbanOrigen = "ESORIGEN",
+            IbanDestino = "ESDESTINO",
+            // Se conserva la cantidad original, por ejemplo 100
+            Cantidad = 100,
+            MovimientoDestino = "movDestId"
+        }
+    };
+
+    // Movimiento destino (anteriormente creado en la transferencia)
+    var destinationMovement = new Movimiento
+    {
+        Id = "movDestId",
+        IsDeleted = false
+    };
+
+    // Configuramos el repositorio para obtener el movimiento original y el movimiento destino
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByGuidAsync(movimientoGuid))
+        .ReturnsAsync(originalMovement);
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByIdAsync("movDestId"))
+        .ReturnsAsync(destinationMovement);
+
+    // Configuramos UpdateMovimientoAsync para devolver el objeto que se le pasa (simulando que se actualiza correctamente)
+    _mockMovimientoRepository
+        .Setup(m => m.UpdateMovimientoAsync(originalMovement.Id, It.IsAny<Movimiento>()))
+        .ReturnsAsync((string id, Movimiento mov) => mov);
+    _mockMovimientoRepository
+        .Setup(m => m.UpdateMovimientoAsync(destinationMovement.Id, It.IsAny<Movimiento>()))
+        .ReturnsAsync((string id, Movimiento mov) => mov);
+
+    // El cliente que realiza la revocación (origen)
+    var client = new ClientResponse { Id = "client1" };
+    _mockClientService
+        .Setup(c => c.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(client);
+
+    // Cuenta origen: se recupera y se actualiza (saldo: 200 - 100 = 100)
+    var originAccount = new AccountCompleteResponse
+    {
+        Id = "originAccId",
+        IBAN = "ESORIGEN",
+        Balance = 200,
+        ClientID = "client1"
+    };
+    _mockAccountsService
+        .Setup(a => a.GetCompleteAccountByIbanAsync("ESORIGEN"))
+        .ReturnsAsync(originAccount);
+    var updatedOriginAccount = new AccountCompleteResponse
+    {
+        Id = "originAccId",
+        IBAN = "ESORIGEN",
+        Balance = 100,
+        ClientID = "client1"
+    };
+    _mockAccountsService
+        .Setup(a => a.UpdateAccountAsync("originAccId", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(updatedOriginAccount);
+
+    // Cuenta destino: se recupera y se actualiza (saldo: 300 + 100 = 400)
+    var destinationAccount = new AccountCompleteResponse
+    {
+        Id = "destAccId",
+        IBAN = "ESDESTINO",
+        Balance = 300,
+        ClientID = "clientDest"
+    };
+    _mockAccountsService
+        .Setup(a => a.GetCompleteAccountByIbanAsync("ESDESTINO"))
+        .ReturnsAsync(destinationAccount);
+    var updatedDestinationAccount = new AccountCompleteResponse
+    {
+        Id = "destAccId",
+        IBAN = "ESDESTINO",
+        Balance = 400,
+        ClientID = "clientDest"
+    };
+    _mockAccountsService
+        .Setup(a => a.UpdateAccountAsync("destAccId", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(updatedDestinationAccount);
+
+    // Cliente destino y usuario destino (para notificar)
+    var destinationClient = new ClientResponse { Id = "clientDest", UserId = "destUserId" };
+    _mockClientService
+        .Setup(c => c.GetClientByIdAsync("clientDest"))
+        .ReturnsAsync(destinationClient);
+    var destinationUser = new User { Id = "destUserId" };
+    _mockUserService
+        .Setup(u => u.GetUserByIdAsync("destUserId"))
+        .ReturnsAsync(destinationUser.ToUserResponse);
+
+    // (Opcional) Configura aquí los mocks de notificación, si son necesarios.
+    // Por ejemplo:
+    // _mockWebsocketHandler.Setup(w => w.NotifyUserAsync(It.IsAny<string>(), It.IsAny<Notification<Movimiento>>()))
+    //                       .Returns(Task.CompletedTask);
+
+    // Act
+    var result = await _movimientoService.RevocarTransferencia(user, movimientoGuid);
+
+    // Assert
+    ClassicAssert.IsNotNull(result);
+    ClassicAssert.IsTrue(result.IsDeleted);
+
+    // Verificamos que el movimiento original haya sido actualizado
+    _mockMovimientoRepository.Verify(
+        m => m.UpdateMovimientoAsync("movOrigId", It.Is<Movimiento>(mov => mov.IsDeleted)),
+        Times.Once);
+    // Verificamos que el movimiento destino también haya sido marcado como eliminado
+    _mockMovimientoRepository.Verify(
+        m => m.UpdateMovimientoAsync("movDestId", It.Is<Movimiento>(mov => mov.IsDeleted)),
+        Times.Once);
+}
+
+
+
+[Test]
+public void RevocarTransferencia_ShouldThrowMovimientoNotFoundException_WhenMovementNotFound()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var movimientoGuid = "nonexistentGuid";
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByGuidAsync(movimientoGuid))
+        .ReturnsAsync((Movimiento)null);
+
+    // Act & Assert
+    var ex = Assert.ThrowsAsync<MovimientoNotFoundException>(async () =>
+        await _movimientoService.RevocarTransferencia(user, movimientoGuid));
+    Assert.That(ex.Message, Contains.Substring(movimientoGuid));
+}
+[Test]
+public void RevocarTransferencia_ShouldThrowNotRevocableMovimientoException_WhenMoreThan24Hours()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var movimientoGuid = "movGuid";
+    var originalMovement = new Movimiento
+    {
+        Id = "movOrigId",
+        ClienteGuid = "client1",
+        CreatedAt = DateTime.UtcNow.AddHours(-25),
+        IsDeleted = false,
+        Transferencia = new Transferencia
+        {
+            IbanOrigen = "ESORIGEN",
+            IbanDestino = "ESDESTINO",
+            Cantidad = 100,
+            MovimientoDestino = null
+        }
+    };
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByGuidAsync(movimientoGuid))
+        .ReturnsAsync(originalMovement);
+
+    // Act & Assert
+    var ex = Assert.ThrowsAsync<NotRevocableMovimientoException>(async () =>
+        await _movimientoService.RevocarTransferencia(user, movimientoGuid));
+    Assert.That(ex.Message, Contains.Substring(movimientoGuid));
+}
+[Test]
+public void RevocarTransferencia_ShouldThrowMovementIsNotTransferException_WhenTransferIsNull()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var movimientoGuid = "movGuid";
+    var originalMovement = new Movimiento
+    {
+        Id = "movOrigId",
+        ClienteGuid = "client1",
+        CreatedAt = DateTime.UtcNow.AddHours(-1),
+        IsDeleted = false,
+        Transferencia = null
+    };
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByGuidAsync(movimientoGuid))
+        .ReturnsAsync(originalMovement);
+
+    // Act & Assert
+    var ex = Assert.ThrowsAsync<MovementIsNotTransferException>(async () =>
+        await _movimientoService.RevocarTransferencia(user, movimientoGuid));
+    Assert.That(ex.Message, Contains.Substring(movimientoGuid));
+}
+[Test]
+public void RevocarTransferencia_ShouldThrowClientNotFoundException_WhenClientNotFound()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var movimientoGuid = "movGuid";
+    var originalMovement = new Movimiento
+    {
+        Id = "movOrigId",
+        ClienteGuid = "client1",
+        CreatedAt = DateTime.UtcNow.AddHours(-1),
+        IsDeleted = false,
+        Transferencia = new Transferencia
+        {
+            IbanOrigen = "ESORIGEN",
+            IbanDestino = "ESDESTINO",
+            Cantidad = 100,
+            MovimientoDestino = null
+        }
+    };
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByGuidAsync(movimientoGuid))
+        .ReturnsAsync(originalMovement);
+    _mockClientService
+        .Setup(c => c.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync((ClientResponse)null);
+
+    // Act & Assert
+    var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () =>
+        await _movimientoService.RevocarTransferencia(user, movimientoGuid));
+    Assert.That(ex.Message, Contains.Substring(user.Id));
+}
+[Test]
+public void RevocarTransferencia_ShouldThrowAccountUnknownIban_WhenClientMismatch()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var movimientoGuid = "movGuid";
+    var originalMovement = new Movimiento
+    {
+        Id = "movOrigId",
+        // El movimiento fue creado por otro cliente
+        ClienteGuid = "clientMismatch",
+        CreatedAt = DateTime.UtcNow.AddHours(-1),
+        IsDeleted = false,
+        Transferencia = new Transferencia
+        {
+            IbanOrigen = "ESORIGEN",
+            IbanDestino = "ESDESTINO",
+            Cantidad = 100,
+            MovimientoDestino = null
+        }
+    };
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByGuidAsync(movimientoGuid))
+        .ReturnsAsync(originalMovement);
+    // Se retorna un cliente cuyo Id no coincide con el del movimiento
+    var client = new ClientResponse { Id = "client1" };
+    _mockClientService
+        .Setup(c => c.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(client);
+
+    // Act & Assert
+    var ex = Assert.ThrowsAsync<AccountsExceptions.AccountUnknownIban>(async () =>
+        await _movimientoService.RevocarTransferencia(user, movimientoGuid));
+    Assert.That(ex.Message, Contains.Substring("ESORIGEN"));
+}
+[Test]
+public void RevocarTransferencia_ShouldThrowAccountNotFoundByIban_WhenOriginAccountNotFound()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var movimientoGuid = "movGuid";
+    var originalMovement = new Movimiento
+    {
+        Id = "movOrigId",
+        ClienteGuid = "client1",
+        CreatedAt = DateTime.UtcNow.AddHours(-1),
+        IsDeleted = false,
+        Transferencia = new Transferencia
+        {
+            IbanOrigen = "ESORIGEN",
+            IbanDestino = "ESDESTINO",
+            Cantidad = 100,
+            MovimientoDestino = null
+        }
+    };
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByGuidAsync(movimientoGuid))
+        .ReturnsAsync(originalMovement);
+    var client = new ClientResponse { Id = "client1" };
+    _mockClientService
+        .Setup(c => c.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(client);
+    _mockAccountsService
+        .Setup(a => a.GetCompleteAccountByIbanAsync("ESORIGEN"))
+        .ReturnsAsync((AccountCompleteResponse)null);
+
+    // Act & Assert
+    var ex = Assert.ThrowsAsync<AccountsExceptions.AccountNotFoundByIban>(async () =>
+        await _movimientoService.RevocarTransferencia(user, movimientoGuid));
+    Assert.That(ex.Message, Contains.Substring("ESORIGEN"));
+}
+[Test]
+public async Task RevocarTransferencia_ShouldContinue_WhenDestinationAccountNotFound_AndLogInfo()
+{
+    // Arrange: Parte origen válida, pero al buscar la cuenta destino se lanza excepción.
+    var user = new User { Id = "user1" };
+    var movimientoGuid = "movGuid";
+    var now = DateTime.UtcNow;
+    var originalMovement = new Movimiento
+    {
+         Id = "movOrigId",
+         ClienteGuid = "client1",
+         CreatedAt = now.AddHours(-1),
+         IsDeleted = false,
+         Transferencia = new Transferencia
+         {
+             IbanOrigen = "ESORIGEN",
+             IbanDestino = "ESDESTINO",
+             Cantidad = 100,
+             MovimientoDestino = null
+         }
+    };
+
+    // Configuramos el repositorio para obtener el movimiento original
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByGuidAsync(movimientoGuid))
+        .ReturnsAsync(originalMovement);
+    // Configuramos UpdateMovimientoAsync para que devuelva el objeto actualizado
+    _mockMovimientoRepository
+        .Setup(m => m.UpdateMovimientoAsync(originalMovement.Id, It.IsAny<Movimiento>()))
+        .ReturnsAsync((string id, Movimiento mov) => mov);
+
+    // Cliente origen válido
+    var client = new ClientResponse { Id = "client1" };
+    _mockClientService
+        .Setup(c => c.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(client);
+
+    // Cuenta origen: se recupera y se actualiza (saldo: 200 - 100 = 100)
+    var originAccount = new AccountCompleteResponse
+    {
+         Id = "originAccId",
+         IBAN = "ESORIGEN",
+         Balance = 200,
+         ClientID = "client1"
+    };
+    _mockAccountsService
+        .Setup(a => a.GetCompleteAccountByIbanAsync("ESORIGEN"))
+        .ReturnsAsync(originAccount);
+    var updatedOriginAccount = new AccountCompleteResponse
+    {
+         Id = "originAccId",
+         IBAN = "ESORIGEN",
+         Balance = 100,
+         ClientID = "client1"
+    };
+    _mockAccountsService
+        .Setup(a => a.UpdateAccountAsync("originAccId", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(updatedOriginAccount);
+        
+    // Al buscar la cuenta destino se lanza excepción
+    _mockAccountsService
+        .Setup(a => a.GetCompleteAccountByIbanAsync("ESDESTINO"))
+        .ThrowsAsync(new AccountsExceptions.AccountNotFoundByIban("ESDESTINO"));
+
+    // Act
+    var result = await _movimientoService.RevocarTransferencia(user, movimientoGuid);
+
+    // Assert: La revocación continúa (al menos la parte de origen) y el movimiento se marca como eliminado.
+    ClassicAssert.IsNotNull(result);
+    ClassicAssert.IsTrue(result.IsDeleted);
+    _mockAccountsService.Verify(a => a.UpdateAccountAsync("originAccId", It.IsAny<UpdateAccountRequest>()), Times.Once);
+}
+
+[Test]
+public void RevocarTransferencia_ShouldThrowClientNotFoundException_WhenDestinationClientNotFound()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var movimientoGuid = "movGuid";
+    var now = DateTime.UtcNow;
+    var originalMovement = new Movimiento
+    {
+         Id = "movOrigId",
+         ClienteGuid = "client1",
+         CreatedAt = now.AddHours(-1),
+         IsDeleted = false,
+         Transferencia = new Transferencia
+         {
+             IbanOrigen = "ESORIGEN",
+             IbanDestino = "ESDESTINO",
+             Cantidad = 100,
+             MovimientoDestino = null
+         }
+    };
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByGuidAsync(movimientoGuid))
+        .ReturnsAsync(originalMovement);
+    var client = new ClientResponse { Id = "client1" };
+    _mockClientService
+        .Setup(c => c.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(client);
+    var originAccount = new AccountCompleteResponse
+    {
+         Id = "originAccId",
+         IBAN = "ESORIGEN",
+         Balance = 200,
+         ClientID = "client1"
+    };
+    _mockAccountsService
+        .Setup(a => a.GetCompleteAccountByIbanAsync("ESORIGEN"))
+        .ReturnsAsync(originAccount);
+    var updatedOriginAccount = new AccountCompleteResponse
+    {
+         Id = "originAccId",
+         IBAN = "ESORIGEN",
+         Balance = 100,
+         ClientID = "client1"
+    };
+    _mockAccountsService
+        .Setup(a => a.UpdateAccountAsync("originAccId", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(updatedOriginAccount);
+    var destinationAccount = new AccountCompleteResponse
+    {
+         Id = "destAccId",
+         IBAN = "ESDESTINO",
+         Balance = 300,
+         ClientID = "clientDest"
+    };
+    _mockAccountsService
+        .Setup(a => a.GetCompleteAccountByIbanAsync("ESDESTINO"))
+        .ReturnsAsync(destinationAccount);
+    _mockAccountsService
+        .Setup(a => a.UpdateAccountAsync("destAccId", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(destinationAccount);
+    // Al obtener el cliente destino se retorna null
+    _mockClientService
+        .Setup(c => c.GetClientByIdAsync("clientDest"))
+        .ReturnsAsync((ClientResponse)null);
+
+    // Act & Assert
+    var ex = Assert.ThrowsAsync<ClientExceptions.ClientNotFoundException>(async () =>
+         await _movimientoService.RevocarTransferencia(user, movimientoGuid));
+    Assert.That(ex.Message, Contains.Substring("clientDest"));
+}
+[Test]
+public void RevocarTransferencia_ShouldThrowUserNotFoundException_WhenDestinationUserNotFound()
+{
+    // Arrange
+    var user = new User { Id = "user1" };
+    var movimientoGuid = "movGuid";
+    var now = DateTime.UtcNow;
+    var originalMovement = new Movimiento
+    {
+         Id = "movOrigId",
+         ClienteGuid = "client1",
+         CreatedAt = now.AddHours(-1),
+         IsDeleted = false,
+         Transferencia = new Transferencia
+         {
+             IbanOrigen = "ESORIGEN",
+             IbanDestino = "ESDESTINO",
+             Cantidad = 100,
+             MovimientoDestino = null
+         }
+    };
+    _mockMovimientoRepository
+        .Setup(m => m.GetMovimientoByGuidAsync(movimientoGuid))
+        .ReturnsAsync(originalMovement);
+    var client = new ClientResponse { Id = "client1" };
+    _mockClientService
+        .Setup(c => c.GetClientByUserIdAsync(user.Id))
+        .ReturnsAsync(client);
+    var originAccount = new AccountCompleteResponse
+    {
+         Id = "originAccId",
+         IBAN = "ESORIGEN",
+         Balance = 200,
+         ClientID = "client1"
+    };
+    _mockAccountsService
+        .Setup(a => a.GetCompleteAccountByIbanAsync("ESORIGEN"))
+        .ReturnsAsync(originAccount);
+    var updatedOriginAccount = new AccountCompleteResponse
+    {
+         Id = "originAccId",
+         IBAN = "ESORIGEN",
+         Balance = 100,
+         ClientID = "client1"
+    };
+    _mockAccountsService
+        .Setup(a => a.UpdateAccountAsync("originAccId", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(updatedOriginAccount);
+    var destinationAccount = new AccountCompleteResponse
+    {
+         Id = "destAccId",
+         IBAN = "ESDESTINO",
+         Balance = 300,
+         ClientID = "clientDest"
+    };
+    _mockAccountsService
+        .Setup(a => a.GetCompleteAccountByIbanAsync("ESDESTINO"))
+        .ReturnsAsync(destinationAccount);
+    _mockAccountsService
+        .Setup(a => a.UpdateAccountAsync("destAccId", It.IsAny<UpdateAccountRequest>()))
+        .ReturnsAsync(destinationAccount);
+    // Se retorna un cliente destino válido
+    var destinationClient = new ClientResponse { Id = "clientDest", UserId = "destUserId" };
+    _mockClientService
+        .Setup(c => c.GetClientByIdAsync("clientDest"))
+        .ReturnsAsync(destinationClient);
+    // Al obtener el usuario destino se retorna null
+    _mockUserService
+        .Setup(u => u.GetUserByIdAsync("destUserId"))
+        .ReturnsAsync((UserResponse)null);
+
+    // Act & Assert
+    var ex = Assert.ThrowsAsync<UserNotFoundException>(async () =>
+         await _movimientoService.RevocarTransferencia(user, movimientoGuid));
+    Assert.That(ex.Message, Contains.Substring("destUserId"));
+}
+
+
 
 }
 

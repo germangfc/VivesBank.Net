@@ -3,11 +3,6 @@ using VivesBankApi.Utils.GenericStorage.JSON;
 
 namespace VivesBankApi.Rest.Product.CreditCard.Service;
 
-/// <summary>
-/// Define los métodos para interactuar con los servicios relacionados con las tarjetas de crédito.
-/// Esta interfaz hereda de `IGenericStorageJson<Models.CreditCard>` y proporciona operaciones
-/// específicas para la gestión y consulta de tarjetas de crédito, tanto para administradores como para clientes.
-/// </summary>
 public interface ICreditCardService : IGenericStorageJson<Models.CreditCard>
 {
     /// <summary>

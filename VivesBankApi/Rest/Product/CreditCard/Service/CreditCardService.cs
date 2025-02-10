@@ -87,6 +87,8 @@ public class CreditCardService
         int pageNumber, int pageSize, string fullName, bool? isDeleted, string direction)
     {
         _logger.LogInformation("Getting all credit cards");
+        pageNumber = Math.Max(1, pageNumber);
+        pageSize = Math.Max(1, pageSize);
     
         var cards = await _creditCardRepository.GetAllCrediCardsPaginated(pageNumber, pageSize, fullName, isDeleted, direction);
 
@@ -213,7 +215,7 @@ public class CreditCardService
         }
         
         creditCardModel.AccountId = account.Id;
-
+        _logger.LogInformation($"{creditCardModel}");
         await _creditCardRepository.AddAsync(creditCardModel);
             
         return creditCardModel.ToClientResponse();

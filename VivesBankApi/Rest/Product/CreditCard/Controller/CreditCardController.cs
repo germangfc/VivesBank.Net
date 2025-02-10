@@ -98,7 +98,7 @@ public class CreditCardController : ControllerBase
     /// <returns>Detalles de la tarjeta de crédito creada.</returns>
     [HttpPost]
     [Authorize("ClientPolicy")]
-    public async Task<ActionResult<CreditCardClientResponse>> CreateCardAsync([FromBody] CreditCardRequest createRequest)
+    public async Task<ActionResult<CreditCardClientResponse>> CreateCardAsync(CreditCardRequest createRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -106,7 +106,7 @@ public class CreditCardController : ControllerBase
         }
         _logger.LogInformation($"Creating card: {createRequest}");
         var card = await _creditCardService.CreateCreditCardAsync(createRequest);
-        return CreatedAtAction(nameof(GetCardByIdAdminAsync), new { cardId = card.Id }, card);
+        return Ok(card);
     }
 
     /// <summary>

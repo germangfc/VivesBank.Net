@@ -22,9 +22,4 @@ public class CreditCardRequest
     /// </summary>
     [Required]
     public string AccountIban { get; set; }
-    
-    /// <summary>
-    /// El número de la tarjeta de crédito. Si no se proporciona, se generará uno automáticamente.
-    /// </summary>
-    public string CardNumber { get; set; }
 }

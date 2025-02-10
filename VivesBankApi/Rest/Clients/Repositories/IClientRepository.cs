@@ -3,10 +3,6 @@ using VivesBankApi.Rest.Clients.Models;
 
 namespace VivesBankApi.Rest.Clients.Repositories
 {
-    /// <summary>
-    /// Define los métodos necesarios para interactuar con los datos de los clientes.
-    /// Esta interfaz hereda de IGenericRepository<Client> para operaciones comunes.
-    /// </summary>
     public interface IClientRepository : IGenericRepository<Client>
     {
         /// <summary>
